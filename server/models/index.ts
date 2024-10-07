@@ -2,6 +2,7 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import userModel from './usermodel';
+import projectModel from "./projectmodel";
 
 dotenv.config();
 
@@ -11,13 +12,14 @@ const sequelize = new Sequelize(process.env.DB_URL!, {
   });
 
 const User = userModel(sequelize);
+const Project = projectModel(sequelize);
 
 const db = {
     sequelize,
     User,
+    Project,
 };
 
-// Synchronize models with the database
 const syncDatabase = async () => {
     try {
         await sequelize.sync();

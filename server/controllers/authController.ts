@@ -21,7 +21,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Check if the password matches
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             res.status(400).json({ error: 'Invalid credentials' });
@@ -32,9 +31,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
         // Set the token in cookies
         res.cookie('token', token, {
-            httpOnly: true, // Helps mitigate the risk of client-side script accessing the cookie
-            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-            maxAge: 3600000, // Set cookie expiration (1 hour in milliseconds)
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 3600000,
         });
 
         const { password: _, ...userWithoutPassword } = user.toJSON();

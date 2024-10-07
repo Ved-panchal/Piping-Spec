@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import authRoute from "./routes/authRoutes"
 import userRoute from "./routes/userRoutes"
+import projectRoute from "./routes/projectRoutes"
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -12,7 +13,6 @@ dotenv.config();
 
 const app:Express = express();
 
-// Swagger setup
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 app.use('/auth', authRoute);
 app.use('/users', userRoute);
-
+app.use('/projects',projectRoute);
 
 
 export default app;
