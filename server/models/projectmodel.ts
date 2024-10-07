@@ -1,4 +1,3 @@
-// models/projectModel.ts
 import { DataTypes } from "sequelize";
 import usermodel from "./usermodel";
 
@@ -9,7 +8,6 @@ const projectModel = (sequelize: any) => {
       projectCode: {
         type: DataTypes.STRING(3),
         allowNull: false,
-        unique: true,
         validate: {
           isAlphanumeric: true,
           isUppercase: true,
@@ -42,6 +40,12 @@ const projectModel = (sequelize: any) => {
     {
       timestamps: true,
       underscored: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['id', 'project_code'],
+        },
+      ],
     }
   );
 
