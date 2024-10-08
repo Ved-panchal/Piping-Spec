@@ -1,70 +1,128 @@
-// import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../Logo/Logo';
+import showToast from '../../utils/toast'; // Assuming you have this helper to show notifications
 
-const Navbar = ({openModal}) => {
-  const navigate = useNavigate(); 
+const Navbar = ({ openModal }: { openModal: () => void }) => {
+  const [username, setUsername] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State to toggle the dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref for dropdown
+  const navigate = useNavigate();
 
-  const menuItems = ["Home", "Pricing"];
+  // Check localStorage for username when the component mounts
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user')!);
+    if (user) {
+      setUsername(user.name);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    showToast({ message: 'Logged out successfully!', type: 'success' });
+    setUsername(null); 
+    setIsDropdownOpen(false); // Close the dropdown on logout
+    navigate('/');
+  };
 
   const handlePricingClick = () => {
     if (window.location.pathname !== '/') {
-      navigate('/');  
+      navigate('/');
     }
     setTimeout(() => {
       const pricingSection = document.getElementById('pricing-section');
       if (pricingSection) {
         pricingSection.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 100);  // Slight delay for the page transition
+    }, 100); // Slight delay for the page transition
   };
 
+  // Toggle the dropdown visibility
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  // Close the dropdown when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   return (
-    <header className="bg-primary">
+    <header className="">
       <div className="w-screen">
-        <nav className="bg-primary/50 text-secondary backdrop-blur fixed top-0 z-30 w-full px-7 flex items-center justify-between py-4">
+        <nav className="text-black backdrop-blur fixed top-0 z-30 w-full px-7 flex items-center justify-between py-4">
           {/* Left Side: Logo */}
           <div className="flex items-center space-x-2">
             <Link to="/">
               <div className="flex items-center cursor-pointer">
-                <Logo className="!text-secondary" />
-                <p className="font-bold text-secondary text-lg">V Store</p>
+                <Logo className="" />
+                <p className="font-bold text-black text-lg">V Store</p>
               </div>
             </Link>
           </div>
 
-          <div className='flex items-center justify-between w-[40%]'>
+          <div className="flex items-center justify-between w-[40%]">
             {/* Center: Menu Items */}
             <div className="hidden sm:flex gap-4">
-              {menuItems.map((item, index) => (
-                item === "Pricing" ? (
-                  <button
-                    key={index}
-                    onClick={handlePricingClick}
-                    className="text-secondary transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
-                  >
-                    {item}
-                  </button>
-                ) : (
-                  <Link
-                    key={index}
-                    to="/"
-                    className={`text-secondary transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2 `}
-                  >
-                    {item}
-                  </Link>
-                )
-              ))}
+              <button
+                onClick={handlePricingClick}
+                className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
+              >
+                Pricing
+              </button>
+              <Link
+                to="/"
+                className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
+              >
+                Home
+              </Link>
             </div>
 
-            {/* Right Side: Sign Up Button */}
-            <div className="flex items-center space-x-4">
-              {/* Login Button */}
-              
-                <button className="bg-gray-200 px-4 py-2 rounded-lg text-secondary hover:bg-gray-300" onClick={openModal}>
+            {/* Right Side: Auth/Login/Logout */}
+            <div className="flex items-center space-x-4 relative" ref={dropdownRef}>
+              {username ? (
+                <div>
+                  <button
+                    onClick={toggleDropdown}
+                    className="bg-gray-200 px-4 py-2 rounded-lg text-black hover:bg-gray-300"
+                  >
+                    Welcome, {username.split(' ')[0]}
+                  </button>
+                  
+                  {/* Dropdown for Logout */}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md z-10">
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className="bg-gray-200 px-4 py-2 rounded-lg text-black hover:bg-gray-300"
+                  onClick={openModal}
+                >
                   Login
                 </button>
-              
+              )}
             </div>
           </div>
         </nav>

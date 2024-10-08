@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_URL } from "./config";
 
 const api = axios.create({
-    withCredentials: true,
+    withCredentials: false,
     baseURL: API_URL,
 })
 
