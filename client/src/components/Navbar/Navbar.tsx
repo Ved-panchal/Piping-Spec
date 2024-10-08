@@ -2,20 +2,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../Logo/Logo';
 
-const Navbar = () => {
-//   const [, setCurrentPage] = useState("");
-  const navigate = useNavigate(); // To navigate between pages
-
-//   useEffect(() => {
-//     setCurrentPage(window.location.pathname);
-//   }, []);
+const Navbar = ({openModal}) => {
+  const navigate = useNavigate(); 
 
   const menuItems = ["Home", "Pricing"];
 
-  // Function to handle clicking on Pricing to scroll to the section
   const handlePricingClick = () => {
     if (window.location.pathname !== '/') {
-      navigate('/');  // Navigate to the home page first if not there
+      navigate('/');  
     }
     setTimeout(() => {
       const pricingSection = document.getElementById('pricing-section');
@@ -66,11 +60,11 @@ const Navbar = () => {
             {/* Right Side: Sign Up Button */}
             <div className="flex items-center space-x-4">
               {/* Login Button */}
-              <Link to="/signup">
-                <button className="bg-gray-200 px-4 py-2 rounded-lg text-secondary hover:bg-gray-300">
+              
+                <button className="bg-gray-200 px-4 py-2 rounded-lg text-secondary hover:bg-gray-300" onClick={openModal}>
                   Login
                 </button>
-              </Link>
+              
             </div>
           </div>
         </nav>
