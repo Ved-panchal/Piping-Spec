@@ -127,7 +127,8 @@ export const getUserByEmail = async (req: Request, res: Response):Promise<void> 
 
 export const deleteUser = async (req:Request, res:Response):Promise<void> => {
     try {
-        const { email } = req.body;
+        // const { email } = req.body;
+        const email = (req as any).user.email;
 
         const user = await db.User.findOne({ where: { email } });
 

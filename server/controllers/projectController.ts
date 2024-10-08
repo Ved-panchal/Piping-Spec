@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import db from "../models";
 
 // Create Project
-// Create Project
 export const createProject = async (req: Request, res: Response): Promise<void> => {
     try {
         const { projectCode, projectDescription, companyName } = req.body;
@@ -37,7 +36,6 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ error: "Internal server error" });
     }
 };
-
 
 // Update Project
 export const updateProject = async (req: Request, res: Response): Promise<void> => {
