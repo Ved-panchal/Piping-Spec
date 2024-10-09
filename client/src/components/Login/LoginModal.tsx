@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { Eye, EyeOff } from 'lucide-react';
 import showToast from '../../utils/toast';
 import FormikInput from '../FormFields/FormikInput';
 import FormikErrorMessage from '../FormFields/FormikErrorMessage';
-import { useNavigate } from "react-router-dom";
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 
@@ -16,7 +15,6 @@ interface LoginFormValues {
 
 const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () => void }) => {
     const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);

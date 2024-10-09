@@ -1,13 +1,25 @@
-import Pricing from '../Pricing/Pricing'
+import { useState } from 'react';
+import Pricing from '../Pricing/Pricing';
+import RegisterModal from '../Register/RegisterModal';
 
 const Home = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [plan, setPlan] = useState(0);
+
+  const setPlanValue = (value: number) => setPlan(value);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <>
-    <section id="pricing-section" className='Pricing'>
-        <Pricing/>
-    </section>
-    </>
-  )
-}
+      {/* Render Modal at the top level so it appears above the Pricing section */}
+      <RegisterModal isOpen={isModalOpen} closeModal={closeModal} selectedPlanIndex={plan} />
 
-export default Home
+      <section id="pricing-section" className="Pricing">
+        <Pricing openModal={openModal} setPlanValue={setPlanValue} />
+      </section>
+    </>
+  );
+};
+
+export default Home;
