@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../Logo/Logo';
-import showToast from '../../utils/toast'; // Assuming you have this helper to show notifications
+import showToast from '../../utils/toast';
 
 const Navbar = ({ openModal }: { openModal: () => void }) => {
   const [username, setUsername] = useState<string | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State to toggle the dropdown
-  const dropdownRef = useRef<HTMLDivElement>(null); // Ref for dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // Check localStorage for username when the component mounts
@@ -21,7 +21,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
     localStorage.removeItem('user');
     showToast({ message: 'Logged out successfully!', type: 'success' });
     setUsername(null); 
-    setIsDropdownOpen(false); // Close the dropdown on logout
+    setIsDropdownOpen(false);
     navigate('/');
   };
 
@@ -34,15 +34,13 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
       if (pricingSection) {
         pricingSection.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 100); // Slight delay for the page transition
+    }, 100); 
   };
 
-  // Toggle the dropdown visibility
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Close the dropdown when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -78,18 +76,19 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
           <div className="flex items-center justify-between w-[40%]">
             {/* Center: Menu Items */}
             <div className="hidden sm:flex gap-4">
+            <Link
+                to="/"
+                className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
+              >
+                Home
+              </Link>
               <button
                 onClick={handlePricingClick}
                 className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
               >
                 Pricing
               </button>
-              <Link
-                to="/"
-                className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
-              >
-                Home
-              </Link>
+              
             </div>
 
             {/* Right Side: Auth/Login/Logout */}
