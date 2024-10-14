@@ -2,6 +2,7 @@ import { useRoutes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import HomePage from "../pages/Home"
 import HeaderLayout from "../Layouts/HeaderLayout";
+import PipingSpecCreation from "../pages/PipingSpecCreation";
 
 const Router = () => {
     return useRoutes([
@@ -14,9 +15,17 @@ const Router = () => {
             }]
         },
         {
+            path:"/services",
+            children:[{
+                path:"pipingspec-creation",
+                element:<PipingSpecCreation/>,
+            }]
+        },
+        {
             path: "*",
             element: <ToastContainer />,
         },
+        
     ])
 } 
 

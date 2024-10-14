@@ -6,10 +6,11 @@ import showToast from '../../utils/toast';
 const Navbar = ({ openModal }: { openModal: () => void }) => {
   const [username, setUsername] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const servicesDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Check localStorage for username when the component mounts
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user')!);
     if (user) {
@@ -41,14 +42,22 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const toggleServicesDropdown = () => {
+    setIsServicesDropdownOpen(!isServicesDropdownOpen);
+  };
+
+  // Handle outside click for both dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target as Node)) {
+        setIsServicesDropdownOpen(false);
+      }
     };
 
-    if (isDropdownOpen) {
+    if (isDropdownOpen || isServicesDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -57,7 +66,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isDropdownOpen]);
+  }, [isDropdownOpen, isServicesDropdownOpen]);
 
   return (
     <header className="">
@@ -76,7 +85,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
           <div className="flex items-center justify-between w-[40%]">
             {/* Center: Menu Items */}
             <div className="hidden sm:flex gap-4">
-            <Link
+              <Link
                 to="/"
                 className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
               >
@@ -88,7 +97,30 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
               >
                 Pricing
               </button>
-              
+
+              {/* Conditionally render Services Dropdown if the user is logged in */}
+              {username && (
+                <div className="relative" ref={servicesDropdownRef}>
+                  <button
+                    onClick={toggleServicesDropdown}
+                    className="text-black transform transition-transform duration-300 hover:scale-105 font-semibold rounded-sm px-2"
+                  >
+                    Services
+                  </button>
+                  {isServicesDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white shadow-md rounded-md z-10">
+                      <Link
+                        to="/services/pipingspec-creation"
+                        className="w-full px-4 py-2 text-left text-black hover:bg-gray-100 flex items-center space-x-2"
+                      >
+                        {/* Placeholder for your logo */}
+                        <img src="path-to-your-logo.png" alt="Piping Spec Logo" className="w-6 h-6" />
+                        <span>Piping Spec Creation</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right Side: Auth/Login/Logout */}

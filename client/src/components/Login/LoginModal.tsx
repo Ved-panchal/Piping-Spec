@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { Eye, EyeOff } from 'lucide-react';
@@ -7,6 +7,7 @@ import FormikInput from '../FormFields/FormikInput';
 import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
+import { bouncy } from 'ldrs';
 
 interface LoginFormValues {
     Email: string;
@@ -15,6 +16,15 @@ interface LoginFormValues {
 
 const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () => void }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false); // Manage loading state
+    const emailInputRef = useRef<HTMLInputElement>(null); // Create a reference for the email input
+    bouncy.register();
+
+    useEffect(() => {
+        if (isOpen && emailInputRef.current) {
+            emailInputRef.current.focus();
+        }
+    }, [isOpen]);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -38,47 +48,49 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
     });
 
     const onSubmit = async (values: LoginFormValues) => {
-      try {
-          const requestBody = {
-              email: values.Email,
-              password: values.password,
-          };
-  
-          // Send the POST request with JSON payload
-          const response = await api.post(configApi.API_URL.auth.login, requestBody, {
-              headers: {
-                  "Content-Type": "application/json",
-              },
-          });
-  
-          if (response) {
-            console.log(response);
-              localStorage.setItem("user", JSON.stringify(response.data.user));
-              showToast({ message: "Login Successful!!", type: "success" });
-              setTimeout(() => {
-                  window.location.href = "/";
-              }, 1500);
-          } else {
-              showToast({
-                  message: "Login failed. Please check your credentials.",
-                  type: "error",
-              });
-          }
-      } catch (error) {
-          if (error instanceof Error) {
-              showToast({
-                  message: error.message || "Login failed. Please check your credentials.",
-                  type: "error",
-              });
-          } else {
-              showToast({
-                  message: "An unknown error occurred.",
-                  type: "error",
-              });
-          }
-      }
-  };
-  
+        setLoading(true); // Set loading to true when login starts
+        try {
+            const requestBody = {
+                email: values.Email,
+                password: values.password,
+            };
+
+            // Send the POST request with JSON payload
+            const response = await api.post(configApi.API_URL.auth.login, requestBody, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response) {
+                console.log(response);
+                localStorage.setItem("user", JSON.stringify(response.data.user));
+                showToast({ message: "Login Successful!!", type: "success" });
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 1500);
+            } else {
+                showToast({
+                    message: "Login failed. Please check your credentials.",
+                    type: "error",
+                });
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                showToast({
+                    message: error.message || "Login failed. Please check your credentials.",
+                    type: "error",
+                });
+            } else {
+                showToast({
+                    message: "An unknown error occurred.",
+                    type: "error",
+                });
+            }
+        } finally {
+            setLoading(false); // Reset loading to false when login finishes
+        }
+    };
 
     return (
         <>
@@ -105,7 +117,15 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                                 onSubmit={onSubmit}
                             >
                                 {({ handleSubmit }) => (
-                                    <Form onSubmit={handleSubmit}>
+                                    <Form
+                                        onSubmit={handleSubmit}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();  // Prevent form's default Enter key behavior
+                                                handleSubmit();       // Trigger form submission
+                                            }
+                                        }}
+                                    >
                                         <div className="mb-4">
                                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="Email">
                                                 Your Email
@@ -114,6 +134,8 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                                                 name="Email"
                                                 type="email"
                                                 placeholder="Enter your email"
+                                                innerRef={emailInputRef}
+                                                autoFocus={true}
                                             />
                                             <FormikErrorMessage name="Email" component="div" />
                                         </div>
@@ -154,22 +176,26 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                                             </label>
                                         </div>
                                         <div className="flex w-full justify-between">
-                                          <button
-                                              type="submit"
-                                              className="relative box-border appearance-none select-none whitespace-nowrap subpixel-antialiased overflow-hidden w-[48%] min-w-20 h-10 text-small bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center gap-2 transition-all duration-300 ease-in-out hover:scale-105"
-                                          >
-                                              Sign In
-                                          </button>
-                                          <button
-                                              className="border border-grey bg-gray-300 text-black font-bold py-2 px-6 rounded hover:bg-gray-400 transition-all ease-in-out duration-300 hover:scale-105 w-[48%]"
-                                              onClick={() => {
-                                                  closeModal();
-                                              }}
-                                          >
-                                              Cancel
-                                          </button>
-                                      </div>
-
+                                            <button
+                                                type="submit"
+                                                disabled={loading} 
+                                                className="relative box-border appearance-none select-none whitespace-nowrap subpixel-antialiased overflow-hidden w-[48%] min-w-20 h-10 text-small bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center gap-2 transition-all duration-300 ease-in-out hover:scale-105"
+                                            >
+                                                {loading ? (
+                                                    <l-bouncy size="25" speed="1.75" color="white" />
+                                                ) : (
+                                                    "Sign In"
+                                                )}
+                                            </button>
+                                            <button
+                                                className="border border-grey bg-gray-300 text-black font-bold py-2 px-6 rounded hover:bg-gray-400 transition-all ease-in-out duration-300 hover:scale-105 w-[48%]"
+                                                onClick={() => {
+                                                    closeModal();
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
                                     </Form>
                                 )}
                             </Formik>

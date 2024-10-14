@@ -8,8 +8,8 @@ const Pricing = ({ openModal, setPlanValue }: { openModal: () => void, setPlanVa
   
 
   const handleOpenModal = (index: number) => {
-    setPlanValue(index);  // Set the selected plan index
-    openModal();          // Open the modal
+    setPlanValue(index);
+    openModal();
   };
   return (
     <div className="py-10 md:px-14 p-4 max-w-screen-2xl mx-auto mt-10" id="pricing">
@@ -28,9 +28,10 @@ const Pricing = ({ openModal, setPlanValue }: { openModal: () => void, setPlanVa
       >
         {packages.map((pkg: Plan, index: number) => (
           <PricingCard
-          name={packages[index].name}
-          Price={packages[index].Price}
-          benefits={packages[index].benefits}
+          key={index}
+          name={pkg.name}
+          Price={pkg.Price}
+          benefits={pkg.benefits}
           index={index}
           showButton={true}          
           openModal={handleOpenModal}     
