@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { createProject, updateProject, getProjectByCode, deleteProject } from "../controllers/projectController";
+import {
+  createProject,
+  updateProject,
+  getProjectByCode,
+  deleteProject,
+  getAllProjectsByUserId, // Import your new function here
+} from "../controllers/projectController";
 import { authenticateJWT } from "../middleware/authenticatejwt"; // Middleware for JWT authentication
 
 const router = Router();
@@ -175,5 +181,34 @@ router.get("/:projectCode", authenticateJWT, getProjectByCode); // Protected rou
  *         description: Internal server error
  */
 router.delete("/delete", authenticateJWT, deleteProject); // Protected route
+
+/**
+ * @swagger
+ * /projects/GetAll/ByUser:
+ *   get:
+ *     summary: Get all projects for the authenticated user
+ *     tags: [Projects]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of projects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   projectCode:
+ *                     type: string
+ *                   projectDescription:
+ *                     type: string
+ *                   companyName:
+ *                     type: string
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/GetAll/ByUser", authenticateJWT, getAllProjectsByUserId); // Protected route
 
 export default router;

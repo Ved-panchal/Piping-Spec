@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import showToast from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
 
-interface userDropDown {
-    username:string,
+interface UserDropDownProps {
+  username: string;
 }
 
-const UserDropDown = ({ username }:userDropDown) => {
+const UserDropDown: React.FC<UserDropDownProps> = ({ username }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null); // Reference to the dropdown
   const navigate = useNavigate();
 
   const toggleDropdown = () => setIsOpen(!isOpen);
@@ -16,12 +17,30 @@ const UserDropDown = ({ username }:userDropDown) => {
     localStorage.removeItem('user');
     showToast({ message: 'Logged out successfully!', type: 'success' });
     setTimeout(() => {
-        navigate('/');
-    },300)
+      navigate('/');
+    }, 300);
   };
 
+  // Effect to close dropdown when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Check if click is outside the dropdownRef
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    // Add event listener to detect clicks outside
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      // Cleanup the event listener when component unmounts
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button 
         onClick={toggleDropdown}
         className="text-gray-700 hover:text-gray-900 focus:outline-none"

@@ -8,6 +8,7 @@ import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import { bouncy } from 'ldrs';
+import Cookies from 'js-cookie';
 
 interface LoginFormValues {
     Email: string;
@@ -16,8 +17,8 @@ interface LoginFormValues {
 
 const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () => void }) => {
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false); // Manage loading state
-    const emailInputRef = useRef<HTMLInputElement>(null); // Create a reference for the email input
+    const [loading, setLoading] = useState(false);
+    const emailInputRef = useRef<HTMLInputElement>(null);
     bouncy.register();
 
     useEffect(() => {
@@ -48,7 +49,7 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
     });
 
     const onSubmit = async (values: LoginFormValues) => {
-        setLoading(true); // Set loading to true when login starts
+        setLoading(true);
         try {
             const requestBody = {
                 email: values.Email,
@@ -63,8 +64,11 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
             });
 
             if (response) {
-                console.log(response);
                 localStorage.setItem("user", JSON.stringify(response.data.user));
+                // Cookies.set('token', response.data.token, {
+                //     expires: 1,
+                //     path: '/', 
+                // });
                 showToast({ message: "Login Successful!!", type: "success" });
                 setTimeout(() => {
                     window.location.href = "/";
@@ -88,7 +92,7 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                 });
             }
         } finally {
-            setLoading(false); // Reset loading to false when login finishes
+            setLoading(false);
         }
     };
 
@@ -121,8 +125,8 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                                         onSubmit={handleSubmit}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
-                                                e.preventDefault();  // Prevent form's default Enter key behavior
-                                                handleSubmit();       // Trigger form submission
+                                                e.preventDefault();
+                                                handleSubmit();
                                             }
                                         }}
                                     >
@@ -178,7 +182,7 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                                         <div className="flex w-full justify-between">
                                             <button
                                                 type="submit"
-                                                disabled={loading} 
+                                                disabled={loading}
                                                 className="relative box-border appearance-none select-none whitespace-nowrap subpixel-antialiased overflow-hidden w-[48%] min-w-20 h-10 text-small bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center gap-2 transition-all duration-300 ease-in-out hover:scale-105"
                                             >
                                                 {loading ? (

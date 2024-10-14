@@ -5,6 +5,8 @@ import showToast from '../../utils/toast';
 import FormikInput from '../FormFields/FormikInput';
 import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import { bouncy } from 'ldrs';
+import api from '../../utils/api/apiutils';
+import { api as configApi } from '../../utils/api/config';
 
 interface ProjectFormValues {
   code: string;
@@ -32,20 +34,45 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     code: Yup.string()
       .matches(/^[A-Z0-9]{3}$/, 'Code must be 3 alphanumeric characters')
       .required('Project Code is required'),
-    description: Yup.string()
-      .required('Project Description is required'),
-    company: Yup.string()
-      .required('Company Name is required'),
+    description: Yup.string().required('Project Description is required'),
+    company: Yup.string().required('Company Name is required'),
   });
 
   const handleSubmit = async (values: ProjectFormValues) => {
     setLoading(true);
     try {
-      await onSubmit(values);
-      showToast({ message: "Project created successfully!", type: "success" });
-      onClose(); // Close modal after successful submission
+      const requestBody = {
+        projectCode: values.code,
+        projectDescription: values.description,
+        companyName: values.company,
+      };
+
+      const response = await api.post(configApi.API_URL.project.create, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response) {
+        console.log(response);
+        showToast({ message: 'Project created successfully!', type: 'success' });
+        onClose(); 
+        onSubmit(values);
+      } else {
+        showToast({ message: "Error Creating Project", type: 'error' });
+      }
     } catch (error) {
-      showToast({ message: "Failed to create project.", type: "error" });
+      if (error instanceof Error) {
+        showToast({
+          message: error.message || 'Failed to create project. Please try again.',
+          type: 'error',
+        });
+      } else {
+        showToast({
+          message: 'An unknown error occurred.',
+          type: 'error',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -127,7 +154,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                         {loading ? (
                           <l-bouncy size="25" speed="1.75" color="white" />
                         ) : (
-                          "Create Project"
+                          'Create Project'
                         )}
                       </button>
                       <button

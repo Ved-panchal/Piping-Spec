@@ -14,6 +14,7 @@ export const api = {
       project:{
         create:"projects/create",
         getProject:"projects/{projectCode}",
+        getAllProjectByUser:"projects/GetAll/ByUser",
         update:"projects/update",
         delete:"projects/delete",
       }

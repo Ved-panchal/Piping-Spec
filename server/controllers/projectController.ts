@@ -16,7 +16,7 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
                     companyName,
                     isDeleted: false,
                 });
-                res.status(200).json({ message: "Project restored and updated successfully", project });
+                res.status(200).json({ message: "Project Created Successfully.", project });
             } else {
                 res.status(400).json({ error: "Project with the same code already exists" });
             }
@@ -30,7 +30,7 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
             userId,
         });
 
-        res.status(201).json(newProject);
+        res.status(201).json({messaeg:"Project Created Successfully.",newProject});
     } catch (error) {
         console.error("Error creating project:", error);
         res.status(500).json({ error: "Internal server error" });
@@ -66,6 +66,7 @@ export const getProjectByCode = async (req: Request, res: Response): Promise<voi
       const userId = (req as any).user.id;
 
       const project = await db.Project.findOne({ where: { projectCode, userId, isDeleted: false } });
+      // console.log(userId);
 
       if (!project) {
         res.status(404).json({ error: "Project not found or access denied" });
@@ -78,6 +79,21 @@ export const getProjectByCode = async (req: Request, res: Response): Promise<voi
       res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// Get All Projects by User ID
+export const getAllProjectsByUserId = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const userId = (req as any).user.id;
+      // Fetch all projects associated with the user ID that are not marked as deleted
+      const projects = await db.Project.findAll({ where: { userId:userId, isDeleted: false } });
+
+      res.status(200).json(projects);
+  } catch (error: unknown) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 // Delete Project (Soft Delete)
 export const deleteProject = async (req: Request, res: Response): Promise<void> => {

@@ -11,7 +11,7 @@ const HeaderLayout = () => {
   return (
     <>
      <Navbar openModal={openModal} />
-     <Outlet/> 
+     <Outlet/>
      <LoginModal
         isOpen={isOpen}
         closeModal={closeModal}
