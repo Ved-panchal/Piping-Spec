@@ -1,13 +1,16 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import FormikInput from '../FormFields/FormikInput';
 import FormikErrorMessage from '../FormFields/FormikErrorMessage';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // FontAwesome icons
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { packages } from '../Pricing/PricingPackages';
 import PricingCard from '../Pricing/PricingCard/PricingCard';
+import api from '../../utils/api/apiutils';
+import { api as configApi } from '../../utils/api/config';
+import showToast from '../../utils/toast';
 
-const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boolean; closeModal: () => void,selectedPlanIndex: number | null }) => {
+const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: boolean; closeModal: () => void; selectedPlanIndex: number | null }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -27,7 +30,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
     country: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   };
 
   const validationSchema = Yup.object({
@@ -36,21 +39,48 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
     email: Yup.string().email('Invalid email format').required('Email is required'),
     industry: Yup.string().required('Industry is required'),
     country: Yup.string().required('Country is required'),
-    phoneNumber: Yup.string()
-      .matches(/^\d+$/, 'Phone number is not valid')
-      .required('Phone number is required'),
-    password: Yup.string()
-      .min(6, 'Password must be at least 6 characters long')
-      .required('Password is required'),
+    phoneNumber: Yup.string().matches(/^\d+$/, 'Phone number is not valid'),
+    password: Yup.string().min(6, 'Password must be at least 6 characters long').required('Password is required'),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref('password'), ''], 'Passwords must match')
       .required('Confirm password is required'),
   });
 
-  const onSubmit = (values: typeof initialValues) => {
-    console.log('Form data', values);
-    // Submit logic goes here
-  };
+  const onSubmit = async (values: typeof initialValues) => {
+    try {
+      const response = await api.post(configApi.API_URL.user.create, values, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 201) {
+        showToast({
+          message: 'Registration successful!',
+          type: 'success',
+        });
+        closeModal();
+      } else {
+        showToast({
+          message: response.data.msg,
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        showToast({
+          message: error.message || 'Something went wrong. Please try again.',
+          type: 'error',
+        });
+      } else {
+        showToast({
+          message: 'An unknown error occurred.',
+          type: 'error',
+        });
+      }
+    }
+};
+
 
   return (
     <>
@@ -66,24 +96,16 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
             <div className="flex w-full h-full">
               {/* Left side - Form Fields (70% width) */}
               <div className="w-[70%] p-6">
-                <h4 className="block font-sans text-2xl font-semibold leading-snug tracking-normal text-blue-gray-900">
-                  Register
-                </h4>
-                <p className="block mb-3 font-sans text-base font-normal leading-relaxed text-gray-700">
-                  Please fill in the form to register.
-                </p>
+                <h4 className="block font-sans text-2xl font-semibold leading-snug tracking-normal text-blue-gray-900">Register</h4>
+                <p className="block mb-3 font-sans text-base font-normal leading-relaxed text-gray-700">Please fill in the form to register.</p>
 
-                <Formik
-                  initialValues={initialValues}
-                  validationSchema={validationSchema}
-                  onSubmit={onSubmit}
-                >
+                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
                   {({ handleSubmit }) => (
                     <Form onSubmit={handleSubmit}>
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                            Name
+                            Name <span className="text-red-500">*</span>
                           </label>
                           <FormikInput name="name" type="text" placeholder="Enter your name" />
                           <FormikErrorMessage name="name" component="div" />
@@ -91,7 +113,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
 
                         <div>
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="companyName">
-                            Company Name
+                            Company Name <span className="text-red-500">*</span>
                           </label>
                           <FormikInput name="companyName" type="text" placeholder="Enter your company name" />
                           <FormikErrorMessage name="companyName" component="div" />
@@ -100,7 +122,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
 
                       <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-                          Email
+                          Email <span className="text-red-500">*</span>
                         </label>
                         <FormikInput name="email" type="email" placeholder="Enter your email" />
                         <FormikErrorMessage name="email" component="div" />
@@ -108,7 +130,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
 
                       <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="industry">
-                          Industry
+                          Industry <span className="text-red-500">*</span>
                         </label>
                         <Field as="select" name="industry" className="w-full px-3 py-2 border rounded-lg">
                           <option value="">Select Industry</option>
@@ -125,7 +147,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="country">
-                            Country
+                            Country <span className="text-red-500">*</span>
                           </label>
                           <FormikInput name="country" type="text" placeholder="Enter your country" />
                           <FormikErrorMessage name="country" component="div" />
@@ -133,7 +155,7 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
 
                         <div>
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phoneNumber">
-                            Phone Number
+                            Phone Number (Optional)
                           </label>
                           <FormikInput name="phoneNumber" type="text" placeholder="Enter your phone number" />
                           <FormikErrorMessage name="phoneNumber" component="div" />
@@ -143,38 +165,36 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="relative">
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                            Password
+                            Password <span className="text-red-500">*</span>
                           </label>
                           <FormikInput name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" />
                           <FormikErrorMessage name="password" component="div" />
-                          <span
-                            className="absolute inset-y-0 right-2 top-10 cursor-pointer"
-                            onClick={togglePasswordVisibility}
-                          >
+                          <span className="absolute inset-y-0 right-2 top-10 cursor-pointer" onClick={togglePasswordVisibility}>
                             {showPassword ? <FaEyeSlash /> : <FaEye />}
                           </span>
                         </div>
 
                         <div className="relative">
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
-                            Confirm Password
+                            Confirm Password <span className="text-red-500">*</span>
                           </label>
                           <FormikInput name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm your password" />
                           <FormikErrorMessage name="confirmPassword" component="div" />
-                          <span
-                            className="absolute inset-y-0 right-2 top-10 cursor-pointer"
-                            onClick={toggleConfirmPasswordVisibility}
-                          >
+                          <span className="absolute inset-y-0 right-2 top-10 cursor-pointer" onClick={toggleConfirmPasswordVisibility}>
                             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex w-full justify-between mt-4">
-                        <button className="relative w-[48%] min-w-20 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center transition-all duration-300 ease-in-out hover:scale-105">
+                        <button
+                          type="submit"
+                          className="relative w-[48%] min-w-20 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center transition-all duration-300 ease-in-out hover:scale-105"
+                        >
                           Register
                         </button>
                         <button
+                          type="button"
                           className="w-[48%] border bg-gray-300 text-black font-bold py-2 px-6 rounded hover:bg-gray-400 transition-all ease-in-out duration-300 hover:scale-105"
                           onClick={closeModal}
                         >
@@ -188,14 +208,14 @@ const RegisterModal = ({ isOpen, closeModal,selectedPlanIndex }: { isOpen: boole
 
               {/* Right side (30% width) */}
               <div className="w-[30%] bg-gray-100 p-6">
-              {selectedPlanIndex !== null && (
-                <PricingCard
+                {selectedPlanIndex !== null && (
+                  <PricingCard
                     name={packages[selectedPlanIndex].name}
                     Price={packages[selectedPlanIndex].Price}
                     benefits={packages[selectedPlanIndex].benefits}
                     index={selectedPlanIndex}
                     showButton={false}
-                />
+                  />
                 )}
               </div>
             </div>

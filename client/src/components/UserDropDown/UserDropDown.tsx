@@ -29,7 +29,7 @@ const UserDropDown = ({ username }:userDropDown) => {
         Welcome, {username}
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg">
+        <div className="absolute z-50 right-0 mt-2 w-48 bg-white border rounded-md shadow-lg">
           <ul className="py-2">
             <li>
               <button

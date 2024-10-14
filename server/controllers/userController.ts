@@ -26,8 +26,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             }
 
             await user.update(updatedData);
-            const token = generateJWT({ id: user.id, email: user.email }); // Generate a token for the existing user
-            res.cookie('token', token, { httpOnly: true,maxAge: 3600000 }); // Set token in a cookie
+            const token = generateJWT({ id: user.id, email: user.email });
+            res.cookie('token', token, { httpOnly: true,maxAge: 3600000 }); 
             res.status(200).json(user);
             return;
         }
