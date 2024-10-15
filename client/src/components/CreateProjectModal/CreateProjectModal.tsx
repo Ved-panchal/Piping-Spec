@@ -18,16 +18,17 @@ interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (project: ProjectFormValues) => void;
+  project?: ProjectFormValues | null; // Optional project prop for edit mode
 }
 
-const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSubmit, project }) => {
   const [loading, setLoading] = useState(false);
   bouncy.register();
 
   const initialValues: ProjectFormValues = {
-    code: '',
-    description: '',
-    company: '',
+    code: project?.code || '',
+    description: project?.description || '',
+    company: project?.company || '',
   };
 
   const validationSchema = Yup.object({
@@ -47,24 +48,46 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
         companyName: values.company,
       };
 
-      const response = await api.post(configApi.API_URL.project.create, requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      if (project) {
+        // Update project if it's in edit mode
+        const response = await api.put(
+          `${configApi.API_URL.project.update}`,
+          requestBody,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-      if (response) {
-        console.log(response);
-        showToast({ message: 'Project created successfully!', type: 'success' });
-        onClose(); 
-        onSubmit(values);
+        if (response) {
+          showToast({ message: 'Project updated successfully!', type: 'success' });
+        } else {
+          showToast({ message: 'Error updating project', type: 'error' });
+        }
       } else {
-        showToast({ message: "Error Creating Project", type: 'error' });
+        // Create new project if not in edit mode
+        const response = await api.post(configApi.API_URL.project.create, requestBody, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response) {
+          showToast({ message: 'Project created successfully!', type: 'success' });
+        } else {
+          showToast({ message: 'Error creating project', type: 'error' });
+        }
       }
+
+      setTimeout(() => {
+        onClose();
+      }, 500);
+      onSubmit(values);
     } catch (error) {
       if (error instanceof Error) {
         showToast({
-          message: error.message || 'Failed to create project. Please try again.',
+          message: error.message || 'Failed to process the request. Please try again.',
           type: 'error',
         });
       } else {
@@ -91,13 +114,14 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
           >
             <div className="flex flex-col gap-4 p-6">
               <h4 className="block font-sans text-2xl antialiased font-semibold leading-snug tracking-normal text-blue-gray-900">
-                Create Project
+                {project ? 'Edit Project' : 'Create Project'}
               </h4>
 
               <Formik
                 initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
+                enableReinitialize // Reinitialize form when project changes
               >
                 {({ handleSubmit }) => (
                   <Form
@@ -117,6 +141,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                         name="code"
                         type="text"
                         placeholder="Enter project code"
+                        disabled={!!project}
                       />
                       <FormikErrorMessage name="code" component="div" />
                     </div>
@@ -154,7 +179,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                         {loading ? (
                           <l-bouncy size="25" speed="1.75" color="white" />
                         ) : (
-                          'Create Project'
+                          project ? 'Update Project' : 'Create Project'
                         )}
                       </button>
                       <button

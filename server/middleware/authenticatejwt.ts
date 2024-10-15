@@ -12,7 +12,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
         
         // If there's still no token, deny access
         if (!token) {
-            res.status(401).json({ error: 'Access denied, no token provided' });
+            res.status(401).json({ message: 'Access denied, no token provided' });
             return;
         }
         
