@@ -64,10 +64,6 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
 
             if (response) {
                 localStorage.setItem("user", JSON.stringify(response.data.user));
-                // Cookies.set('token', response.data.token, {
-                //     expires: 1,
-                //     path: '/', 
-                // });
                 showToast({ message: "Login Successful!!", type: "success" });
                 setTimeout(() => {
                     window.location.href = "/";
