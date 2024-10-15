@@ -8,7 +8,6 @@ import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import { bouncy } from 'ldrs';
-import Cookies from 'js-cookie';
 
 interface LoginFormValues {
     Email: string;
