@@ -4,11 +4,11 @@ import { hashPassword } from "../utils/auth";
 import { generateJWT } from "../utils/jwt";
 
 // Create User
-export const createUser = async (req: Request, res: Response): Promise<void> => {
+export const createUser = async (req: Request, res: Response) => {
     try {
         const { name, companyName, email, industry, country, phoneNumber, password, plan } = req.body;
 
-        console.log("plan",plan);
+        console.log("plan", plan);
 
         const hashedPassword = await hashPassword(password);
         const user = await db.User.findOne({ where: { email } }) || null;
@@ -20,7 +20,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
                 industry,
                 country,
                 phoneNumber,
-                isDeleted: 'false'
+                isDeleted: false
             };
 
             if (password) {
@@ -29,24 +29,33 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
             await user.update(updatedData);
             const token = generateJWT({ id: user.id, email: user.email });
-            res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); 
-            res.status(200).json(user);
-            return;
+            res.cookie('token', token, { httpOnly: true, maxAge: 3600000 });
+
+            return res.json({
+                success: true,
+                message: "User updated successfully",
+                user,
+                status: "200"
+            });
         }
 
         if (user && user.isDeleted === false) {
-            res.status(200).json({ msg: "User is already registered" });
-            return;
+            return res.json({
+                success: false,
+                error: "User is already registered",
+                status: "409"
+            });
         }
 
         // Fetch the selected plan details
         const selectedPlan = await db.Plan.findOne({ where: { planId: plan } });
         if (!selectedPlan) {
-            res.status(404).json({ msg: "Selected plan not found" });
-            return;
+            return res.json({
+                success: false,
+                error: "Selected plan not found",
+                status: "404"
+            });
         }
-
-        console.log("Selectedplan",selectedPlan);
 
         // Create a new user
         const newUser = await db.User.create({
@@ -72,29 +81,44 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
         const token = generateJWT({ id: newUser.id, email: newUser.email });
         res.cookie('token', token, { httpOnly: true });
-        res.status(201).json(newUser);
+
+        return res.json({
+            success: true,
+            message: "User created successfully",
+            user: newUser,
+            status: "201"
+        });
     } catch (error: unknown) {
         if (error instanceof Error) {
             console.error("Error creating user:", error.message);
-            res.status(400).json({ error: error.message });
-            return;
+            return res.json({
+                success: false,
+                error: error.message,
+                status: "400"
+            });
         }
         console.error("Unexpected error while creating user:", error);
-        res.status(500).json({ error: "An unexpected error occurred." });
+        res.json({
+            success: false,
+            error: "An unexpected error occurred.",
+            status: "500"
+        });
     }
 };
 
-
 // Update User
-export const updateUser = async (req: Request, res: Response):Promise<void> => {
+export const updateUser = async (req: Request, res: Response) => {
     try {
-        const {email, name, companyName, industry, country, phoneNumber, password } = req.body;
+        const { email, name, companyName, industry, country, phoneNumber, password } = req.body;
 
         const user = await db.User.findOne({ where: { email } });
 
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.json({
+                success: false,
+                error: "User not found",
+                status: "404"
+            });
         }
 
         // Update the password only if it's provided and hash it
@@ -111,66 +135,105 @@ export const updateUser = async (req: Request, res: Response):Promise<void> => {
         }
 
         await user.update(updatedData);
-        res.status(200).json(user);
+        res.json({
+            success: true,
+            message: "User updated successfully",
+            user,
+            status: "200"
+        });
     } catch (error: unknown) {
         if (error instanceof Error) {
             console.error("Error updating user:", error.message);
-            res.status(400).json({ error: error.message });
-            return;
+            return res.json({
+                success: false,
+                error: error.message,
+                status: "400"
+            });
         }
         console.error("Unexpected error while updating user:", error);
-        res.status(500).json({ error: "An unexpected error occurred." });
+        res.json({
+            success: false,
+            error: "An unexpected error occurred.",
+            status: "500"
+        });
     }
-}
+};
 
 // Get User by Email
-export const getUserByEmail = async (req: Request, res: Response):Promise<void> => {
+export const getUserByEmail = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
 
         const user = await db.User.findOne({ where: { email, isDeleted: false } });
 
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.json({
+                success: false,
+                error: "User not found",
+                status: "404"
+            });
         }
 
-        res.status(200).json(user);
+        res.json({
+            success: true,
+            message: "User fetched successfully",
+            user,
+            status: "200"
+        });
     } catch (error: unknown) {
         if (error instanceof Error) {
             console.error("Error fetching user:", error.message);
-            res.status(400).json({ error: error.message });
-            return;
+            return res.json({
+                success: false,
+                error: error.message,
+                status: "400"
+            });
         }
         console.error("Unexpected error while fetching user:", error);
-        res.status(500).json({ error: "An unexpected error occurred." });
-        return;
+        res.json({
+            success: false,
+            error: "An unexpected error occurred.",
+            status: "500"
+        });
     }
-}
+};
 
-
-export const deleteUser = async (req:Request, res:Response):Promise<void> => {
+// Delete User
+export const deleteUser = async (req: Request, res: Response) => {
     try {
-        // const { email } = req.body;
         const email = (req as any).user.email;
 
         const user = await db.User.findOne({ where: { email } });
 
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+            return res.json({
+                success: false,
+                error: "User not found",
+                status: "404"
+            });
         }
 
         // Soft delete by setting isDeleted to true
         await user.update({ isDeleted: true });
-        res.status(200).json({msg:"User Deleted Successfully."}); 
-    } catch (error:unknown) {
+        res.json({
+            success: true,
+            message: "User deleted successfully",
+            status: "200"
+        });
+    } catch (error: unknown) {
         if (error instanceof Error) {
             console.error("Error deleting user:", error.message);
-            res.status(400).json({ error: error.message });
-        } else {
-            console.error("Unexpected error:", error);
-            res.status(500).json({ error: "An unexpected error occurred." });
+            return res.json({
+                success: false,
+                error: error.message,
+                status: "400"
+            });
         }
+        console.error("Unexpected error:", error);
+        res.json({
+            success: false,
+            error: "An unexpected error occurred.",
+            status: "500"
+        });
     }
-}
+};

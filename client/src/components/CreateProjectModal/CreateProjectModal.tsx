@@ -14,6 +14,15 @@ interface ProjectFormValues {
   company: string;
 }
 
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      error?:string;
+    };
+    status?: number;
+  };
+}
+
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -47,7 +56,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
         projectDescription: values.description,
         companyName: values.company,
       };
-
+  
       if (project) {
         // Update project if it's in edit mode
         const response = await api.put(
@@ -59,31 +68,55 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
             },
           }
         );
-
-        if (response) {
-          showToast({ message: 'Project updated successfully!', type: 'success' });
+  
+        if (response && response.data) {
+          const { success, message, error } = response.data;
+          
+          if (success) {
+            showToast({ message: message || 'Project updated successfully!', type: 'success' });
+          } else {
+            showToast({ message: error || 'Error updating project', type: 'error' });
+          }
         } else {
           showToast({ message: 'Error updating project', type: 'error' });
         }
       } else {
         // Create new project if not in edit mode
-        const response = await api.post(configApi.API_URL.project.create, requestBody, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response) {
-          showToast({ message: 'Project created successfully!', type: 'success' });
+        try {
+          const response = await api.post(configApi.API_URL.project.create, requestBody, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          if (response && response.data) {
+            const { success, message, error } = response.data;
+  
+            if (success) {
+              showToast({ message: message || 'Project created successfully!', type: 'success' });
+            } else {
+              showToast({ message: error || 'Error creating project', type: 'error' });
+            }
+          } else {
+            showToast({ message: 'Error creating project', type: 'error' });
+          }
+        } catch (error) {
+          const apiError = error as ApiError;
+        if (apiError.response && apiError.response.data) {
+          const errorMessage = apiError.response.data.error || 'Failed to create project.';
+          showToast({ message: errorMessage, type: 'error' });
         } else {
-          showToast({ message: 'Error creating project', type: 'error' });
+          console.error('Unexpected error:', error);
+          showToast({ message: 'Unexpected error occurred', type: 'error' });
+        }
         }
       }
-
+  
       setTimeout(() => {
         onClose();
       }, 500);
       onSubmit(values);
+  
     } catch (error) {
       if (error instanceof Error) {
         showToast({
@@ -100,7 +133,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
       setLoading(false);
     }
   };
-
+  
   return (
     <>
       {isOpen && (

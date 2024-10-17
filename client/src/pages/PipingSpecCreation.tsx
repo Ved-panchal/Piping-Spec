@@ -31,7 +31,7 @@ const PipingSpecCreation = () => {
 
   const fetchUserProjects = async () => {
     const response = await api.get(`${configApi.API_URL.project.getAllProjectByUser}`);
-    return response.data;
+    return response.data.projects;
 };
 
   useEffect(() => {
@@ -117,8 +117,8 @@ const PipingSpecCreation = () => {
           onClose={async () => {
             setIsModalOpen(false);
             setSelectedProject(null)
-            const updatedProjects = await fetchUserProjects(); // Fetch projects for the user when modal closes
-            setProjectList(updatedProjects); // Update the state with new projects
+            const updatedProjects = await fetchUserProjects(); 
+            setProjectList(updatedProjects);
           }}
           onSubmit={handleCreateProject}
           project={selectedProject}

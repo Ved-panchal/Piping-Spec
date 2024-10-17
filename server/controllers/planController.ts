@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import db from "../models";
 
 // Create Plan
-export const createPlan = async (req: Request, res: Response): Promise<void> => {
+export const createPlan = async (req: Request, res: Response) => {
     try {
         const { planName, noOfProjects, noOfSpecs, allowedDays } = req.body;
 
@@ -13,15 +13,24 @@ export const createPlan = async (req: Request, res: Response): Promise<void> => 
             allowedDays
         });
 
-        res.status(201).json({ message: "Plan Created Successfully.", newPlan });
+        res.json({
+            success: true,
+            message: "Plan created successfully.",
+            plan: newPlan,
+            status: "201"
+        });
     } catch (error: unknown) {
         console.error("Error creating plan:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
     }
 };
 
 // Update Plan
-export const updatePlan = async (req: Request, res: Response): Promise<void> => {
+export const updatePlan = async (req: Request, res: Response) => {
     try {
         const { planId } = req.params;
         const { planName, noOfProjects, noOfSpecs, allowedDays } = req.body;
@@ -29,8 +38,11 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            res.status(404).json({ error: "Plan not found" });
-            return;
+            return res.json({
+                success: false,
+                error: "Plan not found",
+                status: "404"
+            });
         }
 
         await plan.update({
@@ -40,49 +52,81 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
             allowedDays
         });
 
-        res.status(200).json({ message: "Plan updated successfully", plan });
+        res.json({
+            success: true,
+            message: "Plan updated successfully",
+            plan,
+            status: "200"
+        });
     } catch (error: unknown) {
         console.error("Error updating plan:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
     }
 };
 
 // Get Plan by PlanId
-export const getPlanById = async (req: Request, res: Response): Promise<void> => {
+export const getPlanById = async (req: Request, res: Response) => {
     try {
         const { planId } = req.params;
 
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            res.status(404).json({ error: "Plan not found" });
-            return;
+            return res.json({
+                success: false,
+                error: "Plan not found",
+                status: "404"
+            });
         }
 
-        res.status(200).json(plan);
+        res.json({
+            success: true,
+            message: "Plan fetched successfully",
+            plan,
+            status: "200"
+        });
     } catch (error: unknown) {
         console.error("Error fetching plan:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
     }
 };
 
 // Delete Plan (Soft Delete)
-export const deletePlan = async (req: Request, res: Response): Promise<void> => {
+export const deletePlan = async (req: Request, res: Response) => {
     try {
         const { planId } = req.params;
 
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            res.status(404).json({ error: "Plan not found" });
-            return;
+            return res.json({
+                success: false,
+                error: "Plan not found",
+                status: "404"
+            });
         }
 
         await plan.update({ isDeleted: true });
 
-        res.status(200).json({ message: "Plan deleted successfully" });
+        res.json({
+            success: true,
+            message: "Plan deleted successfully",
+            status: "200"
+        });
     } catch (error: unknown) {
         console.error("Error deleting plan:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
     }
 };

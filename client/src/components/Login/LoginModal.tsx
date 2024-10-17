@@ -13,6 +13,14 @@ interface LoginFormValues {
     Email: string;
     password: string;
 }
+interface ApiError extends Error {
+    response?: {
+      data?: {
+        error?:string;
+      };
+      status?: number;
+    };
+  }
 
 const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () => void }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -54,42 +62,45 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                 email: values.Email,
                 password: values.password,
             };
-
+    
             // Send the POST request with JSON payload
             const response = await api.post(configApi.API_URL.auth.login, requestBody, {
                 headers: {
                     "Content-Type": "application/json",
                 },
             });
-
-            if (response) {
-                localStorage.setItem("user", JSON.stringify(response.data.user));
-                showToast({ message: "Login Successful!!", type: "success" });
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 1500);
+    
+            if (response && response.data) {
+                const { success, message, error } = response.data;
+    
+                if (success) {
+                    localStorage.setItem("user", JSON.stringify(response.data.user));
+                    showToast({ message: message || "Login Successful!!", type: "success" });
+    
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1500);
+                } else {
+                    showToast({ message: error || "Login failed. Please check your credentials.", type: "error" });
+                }
             } else {
-                showToast({
-                    message: "Login failed. Please check your credentials.",
-                    type: "error",
-                });
+                showToast({ message: "Login failed. Please check your credentials.", type: "error" });
             }
         } catch (error) {
-            if (error instanceof Error) {
-                showToast({
-                    message: error.message || "Login failed. Please check your credentials.",
-                    type: "error",
-                });
+            const apiError = error as ApiError;
+            if (apiError.response && apiError.response.data) {
+                const errorMessage = apiError.response.data.error || "Login failed. Please check your credentials.";
+                showToast({ message: errorMessage, type: "error" });
+            } else if (error instanceof Error) {
+                showToast({ message: error.message || "An unknown error occurred.", type: "error" });
             } else {
-                showToast({
-                    message: "An unknown error occurred.",
-                    type: "error",
-                });
+                showToast({ message: "An unknown error occurred.", type: "error" });
             }
         } finally {
             setLoading(false);
         }
     };
+    
 
     return (
         <>

@@ -10,6 +10,16 @@ import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import showToast from '../../utils/toast';
 
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      error?:string;
+    };
+    status?: number;
+  };
+}
+
+
 const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: boolean; closeModal: () => void; selectedPlanIndex: number | null }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -48,44 +58,60 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
 
   const onSubmit = async (values: typeof initialValues) => {
     try {
+        const payload = {
+            ...values,
+            plan: selectedPlanIndex !== null ? selectedPlanIndex + 1 : null,
+        };
 
-      const payload = {
-        ...values,
-        plan: selectedPlanIndex !== null ? selectedPlanIndex + 1 : null,
-      };
-
-      const response = await api.post(configApi.API_URL.user.create, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 201) {
-        showToast({
-          message: 'Registration successful!',
-          type: 'success',
+        const response = await api.post(configApi.API_URL.user.create, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
-        closeModal();
-      } else {
-        showToast({
-          message: response.data.msg,
-          type: 'error',
-        });
-      }
+
+        if (response && response.data) {
+            const { success, message, error } = response.data;
+
+            if (success) {
+                showToast({
+                    message: message || 'Registration successful!',
+                    type: 'success',
+                });
+                closeModal();
+            } else {
+                showToast({
+                    message: error || response.data.msg || 'Registration failed. Please try again.',
+                    type: 'error',
+                });
+            }
+        } else {
+            showToast({
+                message: 'Registration failed. Please try again.',
+                type: 'error',
+            });
+        }
     } catch (error) {
-      if (error instanceof Error) {
-        showToast({
-          message: 'Something went wrong. Please try again later.',
-          type: 'error',
-        });
-      } else {
-        showToast({
-          message: 'Internal Server Error.',
-          type: 'error',
-        });
-      }
+        const apiError = error as ApiError;
+        if (apiError.response && apiError.response.data) {
+            const errorMessage = apiError.response.data.error || 'Something went wrong. Please try again later.';
+            showToast({
+                message: errorMessage,
+                type: 'error',
+            });
+        } else if (error instanceof Error) {
+            showToast({
+                message: error.message || 'An unexpected error occurred.',
+                type: 'error',
+            });
+        } else {
+            showToast({
+                message: 'Internal Server Error.',
+                type: 'error',
+            });
+        }
     }
 };
+
 
 
   return (

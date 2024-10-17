@@ -11,6 +11,15 @@ interface Project {
   companyName: string;        
 }
 
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      error?:string;
+    };
+    status?: number;
+  };
+}
+
 interface ProjectFormValues {
   code: string;
   description: string;
@@ -19,7 +28,9 @@ interface ProjectFormValues {
 
 interface DeleteResponse {
   data: {
+    success:boolean;
     message: string;
+    error?: string;
   }
 }
 
@@ -64,47 +75,61 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   const handleDelete = async (project: Project) => {
     const requestBody = {
-      projectCode: project.projectCode,
+        projectCode: project.projectCode,
     };
 
     try {
-      const response = await deleteWithBody<DeleteResponse>(configApi.API_URL.project.delete, requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        const response = await deleteWithBody<DeleteResponse>(configApi.API_URL.project.delete, requestBody, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-      if (response) {
-        showToast({ message: response.data.message, type: 'success' });
-      }
+        if (response && response.data) {
+            const { success, message, error } = response.data;
 
-      const updatedProjects = projects.filter(
-        (p) => p.projectCode !== project.projectCode
-      );
+            if (success) {
+                showToast({ message: message || 'Project deleted successfully!', type: 'success' });
 
-      setProjectList(updatedProjects);
-      setIsDeleteModalOpen(false); // Close modal after deletion
-      setProjectToDelete(null); // Clear the project to delete
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('401')) {
-          showToast({
-            message: "Unauthorized Access token is not provided", type: 'error'
-          });
-          return;
+                const updatedProjects = projects.filter(
+                    (p) => p.projectCode !== project.projectCode
+                );
+
+                setProjectList(updatedProjects);
+                setIsDeleteModalOpen(false); // Close modal after deletion
+                setProjectToDelete(null); // Clear the project to delete
+            } else {
+                showToast({ message: error || 'Failed to delete project.', type: 'error' });
+            }
+        } else {
+            showToast({ message: 'Failed to delete project. Please try again.', type: 'error' });
         }
-        showToast({
-          message: error.message || 'Failed to process the request. Please try again.',
-          type: 'error',
-        });
-      } else {
-        showToast({
-          message: 'An unknown error occurred.',
-          type: 'error',
-        });
-      }
+    } catch (error) {
+        const apiError = error as ApiError;
+        if (apiError.response && apiError.response.data) {
+            const errorMessage = apiError.response.data.error || 'Failed to delete project. Please try again.';
+            showToast({ message: errorMessage, type: 'error' });
+        } else if (error instanceof Error) {
+            if (error.message.includes('401')) {
+                showToast({
+                    message: "Unauthorized Access: token is not provided",
+                    type: 'error',
+                });
+            } else {
+                showToast({
+                    message: error.message || 'Failed to process the request. Please try again.',
+                    type: 'error',
+                });
+            }
+        } else {
+            showToast({
+                message: 'An unknown error occurred.',
+                type: 'error',
+            });
+        }
     }
-  };
+};
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md relative">
