@@ -3,39 +3,53 @@ import db from "../models";
 
 // Create Project
 export const createProject = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const { projectCode, projectDescription, companyName } = req.body;
-        const userId = (req as any).user.id;
+  try {
+      const { projectCode, projectDescription, companyName } = req.body;
+      const userId = (req as any).user.id;
 
-        const project = await db.Project.findOne({ where: { projectCode, userId } });
+      const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
 
-        if (project) {
-            if (project.isDeleted) {
-                await project.update({
-                    projectDescription,
-                    companyName,
-                    isDeleted: false,
-                });
-                res.status(200).json({ message: "Project Created Successfully.", project });
-            } else {
-                res.status(400).json({ error: "Project with the same code already exists" });
-            }
-            return;
-        }
+      // Check if NoofProjects is null (unlimited) or if NoofProjects is greater than 0
+      if (subscription && subscription.NoofProjects !== null && subscription.NoofProjects <= 0) {
+          res.status(400).json({ error: "Project limit reached. Cannot create more projects." });
+          return;
+      }
 
-        const newProject = await db.Project.create({
-            projectCode,
-            projectDescription,
-            companyName,
-            userId,
-        });
+      const project = await db.Project.findOne({ where: { projectCode, userId } });
 
-        res.status(201).json({messaeg:"Project Created Successfully.",newProject});
-    } catch (error) {
-        console.error("Error creating project:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
+      if (project) {
+          if (project.isDeleted) {
+              await project.update({
+                  projectDescription,
+                  companyName,
+                  isDeleted: false,
+              });
+              res.status(200).json({ message: "Project Created Successfully.", project });
+          } else {
+              res.status(400).json({ error: "Project with the same code already exists" });
+          }
+          return;
+      }
+
+      const newProject = await db.Project.create({
+          projectCode,
+          projectDescription,
+          companyName,
+          userId,
+      });
+
+      // Decrease NoofProjects if it is not null
+      if (subscription && subscription.NoofProjects !== null) {
+          await subscription.update({ NoofProjects: subscription.NoofProjects - 1 });
+      }
+
+      res.status(201).json({ message: "Project Created Successfully.", newProject });
+  } catch (error) {
+      console.error("Error creating project:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
 };
+
 
 // Update Project
 export const updateProject = async (req: Request, res: Response): Promise<void> => {
@@ -97,22 +111,30 @@ export const getAllProjectsByUserId = async (req: Request, res: Response): Promi
 
 // Delete Project (Soft Delete)
 export const deleteProject = async (req: Request, res: Response): Promise<void> => {
-    try {
+  try {
       const { projectCode } = req.body;
       const userId = (req as any).user.id;
 
       const project = await db.Project.findOne({ where: { projectCode, userId, isDeleted: false } });
 
       if (!project) {
-        res.status(404).json({ error: "Project not found or access denied" });
-        return;
+          res.status(404).json({ error: "Project not found or access denied" });
+          return;
+      }
+
+      const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
+
+      // Increase NoofProjects if it is not null
+      if (subscription && subscription.NoofProjects !== null) {
+          await subscription.update({ NoofProjects: subscription.NoofProjects + 1 });
       }
 
       await project.update({ isDeleted: true });
 
       res.status(200).json({ message: "Project deleted successfully" });
-    } catch (error: unknown) {
+  } catch (error: unknown) {
       console.error("Error deleting project:", error);
       res.status(500).json({ error: "Internal server error" });
-    }
+  }
 };
+

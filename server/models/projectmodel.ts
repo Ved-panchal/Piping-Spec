@@ -3,7 +3,7 @@ import usermodel from "./usermodel";
 
 const projectModel = (sequelize: any) => {
   const Project = sequelize.define(
-    "Project",
+    "project",
     {
       projectCode: {
         type: DataTypes.STRING(3),

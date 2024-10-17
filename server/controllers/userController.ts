@@ -6,7 +6,9 @@ import { generateJWT } from "../utils/jwt";
 // Create User
 export const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, companyName, email, industry, country, phoneNumber, password } = req.body;
+        const { name, companyName, email, industry, country, phoneNumber, password, plan } = req.body;
+
+        console.log("plan",plan);
 
         const hashedPassword = await hashPassword(password);
         const user = await db.User.findOne({ where: { email } }) || null;
@@ -27,7 +29,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
             await user.update(updatedData);
             const token = generateJWT({ id: user.id, email: user.email });
-            res.cookie('token', token, { httpOnly: true,maxAge: 3600000 }); 
+            res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); 
             res.status(200).json(user);
             return;
         }
@@ -37,6 +39,16 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
+        // Fetch the selected plan details
+        const selectedPlan = await db.Plan.findOne({ where: { planId: plan } });
+        if (!selectedPlan) {
+            res.status(404).json({ msg: "Selected plan not found" });
+            return;
+        }
+
+        console.log("Selectedplan",selectedPlan);
+
+        // Create a new user
         const newUser = await db.User.create({
             name,
             companyName,
@@ -47,8 +59,19 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             password: hashedPassword
         });
 
-        const token = generateJWT({ id: newUser.id, email: newUser.email }); // Generate a token for the new user
-        res.cookie('token', token, { httpOnly: true }); // Set token in a cookie
+        // Create a subscription for the user
+        await db.Subscription.create({
+            userId: newUser.id,
+            planId: selectedPlan.planId,
+            startDate: new Date(),
+            endDate: new Date(new Date().setDate(new Date().getDate() + selectedPlan.allowedDays)),
+            NoofProjects: selectedPlan.noOfProjects,
+            NoofSpecs: selectedPlan.noOfSpecs,
+            status: 'active'
+        });
+
+        const token = generateJWT({ id: newUser.id, email: newUser.email });
+        res.cookie('token', token, { httpOnly: true });
         res.status(201).json(newUser);
     } catch (error: unknown) {
         if (error instanceof Error) {
@@ -59,7 +82,8 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         console.error("Unexpected error while creating user:", error);
         res.status(500).json({ error: "An unexpected error occurred." });
     }
-}
+};
+
 
 // Update User
 export const updateUser = async (req: Request, res: Response):Promise<void> => {

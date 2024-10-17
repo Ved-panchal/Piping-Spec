@@ -6,6 +6,7 @@ import ProjectTable from '../components/ProjectTable/ProjectTable';
 import CreateProjectModal from '../components/CreateProjectModal/CreateProjectModal';
 import api from '../utils/api/apiutils';
 import {api as configApi} from "../utils/api/config";
+import Cookies from "js-cookie";
 
 interface Project {
   projectCode: string;
@@ -35,14 +36,14 @@ const PipingSpecCreation = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user')!);
-    if (user) {
+    const token = Cookies.get('token');
+    if (user && token) {
       setUsername(user.name);
-    //   setUserId(user.id); // Get user ID
-      // Fetch initial projects for the user when component mounts
       fetchUserProjects().then(fetchedProjects => {
         setProjectList(fetchedProjects);
       });
     } else {
+      localStorage.clear();
       window.location.href = '/';
     }
   }, []);

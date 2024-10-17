@@ -8,7 +8,7 @@ const router = Router();
  * @swagger
  * /users/registeruser:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user and subscribe to a plan
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -19,29 +19,42 @@ const router = Router();
  *             properties:
  *               name:
  *                 type: string
+ *                 description: The name of the user
  *               companyName:
  *                 type: string
+ *                 description: The company name of the user
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: The email address of the user
  *               industry:
  *                 type: string
+ *                 description: The industry in which the user operates
  *               country:
  *                 type: string
+ *                 description: The country of the user
  *               phoneNumber:
  *                 type: string
+ *                 description: The phone number of the user
  *               password:
  *                 type: string
  *                 format: password
+ *                 description: The password for the user's account
+ *               plan:
+ *                 type: integer
+ *                 description: The ID of the selected subscription plan
  *     responses:
  *       201:
- *         description: User created successfully
+ *         description: User created successfully and subscribed to the selected plan
  *       400:
- *         description: Bad request
+ *         description: Bad request (e.g., invalid input data)
+ *       404:
+ *         description: Selected plan not found
  *       500:
  *         description: Server error
  */
 router.post('/registeruser', createUser);
+
 
 /**
  * @swagger

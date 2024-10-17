@@ -48,7 +48,13 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
 
   const onSubmit = async (values: typeof initialValues) => {
     try {
-      const response = await api.post(configApi.API_URL.user.create, values, {
+
+      const payload = {
+        ...values,
+        plan: selectedPlanIndex !== null ? selectedPlanIndex + 1 : null,
+      };
+
+      const response = await api.post(configApi.API_URL.user.create, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -69,12 +75,12 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
     } catch (error) {
       if (error instanceof Error) {
         showToast({
-          message: error.message || 'Something went wrong. Please try again.',
+          message: 'Something went wrong. Please try again later.',
           type: 'error',
         });
       } else {
         showToast({
-          message: 'An unknown error occurred.',
+          message: 'Internal Server Error.',
           type: 'error',
         });
       }

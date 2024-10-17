@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import authRoute from "./routes/authRoutes"
 import userRoute from "./routes/userRoutes"
 import projectRoute from "./routes/projectRoutes"
+import planRoute from "./routes/planRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -26,6 +27,7 @@ app.use(cookieParser());
 app.use('/auth', authRoute);
 app.use('/users', userRoute);
 app.use('/projects',projectRoute);
+app.use('/plans',planRoute);
 
 
 export default app;

@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 
 const planModel = (sequelize: any) => {
-  const Plan = sequelize.define('Plan', {
+  const Plan = sequelize.define('plan', {
     planId: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -13,16 +13,20 @@ const planModel = (sequelize: any) => {
     },
     noOfProjects: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     noOfSpecs: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     allowedDays: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    }
   });
 
   return Plan;
