@@ -1,5 +1,6 @@
+// projectmodel.ts
 import { DataTypes } from "sequelize";
-import usermodel from "./usermodel";
+import userModel from "./usermodel";
 
 const projectModel = (sequelize: any) => {
   const Project = sequelize.define(
@@ -30,7 +31,7 @@ const projectModel = (sequelize: any) => {
       userId: {
         type: DataTypes.INTEGER,
         references: {
-          model: usermodel(sequelize),
+          model: userModel(sequelize),
           key: 'id',
         },
         allowNull: false,
@@ -49,10 +50,15 @@ const projectModel = (sequelize: any) => {
     }
   );
 
+  // Associations
   Project.associate = (models: any) => {
     Project.belongsTo(models.User, {
       foreignKey: "userId",
       as: "user",
+    });
+    Project.hasMany(models.Spec, {
+      foreignKey: "projectId",
+      as: "specs",
     });
   };
 

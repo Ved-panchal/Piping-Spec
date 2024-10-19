@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import db from "../models";
 
 // Create Project
-export const createProject = async (req: Request, res: Response) => {
+export const createProject = async (req: Request, res: Response): Promise<void> => {
   try {
       const { projectCode, projectDescription, companyName } = req.body;
       const userId = (req as any).user.id;
@@ -11,7 +11,8 @@ export const createProject = async (req: Request, res: Response) => {
 
       // Check if NoofProjects is null (unlimited) or if NoofProjects is greater than 0
       if (subscription && subscription.NoofProjects !== null && subscription.NoofProjects <= 0) {
-          return res.json({ success: false, error: "Project limit reached. Cannot create more projects.", status: 400 });
+          res.json({ success: false, error: "Project limit reached. Cannot create more projects.", status: 400 });
+          return;
       }
 
       const project = await db.Project.findOne({ where: { projectCode, userId } });
@@ -23,9 +24,11 @@ export const createProject = async (req: Request, res: Response) => {
                   companyName,
                   isDeleted: false,
               });
-              return res.json({ success: true, message: "Project Created Successfully.", status: 200, project });
+              res.json({ success: true, message: "Project Created Successfully.", status: 200, project });
+              return;
           } else {
-              return res.json({ success: false, error: "Project with the same code already exists.", status: 400 });
+              res.json({ success: false, error: "Project with the same code already exists.", status: 400 });
+              return;
           }
       }
 
@@ -41,15 +44,15 @@ export const createProject = async (req: Request, res: Response) => {
           await subscription.update({ NoofProjects: subscription.NoofProjects - 1 });
       }
 
-      return res.json({ success: true, message: "Project Created Successfully.", status: 201, newProject });
-  } catch (error) {
+      res.json({ success: true, message: "Project Created Successfully.", status: 201, newProject });
+  } catch (error: unknown) {
       console.error("Error creating project:", error);
-      return res.json({ success: false, error: "Internal server error", status: 500 });
+      res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };
 
 // Update Project
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (req: Request, res: Response): Promise<void> => {
   try {
       const { projectCode, projectDescription, companyName } = req.body;
       const userId = (req as any).user.id;
@@ -57,20 +60,21 @@ export const updateProject = async (req: Request, res: Response) => {
       const project = await db.Project.findOne({ where: { projectCode, userId, isDeleted: false } });
 
       if (!project) {
-          return res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          return;
       }
 
       await project.update({ projectDescription, companyName });
 
-      return res.json({ success: true, message: "Project Updated Successfully.", status: 200, project });
+      res.json({ success: true, message: "Project Updated Successfully.", status: 200, project });
   } catch (error: unknown) {
       console.error("Error updating project:", error);
-      return res.json({ success: false, error: "Internal server error", status: 500 });
+      res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };
 
 // Get Project by Code
-export const getProjectByCode = async (req: Request, res: Response) => {
+export const getProjectByCode = async (req: Request, res: Response): Promise<void> => {
   try {
       const { projectCode } = req.params;
       const userId = (req as any).user.id;
@@ -78,32 +82,33 @@ export const getProjectByCode = async (req: Request, res: Response) => {
       const project = await db.Project.findOne({ where: { projectCode, userId, isDeleted: false } });
 
       if (!project) {
-          return res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          return;
       }
 
-      return res.json({ success: true, message: "Project fetched successfully.", status: 200, project });
+      res.json({ success: true, message: "Project fetched successfully.", status: 200, project });
   } catch (error: unknown) {
       console.error("Error fetching project:", error);
-      return res.json({ success: false, error: "Internal server error", status: 500 });
+      res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };
 
 // Get All Projects by User ID
-export const getAllProjectsByUserId = async (req: Request, res: Response)=> {
+export const getAllProjectsByUserId = async (req: Request, res: Response): Promise<void> => {
   try {
       const userId = (req as any).user.id;
       // Fetch all projects associated with the user ID that are not marked as deleted
-      const projects = await db.Project.findAll({ where: { userId: userId, isDeleted: false } });
+      const projects = await db.Project.findAll({ where: { userId, isDeleted: false } });
 
-      return res.json({ success: true, message: "Projects fetched successfully.", status: 200, projects });
+      res.json({ success: true, message: "Projects fetched successfully.", status: 200, projects });
   } catch (error: unknown) {
       console.error("Error fetching projects:", error);
-      return res.json({ success: false, error: "Internal server error", status: 500 });
+      res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };
 
 // Delete Project (Soft Delete)
-export const deleteProject = async (req: Request, res: Response) => {
+export const deleteProject = async (req: Request, res: Response): Promise<void> => {
   try {
       const { projectCode } = req.body;
       const userId = (req as any).user.id;
@@ -111,7 +116,8 @@ export const deleteProject = async (req: Request, res: Response) => {
       const project = await db.Project.findOne({ where: { projectCode, userId, isDeleted: false } });
 
       if (!project) {
-          return res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          return;
       }
 
       const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
@@ -123,9 +129,9 @@ export const deleteProject = async (req: Request, res: Response) => {
 
       await project.update({ isDeleted: true });
 
-      return res.json({ success: true, message: "Project deleted successfully.", status: 200 });
+      res.json({ success: true, message: "Project deleted successfully.", status: 200 });
   } catch (error: unknown) {
       console.error("Error deleting project:", error);
-      return res.json({ success: false, error: "Internal server error", status: 500 });
+      res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };

@@ -1,37 +1,30 @@
-// specmodel.ts
 import { DataTypes } from "sequelize";
+import projectModel from "./projectmodel";
 
-const specModel = (sequelize: any) => {
-  const Spec = sequelize.define(
-    "spec",
+const ratingModel = (sequelize: any) => {
+  const Rating = sequelize.define(
+    "rating",
     {
-      specName: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        validate: {
-          is: /^[A-Z0-9]+$/,
-        },
-      },
-      rating: {
+      ratingCode: {
         type: DataTypes.STRING(10),
         allowNull: false,
+        unique:true,
+        validate: {
+          is: /^[0-9A-Z]+$/,
+        },
+      },
+      ratingValue: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        unique:true,
         validate: {
           is: /^\d+#$/,
         },
       },
-      baseMaterial: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-      },
-      isDeleted: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        allowNull: false,
-      },
       projectId: {
         type: DataTypes.INTEGER,
         references: {
-          model: 'project', // Use the model name string
+          model: projectModel(sequelize),
           key: 'id',
         },
         allowNull: false,
@@ -47,14 +40,14 @@ const specModel = (sequelize: any) => {
   );
 
   // Associations
-  Spec.associate = (models: any) => {
-    Spec.belongsTo(models.Project, {
+  Rating.associate = (models: any) => {
+    Rating.belongsTo(models.Project, {
       foreignKey: "projectId",
       as: "project",
     });
   };
 
-  return Spec;
+  return Rating;
 };
 
-export default specModel;
+export default ratingModel;

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import db from "../models";
 
 // Create Plan
-export const createPlan = async (req: Request, res: Response) => {
+export const createPlan = async (req: Request, res: Response): Promise<void> => {
     try {
         const { planName, noOfProjects, noOfSpecs, allowedDays } = req.body;
 
@@ -30,7 +30,7 @@ export const createPlan = async (req: Request, res: Response) => {
 };
 
 // Update Plan
-export const updatePlan = async (req: Request, res: Response) => {
+export const updatePlan = async (req: Request, res: Response): Promise<void> => {
     try {
         const { planId } = req.params;
         const { planName, noOfProjects, noOfSpecs, allowedDays } = req.body;
@@ -38,11 +38,12 @@ export const updatePlan = async (req: Request, res: Response) => {
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            return res.json({
+            res.json({
                 success: false,
                 error: "Plan not found",
                 status: "404"
             });
+            return;
         }
 
         await plan.update({
@@ -69,18 +70,19 @@ export const updatePlan = async (req: Request, res: Response) => {
 };
 
 // Get Plan by PlanId
-export const getPlanById = async (req: Request, res: Response) => {
+export const getPlanById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { planId } = req.params;
 
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            return res.json({
+            res.json({
                 success: false,
                 error: "Plan not found",
                 status: "404"
             });
+            return;
         }
 
         res.json({
@@ -100,18 +102,19 @@ export const getPlanById = async (req: Request, res: Response) => {
 };
 
 // Delete Plan (Soft Delete)
-export const deletePlan = async (req: Request, res: Response) => {
+export const deletePlan = async (req: Request, res: Response): Promise<void> => {
     try {
         const { planId } = req.params;
 
         const plan = await db.Plan.findOne({ where: { planId } });
 
         if (!plan) {
-            return res.json({
+            res.json({
                 success: false,
                 error: "Plan not found",
                 status: "404"
             });
+            return;
         }
 
         await plan.update({ isDeleted: true });
