@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RatingConfiguration from '../Rating/RatingConfiguration';
+import ScheduleConfiguration from '../Schedule/ScheduleConfiguration';
 
 interface SpecsProps {
     projectId?: string;
@@ -46,11 +47,11 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             </div>
 
             {/* Right Panel - Main Content */}
-            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md">
+            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md overflow-y-auto max-h-[80vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700">
                 {activeComponent === 0 && <div className="text-lg text-white">Content for Component 1</div>}
                 {activeComponent === 1 && <div className="text-lg text-white">Content for Component 2</div>}
                 {activeComponent === 2 && <div className="text-lg text-white">Content for Component 3</div>}
-                {activeComponent === 3 && <div className="text-lg text-white">Content for Component 4</div>}
+                {activeComponent === 3 && <div className="text-lg text-white"><ScheduleConfiguration/></div>}
                 {activeComponent === 4 && <div className="text-lg text-white"><RatingConfiguration/></div>}
                 {activeComponent === 5 && <div className="text-lg text-white">Content for Component 6</div>}
             </div>

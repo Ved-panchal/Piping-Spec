@@ -21,6 +21,10 @@ export const api = {
       ratings:{
         getAll:"ratings/getall",
         addorupdate:"ratings/add-or-update"
+      },
+      schedules:{
+        getall:'schedules/getall',
+        addorupdate:'schedules/add-or-update'
       }
     },
 };

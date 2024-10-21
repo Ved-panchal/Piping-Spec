@@ -220,7 +220,7 @@ const RatingConfiguration: React.FC = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h2>Rating Configuration</h2>
-      <Form layout="inline" style={{ marginBottom: '20px' }}>
+      <Form layout="inline" style={{ marginBottom: '20px', marginTop:'10px' }}>
         
         <Form.Item>
           <Input
