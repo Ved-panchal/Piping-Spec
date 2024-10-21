@@ -17,6 +17,10 @@ export const api = {
         getAllProjectByUser:"projects/GetAll/ByUser",
         update:"projects/update",
         delete:"projects/delete",
+      },
+      ratings:{
+        getAll:"ratings/getall",
+        addorupdate:"ratings/add-or-update"
       }
     },
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RatingConfiguration from '../Rating/RatingConfiguration';
 
 interface SpecsProps {
     projectId?: string;
@@ -28,14 +29,14 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
     };
 
     return (
-        <div className="flex h-[90vh] bg-gray-50 p-6 rounded-lg shadow-lg relative">
+        <div className="flex h-[90vh] bg-[#304D6D] p-6 rounded-lg shadow-lg relative">
             {/* Left Panel - Navigation */}
-            <div className="w-1/10 bg-gray-800 p-4 flex flex-col justify-between h-full rounded-l-lg">
-                {['Component 1', 'Component 2', 'Component 3', 'Component 4', 'Component 5', 'Component 6'].map((label, index) => (
+            <div className="w-56 bg-gray-800 p-4 flex flex-col justify-between min-h-[40vh] h-[50vh] rounded-lg m-2">
+                {['Component 1', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration'].map((label, index) => (
                     <div
                         key={index}
                         onClick={() => handleNavClick(index)}
-                        className={`cursor-pointer p-3 rounded-lg text-center font-medium select-none
+                        className={`cursor-pointer p-3 rounded-lg text-left font-medium select-none
                             ${activeComponent === index ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-800 text-gray-300'}
                             hover:bg-gray-700 hover:text-white transition-colors duration-300 ease-in-out transform hover:scale-105`}
                     >
@@ -45,13 +46,13 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             </div>
 
             {/* Right Panel - Main Content */}
-            <div className="w-9/10 bg-white p-6 border-l-2 border-gray-200">
-                {activeComponent === 0 && <div className="text-lg text-gray-700">Content for Component 1</div>}
-                {activeComponent === 1 && <div className="text-lg text-gray-700">Content for Component 2</div>}
-                {activeComponent === 2 && <div className="text-lg text-gray-700">Content for Component 3</div>}
-                {activeComponent === 3 && <div className="text-lg text-gray-700">Content for Component 4</div>}
-                {activeComponent === 4 && <div className="text-lg text-gray-700">Content for Component 5</div>}
-                {activeComponent === 5 && <div className="text-lg text-gray-700">Content for Component 6</div>}
+            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md">
+                {activeComponent === 0 && <div className="text-lg text-white">Content for Component 1</div>}
+                {activeComponent === 1 && <div className="text-lg text-white">Content for Component 2</div>}
+                {activeComponent === 2 && <div className="text-lg text-white">Content for Component 3</div>}
+                {activeComponent === 3 && <div className="text-lg text-white">Content for Component 4</div>}
+                {activeComponent === 4 && <div className="text-lg text-white"><RatingConfiguration/></div>}
+                {activeComponent === 5 && <div className="text-lg text-white">Content for Component 6</div>}
             </div>
         </div>
     );
