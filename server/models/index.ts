@@ -8,6 +8,8 @@ import planModel from "./planmodels";
 import specModel from "./specmodels";
 import ratingModel from "./ratingmodel";
 import defaultRatingModel from "./Default/defaultratingmodel";
+import scheduleModel from "./schedulemodels";
+import defaultScheduleModel from "./Default/defaultscheulemodel";
 
 dotenv.config();
 
@@ -24,11 +26,12 @@ const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
 const Rating = ratingModel(sequelize);
 const D_Rating = defaultRatingModel(sequelize);
+const Schedule = scheduleModel(sequelize);
+const D_Schedule = defaultScheduleModel(sequelize);
 
 // Define associations
 Project.associate({ User, Spec });
 Spec.associate({ Project });
-
 
 const db = {
     sequelize,
@@ -39,6 +42,8 @@ const db = {
     Plan,
     Rating,
     D_Rating,
+    Schedule,
+    D_Schedule,
 };
 
 const syncDatabase = async () => {

@@ -8,6 +8,7 @@ import projectRoute from "./routes/projectRoutes"
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
 import ratingRoute from "./routes/ratingRoutes"
+import scheduleRoute from "./routes/scheduleRoutes"
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -32,6 +33,7 @@ app.use('/projects',projectRoute);
 app.use('/plans',planRoute);
 app.use('/specs',specRoute);
 app.use('/ratings',ratingRoute);
+app.use('/schedules',scheduleRoute);
 
 
 export default app;

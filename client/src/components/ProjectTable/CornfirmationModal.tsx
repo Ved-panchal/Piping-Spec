@@ -1,6 +1,7 @@
 import React from 'react';
 
 interface Project {
+  id:string;
   projectCode: string;        
   projectDescription: string; 
   companyName: string;        

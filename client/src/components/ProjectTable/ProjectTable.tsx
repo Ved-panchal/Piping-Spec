@@ -6,6 +6,7 @@ import deleteWithBody from '../../utils/api/DeleteAxios';
 import ConfirmationModal from './CornfirmationModal'; // Import your ConfirmationModal
 
 interface Project {
+  id:string;
   projectCode: string;        
   projectDescription: string; 
   companyName: string;        
@@ -43,6 +44,7 @@ interface ProjectTableProps {
   setIsModalOpen: (isOpen: boolean) => void;
   setSelectedProject: (project: ProjectFormValues | null) => void;
   setProjectList: (projectlist: Project[]) => void;
+  onProjectClick: (projectId: string) => void;
 }
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -54,6 +56,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   setIsModalOpen,
   setSelectedProject,
   setProjectList,
+  onProjectClick,
 }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Control visibility of delete modal
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null); // Track project to delete
@@ -179,7 +182,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             </thead>
             <tbody>
               {filteredProjects.map((project) => (
-                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer">
+                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id)} >
                   <td className="p-2 w-8">
                     <Folder className="text-gray-600" size={20} />
                   </td>
