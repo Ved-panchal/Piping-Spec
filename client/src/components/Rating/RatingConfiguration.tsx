@@ -10,6 +10,7 @@ interface Rating {
   key: string;
   ratingCode: string;
   ratingValue: string;
+  
 }
 
 interface ApiError extends Error {

@@ -37,13 +37,13 @@ const router = Router();
  *                     - ratingCode
  *                     - ratingValue
  *                   properties:
- *                     ratingCode:
- *                       type: string
- *                       description: Code for the rating.
- *                       example: "3000#"
  *                     ratingValue:
  *                       type: string
  *                       description: Value for the rating.
+ *                       example: "3000#"
+ *                     ratingCode:
+ *                       type: string
+ *                       description: Code for the rating.
  *                       example: "C"
  *     responses:
  *       200:
