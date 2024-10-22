@@ -25,11 +25,13 @@ const ScheduleConfiguration: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [newCode, setNewCode] = useState('');
   const [newSchDesc, setNewSchDesc] = useState('');
+  const [newSch, setNewSch] = useState('');
   const [loading, setLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingColumn, setEditingColumn] = useState<string | null>(null); // Track the column being edited
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null); // Sorting order state
-  const [formSubmitted, setFormSubmitted] = useState(false); // Flag to control validation
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
+  const [, setFormSubmitted] = useState(false);
 
   useEffect(() => {
     const projectId = localStorage.getItem('currentProjectId');
@@ -56,7 +58,7 @@ const ScheduleConfiguration: React.FC = () => {
       if (response && response.data && response.data.success) {
         const schedulesWithKeys = response.data.schedules.map((schedule: any) => ({
           ...schedule,
-          key: schedule.id, // Using id as key for table row
+          key: schedule.id,
         }));
         setSchedules(schedulesWithKeys);
       } else {
@@ -72,10 +74,10 @@ const ScheduleConfiguration: React.FC = () => {
   };
 
   const handleAddSchedule = async () => {
-    setFormSubmitted(true); // Set the flag to true when submitting the form
+    setFormSubmitted(true);
 
-    if (!newCode || !newSchDesc) {
-      message.error('Both Code and Description are required.');
+    if (!newCode || !newSchDesc || !newSch) {
+      message.error('Schedule, Code and Description are required.');
       return;
     }
 
@@ -87,16 +89,20 @@ const ScheduleConfiguration: React.FC = () => {
 
       const newSchedule: Schedule = {
         key: Math.random().toString(36).substring(7),
-        sch1_sch2: newCode,
+        sch1_sch2: newSch,
         code: newCode,
         schDesc: newSchDesc,
       };
 
       const payload = {
         projectId: currentProjectId,
-        sch1_sch2: newSchedule.sch1_sch2,
-        code: newSchedule.code,
-        schDesc: newSchedule.schDesc,
+        schedules: [
+          {
+            sch1_sch2: newSchedule.sch1_sch2,
+            code: newSchedule.code,
+            schDesc: newSchedule.schDesc,
+          },
+        ],
       };
 
       const response = await api.post(configApi.API_URL.schedules.addorupdate, payload, {
@@ -107,7 +113,8 @@ const ScheduleConfiguration: React.FC = () => {
         setSchedules([...schedules, newSchedule]);
         setNewCode('');
         setNewSchDesc('');
-        setFormSubmitted(false); // Reset the flag after submission
+        setNewSch('');
+        setFormSubmitted(false);
         message.success('Schedule added successfully');
       } else {
         throw new Error('Failed to add schedule.');
@@ -130,23 +137,23 @@ const ScheduleConfiguration: React.FC = () => {
       return;
     }
 
-    const currentSchedule = schedules.find((schedule) => schedule.key === key);
-    if (!currentSchedule) {
-      message.error('Schedule not found');
-      return;
-    }
-
+    const originalSchedules = [...schedules];
     const updatedSchedules = schedules.map((schedule) =>
       schedule.key === key ? { ...schedule, code, schDesc } : schedule
     );
     setSchedules(updatedSchedules);
     setEditingKey(null);
+    setEditingColumn(null); // Clear the editing column state
 
     const payload = {
       projectId: currentProjectId,
-      sch1_sch2,
-      code,
-      schDesc,
+      schedules: [
+        {
+          sch1_sch2,
+          code,
+          schDesc,
+        },
+      ],
     };
 
     try {
@@ -160,6 +167,7 @@ const ScheduleConfiguration: React.FC = () => {
         throw new Error('Failed to update schedule.');
       }
     } catch (error) {
+      setSchedules(originalSchedules);
       const apiError = error as ApiError;
       const errorMessage = apiError.response?.data?.error || 'Failed to update schedule.';
       showToast({ message: errorMessage, type: 'error' });
@@ -173,13 +181,18 @@ const ScheduleConfiguration: React.FC = () => {
     dataIndex,
     ...restProps
   }) => {
-    // Ensure record and dataIndex are valid before accessing
     const inputValue = record ? record[dataIndex] : '';
     const [localInputValue, setLocalInputValue] = useState(inputValue);
-  
+
     const handleBlur = () => {
+      if (localInputValue === inputValue) {
+        setEditingKey(null);
+        setEditingColumn(null);
+        return;
+      }
+
       if (dataIndex === 'code' || dataIndex === 'schDesc') {
-        const sch1_sch2 = record?.sch1_sch2; // Optional chaining
+        const sch1_sch2 = record?.sch1_sch2;
         handleEditSchedule(
           record?.key,
           sch1_sch2,
@@ -188,12 +201,17 @@ const ScheduleConfiguration: React.FC = () => {
         );
       }
     };
-  
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        handleBlur();
+      }
+    };
+
     useEffect(() => {
-      // Update local input value when record changes
       setLocalInputValue(inputValue);
     }, [inputValue]);
-  
+
     return (
       <td {...restProps}>
         {editable ? (
@@ -201,26 +219,19 @@ const ScheduleConfiguration: React.FC = () => {
             value={localInputValue}
             onChange={(e) => setLocalInputValue(e.target.value)}
             onBlur={handleBlur}
+            onKeyPress={handleKeyPress}
             style={{ marginBottom: 8 }}
           />
         ) : (
-          <div onDoubleClick={() => setEditingKey(record?.key)}>{children}</div>
+          <div onDoubleClick={() => {
+            setEditingKey(record?.key);
+            setEditingColumn(dataIndex); // Set the editing column to the double-clicked cell
+          }}>
+            {children}
+          </div>
         )}
       </td>
     );
-  };
-  
-
-  const handleSort = (key: keyof Schedule) => {
-    let sortedSchedules = [...schedules];
-    if (sortOrder === 'ascend') {
-      sortedSchedules = sortedSchedules.sort((a, b) => (a[key] > b[key] ? 1 : -1));
-      setSortOrder('descend');
-    } else {
-      sortedSchedules = sortedSchedules.sort((a, b) => (a[key] < b[key] ? 1 : -1));
-      setSortOrder('ascend');
-    }
-    setSchedules(sortedSchedules);
   };
 
   const columns: ColumnsType<Schedule> = [
@@ -244,7 +255,7 @@ const ScheduleConfiguration: React.FC = () => {
       editable: true,
       onCell: (record: Schedule) => ({
         record,
-        editable: editingKey === record.key,
+        editable: editingKey === record.key && editingColumn === 'code', // Only allow editing on the selected cell
         dataIndex: 'code',
       }),
     },
@@ -259,7 +270,7 @@ const ScheduleConfiguration: React.FC = () => {
       editable: true,
       onCell: (record: Schedule) => ({
         record,
-        editable: editingKey === record.key,
+        editable: editingKey === record.key && editingColumn === 'schDesc', // Only allow editing on the selected cell
         dataIndex: 'schDesc',
       }),
     },
@@ -269,49 +280,72 @@ const ScheduleConfiguration: React.FC = () => {
     fetchSchedules();
   }, [currentProjectId]);
 
+  const handleSort = (columnKey: string) => {
+    if (sortOrder === 'ascend') {
+      setSortOrder('descend');
+    } else {
+      setSortOrder('ascend');
+    }
+    setSchedules((prevSchedules) =>
+      [...prevSchedules].sort((a, b) =>
+        sortOrder === 'ascend'
+          ? a[columnKey].localeCompare(b[columnKey])
+          : b[columnKey].localeCompare(a[columnKey])
+      )
+    );
+  };
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Schedule Configuration</h2>
+    <div>
+      <h1>Schedule Configuration</h1>
+
+      {/* Form section */}
       <Form layout="inline" style={{ marginBottom: '20px', marginTop: '10px' }}>
-        <Form.Item
-          validateStatus={formSubmitted && !newCode ? 'error' : ''}
-          help={formSubmitted && !newCode && 'Code is required.'}
-        >
+        <Form.Item style={{ marginRight: '10px' }}>
           <Input
-            placeholder="Enter Code"
+            value={newSch}
+            onChange={(e) => setNewSch(e.target.value)}
+            placeholder="Schedule 1/Schedule 2 Enter schedule"
+            style={{ width: '180px' }} // Adjust width to match the required size
+          />
+        </Form.Item>
+
+        <Form.Item style={{ marginRight: '10px' }}>
+          <Input
             value={newCode}
             onChange={(e) => setNewCode(e.target.value)}
+            placeholder="Enter code"
+            style={{ width: '180px' }} // Adjust width to match the required size
           />
         </Form.Item>
-        <Form.Item
-          validateStatus={formSubmitted && !newSchDesc ? 'error' : ''}
-          help={formSubmitted && !newSchDesc && 'Description is required.'}
-        >
+
+        <Form.Item style={{ marginRight: '10px' }}>
           <Input
-            placeholder="Enter Description"
             value={newSchDesc}
             onChange={(e) => setNewSchDesc(e.target.value)}
+            placeholder="Enter description"
+            style={{ width: '180px' }} // Adjust width to match the required size
           />
         </Form.Item>
+
         <Form.Item>
           <Button type="primary" onClick={handleAddSchedule}>
             Add Schedule
           </Button>
         </Form.Item>
       </Form>
+
+
+      {/* Table section */}
       <Table
+        dataSource={schedules}
+        columns={columns}
+        loading={loading}
         components={{
           body: {
             cell: EditableCell,
           },
         }}
-        bordered
-        dataSource={schedules}
-        columns={columns}
-        pagination={false}
-        loading={loading}
-        rowClassName={'editable-row'}
-        style={{ width: '100%', tableLayout: 'auto' }}
       />
     </div>
   );

@@ -47,7 +47,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             </div>
 
             {/* Right Panel - Main Content */}
-            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md overflow-y-auto max-h-[80vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700">
+            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md max-h-[80vh] ">
                 {activeComponent === 0 && <div className="text-lg text-white">Content for Component 1</div>}
                 {activeComponent === 1 && <div className="text-lg text-white">Content for Component 2</div>}
                 {activeComponent === 2 && <div className="text-lg text-white">Content for Component 3</div>}
