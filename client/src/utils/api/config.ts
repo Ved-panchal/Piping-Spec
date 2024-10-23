@@ -18,6 +18,13 @@ export const api = {
         update:"projects/update",
         delete:"projects/delete",
       },
+      specs:{
+        create:"specs/create",
+        getSpec:"specs/{specId}",
+        getAllSpecsByProject:"specs/project",
+        update:"specs/update",
+        delete:"specs/delete",
+      },
       ratings:{
         getAll:"ratings/getall",
         addorupdate:"ratings/add-or-update"

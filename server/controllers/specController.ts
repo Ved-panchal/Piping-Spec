@@ -76,7 +76,7 @@ export const updateSpec = async (req: Request, res: Response): Promise<void> => 
     // Find the spec, ensuring it belongs to a project owned by the user and is not deleted
     const spec = await db.Spec.findOne({
       where: {
-        specId,
+        id:specId,
         isDeleted: false,
       },
       include: {
@@ -125,7 +125,6 @@ export const getAllSpecsByProjectId = async (req: Request, res: Response): Promi
 };
 
 // Get Spec by ID
-// Get Spec by ID
 export const getSpecById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { specId } = req.params;
@@ -161,7 +160,7 @@ export const deleteSpec = async (req: Request, res: Response): Promise<void> => 
 
     // Find the spec, ensuring it belongs to a project owned by the user and is not deleted
     const spec = await db.Spec.findOne({
-      where: { specId, isDeleted: false },
+      where: { id:specId, isDeleted: false },
       include: {
         model: db.Project,
         as: 'project',
