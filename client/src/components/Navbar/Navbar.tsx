@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';  // Import Cookies from js-cookie
 import Logo from '../Logo/Logo';
 import showToast from '../../utils/toast';
 
@@ -12,18 +13,29 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user')!);
-    if (user) {
-      setUsername(user.name);
+    // Check for token in cookies
+    const token = Cookies.get('token');
+    if (!token) {
+      handleLogout(false); // Call logout without showing toast
+    } else {
+      const user = JSON.parse(localStorage.getItem('user')!);
+      if (user) {
+        setUsername(user.name);
+      }
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = (showToastMessage = true) => {
     localStorage.removeItem('user');
-    showToast({ message: 'Logged out successfully!', type: 'success' });
-    setUsername(null); 
+    Cookies.remove('token'); // Remove token from cookies if needed
+    setUsername(null);
     setIsDropdownOpen(false);
     navigate('/');
+
+    // Only show the toast if the action is manual (e.g., from a button click)
+    if (showToastMessage) {
+      showToast({ message: 'Logged out successfully!', type: 'success' });
+    }
   };
 
   const handlePricingClick = () => {
@@ -138,7 +150,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md z-10">
                       <button
-                        onClick={handleLogout}
+                        onClick={() => handleLogout(true)} // Manual logout with toast
                         className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
                       >
                         Logout

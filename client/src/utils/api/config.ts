@@ -25,6 +25,10 @@ export const api = {
       schedules:{
         getall:'schedules/getall',
         addorupdate:'schedules/add-or-update'
+      },
+      sizes:{
+        getall:'sizes/getall',
+        addorupdate:'sizes/add-or-update'
       }
     },
 };

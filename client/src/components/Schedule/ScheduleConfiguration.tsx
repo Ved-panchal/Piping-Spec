@@ -225,7 +225,7 @@ const ScheduleConfiguration: React.FC = () => {
         ) : (
           <div onDoubleClick={() => {
             setEditingKey(record?.key);
-            setEditingColumn(dataIndex); // Set the editing column to the double-clicked cell
+            setEditingColumn(dataIndex);
           }}>
             {children}
           </div>
