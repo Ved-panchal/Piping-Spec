@@ -4,6 +4,7 @@ import RatingConfiguration from '../Rating/RatingConfiguration';
 import ScheduleConfiguration from '../Schedule/ScheduleConfiguration';
 import SizeConfiguration from '../Size/SizeConfiguration';
 import SpecsCreation from '../SpecsCreation/SpecsCreation';
+import PmsInputSelector from '../PMSInputSelector/PmsInputSelector';
 
 interface SpecsProps {
     projectId?: string;
@@ -35,7 +36,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
         <div className="flex h-[90vh] bg-[#304D6D] p-6 rounded-lg shadow-lg relative">
             {/* Left Panel - Navigation */}
             <div className="w-56 bg-gray-800 p-4 flex flex-col justify-between min-h-[40vh] h-[70vh] rounded-lg m-2">
-                {['Piping Spec','Spec Configuration', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration'].map((label, index) => (
+                {['PMS Input Selector','Spec Configuration', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration'].map((label, index) => (
                     <div
                         key={index}
                         onClick={() => handleNavClick(index)}
@@ -50,7 +51,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
 
             {/* Right Panel - Main Content */}
             <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md max-h-[80vh] ">
-                {activeComponent === 0 && <div className="text-lg text-white">Content for Component 1</div>}
+                {activeComponent === 0 && <div className="text-lg text-white"><PmsInputSelector projectId={projectId}/></div>}
                 {activeComponent === 1 && <div className="text-lg text-white"><SpecsCreation/></div>}
                 {activeComponent === 2 && <div className="text-lg text-white">Content for Component 2</div>}
                 {activeComponent === 3 && <div className="text-lg text-white"><SizeConfiguration/></div>}
