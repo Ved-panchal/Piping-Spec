@@ -50,7 +50,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             </div>
 
             {/* Right Panel - Main Content */}
-            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md max-h-[80vh] ">
+            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md scrollable-container">
                 {activeComponent === 0 && <div className="text-lg text-white"><PmsInputSelector projectId={projectId}/></div>}
                 {activeComponent === 1 && <div className="text-lg text-white"><SpecsCreation/></div>}
                 {activeComponent === 2 && <div className="text-lg text-white">Content for Component 2</div>}
@@ -59,6 +59,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
                 {activeComponent === 5 && <div className="text-lg text-white"><RatingConfiguration/></div>}
                 {activeComponent === 6 && <div className="text-lg text-white">Content for Component 6</div>}
             </div>
+
         </div>
     );
 }

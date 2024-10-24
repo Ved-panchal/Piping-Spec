@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, TdHTMLAttributes } from 'react';
 import { Table, Input, Button, Form, message } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
@@ -19,6 +19,12 @@ interface ApiError extends Error {
     };
     status?: number;
   };
+}
+
+interface EditableCellProps extends TdHTMLAttributes<any> {
+  record: Schedule;
+  editable: boolean;
+  dataIndex: keyof Schedule;
 }
 
 const ScheduleConfiguration: React.FC = () => {
@@ -174,7 +180,7 @@ const ScheduleConfiguration: React.FC = () => {
     }
   };
 
-  const EditableCell: React.FC<any> = ({
+  const EditableCell: React.FC<EditableCellProps> = ({
     editable,
     children,
     record,
@@ -183,14 +189,14 @@ const ScheduleConfiguration: React.FC = () => {
   }) => {
     const inputValue = record ? record[dataIndex] : '';
     const [localInputValue, setLocalInputValue] = useState(inputValue);
-
+  
     const handleBlur = () => {
       if (localInputValue === inputValue) {
         setEditingKey(null);
         setEditingColumn(null);
         return;
       }
-
+  
       if (dataIndex === 'code' || dataIndex === 'schDesc') {
         const sch1_sch2 = record?.sch1_sch2;
         handleEditSchedule(
@@ -201,17 +207,17 @@ const ScheduleConfiguration: React.FC = () => {
         );
       }
     };
-
+  
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         handleBlur();
       }
     };
-
+  
     useEffect(() => {
       setLocalInputValue(inputValue);
     }, [inputValue]);
-
+  
     return (
       <td {...restProps}>
         {editable ? (
@@ -233,6 +239,7 @@ const ScheduleConfiguration: React.FC = () => {
       </td>
     );
   };
+  
 
   const columns: ColumnsType<Schedule> = [
     {
@@ -252,8 +259,7 @@ const ScheduleConfiguration: React.FC = () => {
       ),
       dataIndex: 'code',
       key: 'code',
-      editable: true,
-      onCell: (record: Schedule) => ({
+      onCell: (record: Schedule): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'code', // Only allow editing on the selected cell
         dataIndex: 'code',
@@ -267,20 +273,20 @@ const ScheduleConfiguration: React.FC = () => {
       ),
       dataIndex: 'schDesc',
       key: 'schDesc',
-      editable: true,
-      onCell: (record: Schedule) => ({
+      onCell: (record: Schedule): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'schDesc', // Only allow editing on the selected cell
         dataIndex: 'schDesc',
       }),
     },
+    
   ];
 
   useEffect(() => {
     fetchSchedules();
   }, [currentProjectId]);
 
-  const handleSort = (columnKey: string) => {
+  const handleSort = (columnKey: keyof Schedule) => {
     if (sortOrder === 'ascend') {
       setSortOrder('descend');
     } else {
@@ -341,6 +347,7 @@ const ScheduleConfiguration: React.FC = () => {
         dataSource={schedules}
         columns={columns}
         loading={loading}
+        pagination={false}
         components={{
           body: {
             cell: EditableCell,

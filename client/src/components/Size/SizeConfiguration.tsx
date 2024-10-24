@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, TdHTMLAttributes } from "react";
 import { Table, Input, Button, Form, message } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
@@ -22,6 +22,12 @@ interface ApiError extends Error {
     };
     status?: number;
   };
+}
+
+interface EditableCellProps extends TdHTMLAttributes<any> {
+  record:Size;
+  editable?: boolean;
+  field:string;
 }
 
 const SizeConfiguration: React.FC = () => {
@@ -150,7 +156,7 @@ const SizeConfiguration: React.FC = () => {
   
 
 
-  const handleEditField = async (key: string, field: string, value: string | number) => {
+  const handleEditField = async (key: string, field: keyof Size, value: string | number) => {
     if (!currentProjectId) {
       message.error("No current project ID available.");
       return;
@@ -287,8 +293,7 @@ const SizeConfiguration: React.FC = () => {
       title: "Code",
       dataIndex: "code",
       key: "code",
-      editable: true,
-      onCell: (record: Size) => ({
+      onCell: (record: Size):EditableCellProps => ({
         record,
         editable: editingKey === record.key,
         field: "code",
@@ -298,8 +303,7 @@ const SizeConfiguration: React.FC = () => {
       title: "Size (Inch)",
       dataIndex: "size_inch",
       key: "size_inch",
-      editable: true,
-      onCell: (record: Size) => ({
+      onCell: (record: Size):EditableCellProps => ({
         record,
         editable: editingKey === record.key,
         field: "size_inch",
@@ -309,8 +313,7 @@ const SizeConfiguration: React.FC = () => {
       title: "Size (mm)",
       dataIndex: "size_mm",
       key: "size_mm",
-      editable: true,
-      onCell: (record: Size) => ({
+      onCell: (record: Size):EditableCellProps => ({
         record,
         editable: editingKey === record.key,
         field: "size_mm",
@@ -320,8 +323,7 @@ const SizeConfiguration: React.FC = () => {
       title: "Outer Diameter (OD)",
       dataIndex: "od",
       key: "od",
-      editable: true,
-      onCell: (record: Size) => ({
+      onCell: (record: Size):EditableCellProps => ({
         record,
         editable: editingKey === record.key,
         field: "od",
@@ -386,7 +388,7 @@ const SizeConfiguration: React.FC = () => {
           }}
         dataSource={sizes}
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        pagination={false}
       />
     </div>
   );

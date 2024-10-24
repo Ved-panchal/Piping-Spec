@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, TdHTMLAttributes } from "react";
 import { Table, Input, Button, Form, message } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
@@ -20,6 +20,11 @@ interface ApiError extends Error {
     };
     status?: number;
   };
+}
+
+interface EditableCellProps extends TdHTMLAttributes<any> {
+  record: Rating;
+  editable: boolean;
 }
 
 const RatingConfiguration: React.FC = () => {
@@ -165,8 +170,11 @@ const RatingConfiguration: React.FC = () => {
 
     const payload = {
       projectId: currentProjectId,
-      ratingCode,
-      ratingValue: currentRating.ratingValue,
+      ratings:[{
+        ratingCode,
+        ratingValue: currentRating.ratingValue,
+      }
+      ]
     };
 
     try {
@@ -249,8 +257,7 @@ const RatingConfiguration: React.FC = () => {
       title: "Rating Code",
       dataIndex: "ratingCode",
       key: "ratingCode",
-      editable: true,
-      onCell: (record: Rating) => ({
+      onCell: (record: Rating) :EditableCellProps => ({
         record,
         editable: editingKey === record.key,
       }),
@@ -301,7 +308,7 @@ const RatingConfiguration: React.FC = () => {
         loading={loading}
         dataSource={ratings}
         columns={columns}
-        pagination={{ pageSize: 10 }}
+        pagination={false}
       />{" "}
     </div>
   );

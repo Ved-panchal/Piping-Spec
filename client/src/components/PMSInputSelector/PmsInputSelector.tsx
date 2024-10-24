@@ -22,7 +22,7 @@ interface Spec {
     baseMaterial: string;
 }
 
-const PmsInputSelector = ({ projectId }: { projectId: string }) => {
+const PmsInputSelector = ({ projectId }: { projectId?: string }) => {
   const [specs, setSpecs] = useState<Spec[]>([]);
   const [selectedSpec, setSelectedSpec] = useState<string | undefined>(undefined); // Ant Design's Select works with undefined
 
