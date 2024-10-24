@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, TdHTMLAttributes } from 'react';
 import { Table, Input, Button, Form, message, Select } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
@@ -21,6 +21,12 @@ interface ApiError extends Error {
     };
     status?: number;
   };
+}
+
+interface EditableCellProps extends TdHTMLAttributes<any> {
+  record: Spec;
+  editable: boolean;
+  dataIndex: keyof Spec;
 }
 
 const SpecsCreation: React.FC = () => {
@@ -292,8 +298,7 @@ const SpecsCreation: React.FC = () => {
       ),
       dataIndex: 'specName',
       key: 'specName',
-      editable: true,
-      onCell: (record: Spec) => ({
+      onCell: (record: Spec):EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'specName',
         dataIndex: 'specName',
@@ -307,8 +312,7 @@ const SpecsCreation: React.FC = () => {
       ),
       dataIndex: 'rating',
       key: 'rating',
-      editable: true,
-      onCell: (record: Spec) => ({
+      onCell: (record: Spec):EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'rating',
         dataIndex: 'rating',
@@ -322,8 +326,7 @@ const SpecsCreation: React.FC = () => {
       ),
       dataIndex: 'baseMaterial',
       key: 'baseMaterial',
-      editable: true,
-      onCell: (record: Spec) => ({
+      onCell: (record: Spec):EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'baseMaterial',
         dataIndex: 'baseMaterial',
@@ -337,7 +340,7 @@ const SpecsCreation: React.FC = () => {
   }, [currentProjectId]);
 
   // Handle sorting functionality
-  const handleSort = (columnKey: string) => {
+  const handleSort = (columnKey: keyof Spec) => {
     setSortOrder((prev) => (prev === 'ascend' ? 'descend' : 'ascend'));
     setSpecs((prevSpecs) =>
       [...prevSpecs].sort((a, b) =>
