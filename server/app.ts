@@ -22,7 +22,7 @@ const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(cors(
-    {origin: '*',
+    {origin: ['https://piping-spec.vercel.app','http://localhost:5173'],
     credentials: true
     } ));
 app.use(express.json());
