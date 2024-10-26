@@ -41,6 +41,19 @@ const LoginModal = ({ isOpen, closeModal,onLoginSuccess  }: LoginModalProps) => 
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        const handleEscapeKey = (e: KeyboardEvent) => {
+          if (e.key === "Escape") {
+            closeModal();
+            return;
+          }
+        };
+        document.addEventListener("keydown", handleEscapeKey);
+        return () => {
+          document.removeEventListener("keydown", handleEscapeKey);
+        };
+      }, []);
+
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
@@ -96,10 +109,10 @@ const LoginModal = ({ isOpen, closeModal,onLoginSuccess  }: LoginModalProps) => 
         }  catch (error) {
             const apiError = error as ApiError;
             if (apiError.response && apiError.response.data) {
-                const errorMessage = apiError.response.data.error || "Login failed. Please check your credentials.";
+                const errorMessage = apiError.response.data.error+"Login failed. Please check your credentials.";
                 showToast({ message: errorMessage, type: "error" });
             } else if (error instanceof Error) {
-                showToast({ message: error.message || "An unknown error occurred.", type: "error" });
+                showToast({ message: error.message+"An unknown error occurred.", type: "error" });
             } else {
                 showToast({ message: "An unknown error occurred.", type: "error" });
             }

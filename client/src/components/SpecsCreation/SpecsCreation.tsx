@@ -58,9 +58,7 @@ const SpecsCreation: React.FC = () => {
       setLoading(true);
       if (!currentProjectId) return;
 
-      const response = await api.get(`${configApi.API_URL.specs.getAllSpecsByProject}/${currentProjectId}`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await api.get(`${configApi.API_URL.specs.getAllSpecsByProject}/${currentProjectId}`);
 
       if (response && response.data && response.data.success) {
         const specsWithKeys = response.data.specs.map((spec: any) => ({

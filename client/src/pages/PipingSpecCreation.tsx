@@ -32,13 +32,12 @@ const PipingSpecCreation = () => {
 
   const fetchUserProjects = async () => {
     const response = await api.get(`${configApi.API_URL.project.getAllProjectByUser}`);
-    console.log(response.data.projects);
     return response.data.projects;
   };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user')!);
-    const token = JSON.parse(localStorage.getItem('token')!)
+    const token = JSON.parse(localStorage.getItem('token')!);
     if (user && token) {
       setUsername(user.name);
       fetchUserProjects().then(fetchedProjects => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import FormikInput from '../FormFields/FormikInput';
@@ -26,6 +26,20 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeModal();
+        return;
+      }
+    };
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, []);
+
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

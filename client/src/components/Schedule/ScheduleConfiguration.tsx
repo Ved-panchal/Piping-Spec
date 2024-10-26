@@ -1,5 +1,5 @@
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, message } from 'antd';
+import { Table, Input, Button, Form, message,Spin } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
@@ -9,6 +9,7 @@ interface Schedule {
   key: string;
   sch1_sch2: string;
   code: string;
+  c_code: string;
   schDesc: string;
 }
 
@@ -30,9 +31,11 @@ interface EditableCellProps extends TdHTMLAttributes<unknown> {
 const ScheduleConfiguration: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [newCode, setNewCode] = useState('');
+  const [newCCode, setNewCCode] = useState('');
   const [newSchDesc, setNewSchDesc] = useState('');
   const [newSch, setNewSch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null); // Track the column being edited
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -64,7 +67,8 @@ const ScheduleConfiguration: React.FC = () => {
       if (response && response.data && response.data.success) {
         const schedulesWithKeys = response.data.schedules.map((schedule: any) => ({
           ...schedule,
-          key: schedule.id,
+          key: schedule.code,
+          c_code: schedule.c_code,
         }));
         setSchedules(schedulesWithKeys);
       } else {
@@ -82,8 +86,33 @@ const ScheduleConfiguration: React.FC = () => {
   const handleAddSchedule = async () => {
     setFormSubmitted(true);
 
-    if (!newCode || !newSchDesc || !newSch) {
-      message.error('Schedule, Code and Description are required.');
+    const duplicateSch = schedules.find(schedule => schedule.sch1_sch2 === newSch);
+    const duplicateCode = schedules.find((schedule) => schedule.code === newCode);
+    const duplicateCCode = schedules.find((schedule) => schedule.c_code === newCCode);
+    const duplicateSchDesc = schedules.find((schedule) => schedule.schDesc === newSchDesc);
+
+    if (duplicateSch) {
+      message.error('Schedule already exists.');
+      return;
+    }
+
+    if (duplicateCode) {
+      message.error('Code already exists.');
+      return;
+    }
+
+    if (duplicateCCode) {
+      message.error('Client Code already exists.');
+      return;
+    }
+
+    if(duplicateSchDesc){
+      message.error('Description already exists.');
+      return;
+    }
+
+    if (!newCode || !newCCode || !newSchDesc || !newSch) {
+      message.error('Schedule, Code and Client Code and Description are required.');
       return;
     }
 
@@ -92,11 +121,12 @@ const ScheduleConfiguration: React.FC = () => {
         message.error('No current project ID available.');
         return;
       }
-
+      setButtonLoading(true);
       const newSchedule: Schedule = {
         key: Math.random().toString(36).substring(7),
         sch1_sch2: newSch,
         code: newCode,
+        c_code: newCCode,
         schDesc: newSchDesc,
       };
 
@@ -106,6 +136,7 @@ const ScheduleConfiguration: React.FC = () => {
           {
             sch1_sch2: newSchedule.sch1_sch2,
             code: newSchedule.code,
+            c_code:newSchedule.c_code,
             schDesc: newSchedule.schDesc,
           },
         ],
@@ -116,8 +147,9 @@ const ScheduleConfiguration: React.FC = () => {
       });
 
       if (response && response.data.success) {
-        setSchedules([...schedules, newSchedule]);
+        setSchedules([newSchedule,...schedules]);
         setNewCode('');
+        setNewCCode('');
         setNewSchDesc('');
         setNewSch('');
         setFormSubmitted(false);
@@ -129,12 +161,28 @@ const ScheduleConfiguration: React.FC = () => {
       const apiError = error as ApiError;
       const errorMessage = apiError.response?.data?.error || 'Failed to add schedule.';
       showToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setButtonLoading(false);
     }
   };
 
-  const handleEditSchedule = async (key: string, sch1_sch2: string, code: string, schDesc: string) => {
-    if (!code || !schDesc) {
-      message.error('Code and Description cannot be empty.');
+  const handleEditSchedule = async (key: string, sch1_sch2: string, c_code:string, schDesc: string) => {
+    
+    const duplicateCCode = schedules.find((schedule) => schedule.c_code === c_code && schedule.key !== key);
+    const duplicateSchDesc = schedules.find((schedule) => schedule.schDesc === schDesc && schedule.key !== key);
+
+    if (duplicateCCode) {
+      message.error('Client Code already exists.');
+      return;
+    }
+
+    if (duplicateSchDesc) {
+      message.error('Description already exists.');
+      return;
+    }
+    
+    if (!c_code || !schDesc) {
+      message.error('Client Code and Description cannot be empty.');
       return;
     }
 
@@ -145,7 +193,7 @@ const ScheduleConfiguration: React.FC = () => {
 
     const originalSchedules = [...schedules];
     const updatedSchedules = schedules.map((schedule) =>
-      schedule.key === key ? { ...schedule, code, schDesc } : schedule
+      schedule.key === key ? { ...schedule, c_code, schDesc } : schedule
     );
     setSchedules(updatedSchedules);
     setEditingKey(null);
@@ -156,7 +204,8 @@ const ScheduleConfiguration: React.FC = () => {
       schedules: [
         {
           sch1_sch2,
-          code,
+          code:key,
+          c_code,
           schDesc,
         },
       ],
@@ -190,6 +239,19 @@ const ScheduleConfiguration: React.FC = () => {
     const inputValue = record ? record[dataIndex] : '';
     const [localInputValue, setLocalInputValue] = useState(inputValue);
   
+    useEffect(() => {
+      const handleEscapeKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setEditingKey(null);
+          return;
+        }
+      };
+      document.addEventListener("keydown", handleEscapeKey);
+      return () => {
+        document.removeEventListener("keydown", handleEscapeKey);
+      };
+    }, []);
+
     const handleBlur = () => {
       if (localInputValue === inputValue) {
         setEditingKey(null);
@@ -197,13 +259,13 @@ const ScheduleConfiguration: React.FC = () => {
         return;
       }
   
-      if (dataIndex === 'code' || dataIndex === 'schDesc') {
+      if (dataIndex === 'c_code' || dataIndex === 'schDesc') {
         const sch1_sch2 = record?.sch1_sch2;
         handleEditSchedule(
           record?.key,
           sch1_sch2,
-          dataIndex === 'code' ? localInputValue : record?.code,
-          dataIndex === 'schDesc' ? localInputValue : record?.schDesc
+          dataIndex === 'c_code'? localInputValue : record?.c_code,
+          dataIndex === 'schDesc' ? localInputValue : record?.schDesc,
         );
       }
     };
@@ -226,6 +288,7 @@ const ScheduleConfiguration: React.FC = () => {
             onChange={(e) => setLocalInputValue(e.target.value)}
             onBlur={handleBlur}
             onKeyPress={handleKeyPress}
+            autoFocus
             style={{ marginBottom: 8 }}
           />
         ) : (
@@ -259,10 +322,19 @@ const ScheduleConfiguration: React.FC = () => {
       ),
       dataIndex: 'code',
       key: 'code',
+    },
+    {
+      title: (
+        <div onDoubleClick={() => handleSort('code')}>
+          Client Code
+        </div>
+      ),
+      dataIndex: 'c_code',
+      key: 'c_code',
       onCell: (record: Schedule): EditableCellProps => ({
         record,
-        editable: editingKey === record.key && editingColumn === 'code', // Only allow editing on the selected cell
-        dataIndex: 'code',
+        editable: editingKey === record.key && editingColumn === 'c_code', // Only allow editing on the selected cell
+        dataIndex: 'c_code',
       }),
     },
     {
@@ -313,6 +385,7 @@ const ScheduleConfiguration: React.FC = () => {
             onChange={(e) => setNewSch(e.target.value)}
             placeholder="Schedule 1/Schedule 2 Enter schedule"
             style={{ width: '180px' }} // Adjust width to match the required size
+            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
@@ -322,6 +395,17 @@ const ScheduleConfiguration: React.FC = () => {
             onChange={(e) => setNewCode(e.target.value)}
             placeholder="Enter code"
             style={{ width: '180px' }} // Adjust width to match the required size
+            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
+          />
+        </Form.Item>
+
+        <Form.Item style={{ marginRight: '10px' }}>
+          <Input
+            value={newCCode}
+            onChange={(e) => setNewCCode(e.target.value)}
+            placeholder="Enter client code"
+            style={{ width: '180px' }} // Adjust width to match the required size
+            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
@@ -331,12 +415,15 @@ const ScheduleConfiguration: React.FC = () => {
             onChange={(e) => setNewSchDesc(e.target.value)}
             placeholder="Enter description"
             style={{ width: '180px' }} // Adjust width to match the required size
+            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" onClick={handleAddSchedule}>
-            Add Schedule
+          <Button type="primary" onClick={handleAddSchedule} disabled={buttonLoading}>
+            {
+              buttonLoading ? <Spin /> : "Add Schedule"
+            }
           </Button>
         </Form.Item>
       </Form>
@@ -344,6 +431,7 @@ const ScheduleConfiguration: React.FC = () => {
 
       {/* Table section */}
       <Table
+      className='select-none'
         dataSource={schedules}
         columns={columns}
         loading={loading}

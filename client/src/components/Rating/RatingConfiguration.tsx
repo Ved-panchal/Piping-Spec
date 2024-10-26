@@ -94,6 +94,23 @@ const RatingConfiguration: React.FC = () => {
   };
 
   const handleAddRating = async () => {
+
+    const duplicateFields: string[] = [];
+
+  if (ratings.some((rating) => rating.ratingValue === newRatingValue)) {
+    duplicateFields.push("Rating Value");
+  }
+  if (ratings.some((rating) => rating.ratingCode === newRatingCode)) {
+    duplicateFields.push("Rating Code");
+  }
+  if (ratings.some((rating) => rating.c_ratingCode === newCRatingCode)) {
+    duplicateFields.push("Client Rating Code");
+  }
+
+  if (duplicateFields.length > 0) {
+    message.error(`${duplicateFields.join(", ")} already in use.`);
+    return;
+  }
     if (!ratingCodeRegex.test(newCRatingCode)) {
       message.error("Rating code can only include A-Z, a-z, and 0-9");
       return;
@@ -156,6 +173,16 @@ const RatingConfiguration: React.FC = () => {
   };
 
   const handleEditRatingCode = async (key: string, c_ratingCode:string) => {
+    
+    const duplicateRating = ratings.find(
+      (rating) => rating.c_ratingCode === c_ratingCode && rating.key !== key
+    );
+  
+    if (duplicateRating) {
+      message.error("Client Rating Code is already in use.");
+      return;
+    }
+    
     if (!ratingCodeRegex.test(c_ratingCode)) {
       message.error("Invalid rating code");
       return;
