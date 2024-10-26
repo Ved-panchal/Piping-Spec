@@ -22,7 +22,8 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const swaggerDocs = (0, swagger_jsdoc_1.default)(swaggeroption_1.default);
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocs));
-app.use((0, cors_1.default)({ origin: 'http://localhost:5173',
+app.use((0, cors_1.default)({
+    origin: ['https://piping-spec.vercel.app', 'http://localhost:5173'],
     credentials: true
 }));
 app.use(express_1.default.json());

@@ -15,6 +15,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
   useEffect(() => {
     // Check for token in cookies
     const token = Cookies.get('token');
+    console.log(token);
     if (!token) {
       handleLogout(false);
     } else {
