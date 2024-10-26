@@ -40,7 +40,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         const token = generateJWT({ id: user.id, email: user.email });
-        res.cookie('token', token, { maxAge: 3600000, path: '/' });
+        res.cookie('token', token, { maxAge: 3600000, path: '/',
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none' });
         
         const { password: _, ...userWithoutPassword } = user.toJSON();
 
