@@ -6,7 +6,7 @@ import deleteWithBody from '../../utils/api/DeleteAxios';
 import ConfirmationModal from './CornfirmationModal'; // Import your ConfirmationModal
 
 interface Project {
-  id:string;
+  id: string;
   projectCode: string;        
   projectDescription: string; 
   companyName: string;        
@@ -15,7 +15,7 @@ interface Project {
 interface ApiError extends Error {
   response?: {
     data?: {
-      error?:string;
+      error?: string;
     };
     status?: number;
   };
@@ -29,7 +29,7 @@ interface ProjectFormValues {
 
 interface DeleteResponse {
   data: {
-    success:boolean;
+    success: boolean;
     message: string;
     error?: string;
   }
@@ -61,7 +61,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Control visibility of delete modal
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null); // Track project to delete
 
-  const handleEdit = (project: Project) => {
+  const handleEdit = (project: Project, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
     const projectFormValues: ProjectFormValues = {
       code: project.projectCode,
       description: project.projectDescription,
@@ -71,68 +72,68 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     setIsModalOpen(true);
   };
 
-  const openConfirmationModal = (project: Project) => {
+  const openConfirmationModal = (project: Project, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent event bubbling
     setProjectToDelete(project);
     setIsDeleteModalOpen(true);
   };
 
   const handleDelete = async (project: Project) => {
     const requestBody = {
-        projectCode: project.projectCode,
+      projectCode: project.projectCode,
     };
 
     try {
-        const response = await deleteWithBody<DeleteResponse>(configApi.API_URL.project.delete, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+      const response = await deleteWithBody<DeleteResponse>(configApi.API_URL.project.delete, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-        if (response && response.data) {
-            const { success, message, error } = response.data;
+      if (response && response.data) {
+        const { success, message, error } = response.data;
 
-            if (success) {
-                showToast({ message: message || 'Project deleted successfully!', type: 'success' });
+        if (success) {
+          showToast({ message: message || 'Project deleted successfully!', type: 'success' });
 
-                const updatedProjects = projects.filter(
-                    (p) => p.projectCode !== project.projectCode
-                );
+          const updatedProjects = projects.filter(
+            (p) => p.projectCode !== project.projectCode
+          );
 
-                setProjectList(updatedProjects);
-                setIsDeleteModalOpen(false); // Close modal after deletion
-                setProjectToDelete(null); // Clear the project to delete
-            } else {
-                showToast({ message: error || 'Failed to delete project.', type: 'error' });
-            }
+          setProjectList(updatedProjects);
+          setIsDeleteModalOpen(false); // Close modal after deletion
+          setProjectToDelete(null); // Clear the project to delete
         } else {
-            showToast({ message: 'Failed to delete project. Please try again.', type: 'error' });
+          showToast({ message: error || 'Failed to delete project.', type: 'error' });
         }
+      } else {
+        showToast({ message: 'Failed to delete project. Please try again.', type: 'error' });
+      }
     } catch (error) {
-        const apiError = error as ApiError;
-        if (apiError.response && apiError.response.data) {
-            const errorMessage = apiError.response.data.error || 'Failed to delete project. Please try again.';
-            showToast({ message: errorMessage, type: 'error' });
-        } else if (error instanceof Error) {
-            if (error.message.includes('401')) {
-                showToast({
-                    message: "Unauthorized Access: token is not provided",
-                    type: 'error',
-                });
-            } else {
-                showToast({
-                    message: error.message || 'Failed to process the request. Please try again.',
-                    type: 'error',
-                });
-            }
+      const apiError = error as ApiError;
+      if (apiError.response && apiError.response.data) {
+        const errorMessage = apiError.response.data.error || 'Failed to delete project. Please try again.';
+        showToast({ message: errorMessage, type: 'error' });
+      } else if (error instanceof Error) {
+        if (error.message.includes('401')) {
+          showToast({
+            message: "Unauthorized Access: token is not provided",
+            type: 'error',
+          });
         } else {
-            showToast({
-                message: 'An unknown error occurred.',
-                type: 'error',
-            });
+          showToast({
+            message: error.message || 'Failed to process the request. Please try again.',
+            type: 'error',
+          });
         }
+      } else {
+        showToast({
+          message: 'An unknown error occurred.',
+          type: 'error',
+        });
+      }
     }
-};
-
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md relative">
@@ -182,7 +183,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             </thead>
             <tbody>
               {filteredProjects.map((project) => (
-                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id)} >
+                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id)}>
                   <td className="p-2 w-8">
                     <Folder className="text-gray-600" size={20} />
                   </td>
@@ -191,7 +192,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   <td className="p-2 w-1/4">{project.companyName}</td>
                   <td className="p-2 w-32 flex justify-start space-x-2">
                     <div className="relative group">
-                      <button className="text-blue-500 hover:underline mr-2" onClick={() => handleEdit(project)}>
+                      <button
+                        className="text-blue-500 hover:underline mr-2"
+                        onClick={(e) => handleEdit(project, e)} // Pass the event
+                      >
                         <Pencil size={17} />
                       </button>
                       <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg">
@@ -200,7 +204,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     </div>
 
                     <div className="relative group">
-                      <button className="text-red-500 hover:underline" onClick={() => openConfirmationModal(project)}>
+                      <button
+                        className="text-red-500 hover:underline"
+                        onClick={(e) => openConfirmationModal(project, e)} // Pass the event
+                      >
                         <Trash2 size={17} />
                       </button>
                       <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg">

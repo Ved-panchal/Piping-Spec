@@ -13,6 +13,12 @@ interface LoginFormValues {
     Email: string;
     password: string;
 }
+
+interface LoginModalProps {
+    isOpen: boolean;
+    closeModal: () => void;
+    onLoginSuccess: (user: { name: string }) => void; // New prop
+}
 interface ApiError extends Error {
     response?: {
       data?: {
@@ -22,10 +28,11 @@ interface ApiError extends Error {
     };
   }
 
-const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () => void }) => {
+const LoginModal = ({ isOpen, closeModal,onLoginSuccess  }: LoginModalProps) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const emailInputRef = useRef<HTMLInputElement>(null);
+    // const navigate = useNavigate();
     bouncy.register();
 
     useEffect(() => {
@@ -62,31 +69,31 @@ const LoginModal = ({ isOpen, closeModal }: { isOpen: boolean, closeModal: () =>
                 email: values.Email,
                 password: values.password,
             };
-    
+
             // Send the POST request with JSON payload
             const response = await api.post(configApi.API_URL.auth.login, requestBody, {
                 headers: {
                     "Content-Type": "application/json",
                 },
             });
-    
+
             if (response && response.data) {
-                const { success, message, error } = response.data;
-    
+                const { success, message, error, user } = response.data;
+
                 if (success) {
-                    localStorage.setItem("user", JSON.stringify(response.data.user));
+                    localStorage.setItem("user", JSON.stringify(user));
+                    localStorage.setItem("token", JSON.stringify(response.data.token));
                     showToast({ message: message || "Login Successful!!", type: "success" });
-    
-                    setTimeout(() => {
-                        window.location.href = "/";
-                    }, 1500);
+
+                    onLoginSuccess(user); // Call the success function
+                    closeModal();
                 } else {
                     showToast({ message: error || "Login failed. Please check your credentials.", type: "error" });
                 }
             } else {
                 showToast({ message: "Login failed. Please check your credentials.", type: "error" });
             }
-        } catch (error) {
+        }  catch (error) {
             const apiError = error as ApiError;
             if (apiError.response && apiError.response.data) {
                 const errorMessage = apiError.response.data.error || "Login failed. Please check your credentials.";

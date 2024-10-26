@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';  // Import Cookies from js-cookie
 import Logo from '../Logo/Logo';
 import showToast from '../../utils/toast';
 
-const Navbar = ({ openModal }: { openModal: () => void }) => {
-  const [username, setUsername] = useState<string | null>(null);
+const Navbar = ({ openModal, setUsername,username  }: { openModal: () => void, setUsername: (name: string) => void,username:string | null }) => {
+  // const [username, setUsername] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -13,28 +12,25 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for token in cookies
-    const token = Cookies.get('token');
-    console.log(token);
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user')!);
+    console.log(user);
     if (!token) {
-      // handleLogout(false);
-      console.log("No token found");
-    } else {
-      const user = JSON.parse(localStorage.getItem('user')!);
-      if (user) {
-        setUsername(user.name);
-      }
+      handleLogout(false);
     }
-  }, []);
+    if(user){
+      username = user.name;
+    }
+  }, [username]);
 
   const handleLogout = (showToastMessage = true) => {
     localStorage.removeItem('user');
-    Cookies.remove('token'); 
-    setUsername(null);
+    localStorage.removeItem('token');
+    setUsername('');
     setIsDropdownOpen(false);
     navigate('/');
 
-    // Only show the toast if the action is manual (e.g., from a button click)
+
     if (showToastMessage) {
       showToast({ message: 'Logged out successfully!', type: 'success' });
     }

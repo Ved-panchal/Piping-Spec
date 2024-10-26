@@ -3,20 +3,17 @@ import { verifyJWT } from '../utils/jwt';
 
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
     try {
-        // Try to get the token from cookies first
-        let token = req.cookies.token;
-        if (!token) {
-            token = req.headers.authorization?.split(' ')[1];
-        }
+        let token = req.headers.authorization?.split(' ')[1];
+        console.log(token);
         
         if (!token) {
-            res.status(401).json({ message: 'Access denied, no token provided' });
-            return;
+             res.json({status:"401", message: 'Access denied, no token provided' });
+             return;
         }
         
         const decoded = verifyJWT(token);
         if (!decoded) {
-            res.status(401).json({ error: 'Invalid token' });
+            res.json({status:"401", error: 'Invalid token' });
             return;
         }
 

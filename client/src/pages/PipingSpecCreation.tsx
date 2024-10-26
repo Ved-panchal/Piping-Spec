@@ -39,7 +39,7 @@ const PipingSpecCreation = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user')!);
-    const token = Cookies.get('token');
+    const token = JSON.parse(localStorage.getItem('token')!)
     if (user && token) {
       setUsername(user.name);
       fetchUserProjects().then(fetchedProjects => {

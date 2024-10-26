@@ -40,7 +40,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         const token = generateJWT({ id: user.id, email: user.email });
-        res.cookie('token', token, { maxAge: 3600000, path: '/',secure: true, httpOnly:true });
         const { password: _, ...userWithoutPassword } = user.toJSON();
 
         // Send success response
@@ -48,6 +47,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             success: true,
             message: "Login successful",
             user: userWithoutPassword,
+            token :token,
             status: "200"
         });
     } catch (error: any) {
