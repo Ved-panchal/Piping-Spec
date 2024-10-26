@@ -7,7 +7,6 @@ import CreateProjectModal from '../components/CreateProjectModal/CreateProjectMo
 import Specs from '../components/Specs/Specs'; // Import the Specs component
 import api from '../utils/api/apiutils';
 import { api as configApi } from "../utils/api/config";
-import Cookies from "js-cookie";
 
 interface Project {
   id: string;
