@@ -34,7 +34,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
     return (
         <div className="flex h-[90vh] bg-[#304D6D] p-6 rounded-lg shadow-lg relative">
             {/* Left Panel - Navigation */}
-            <div className="w-56 bg-gray-800 p-4 flex flex-col justify-between min-h-[40vh] h-[70vh] rounded-lg m-2">
+            <div className="w-56 bg-gray-800 p-4 flex flex-col justify-between min-h-[40vh] h-[78vh] rounded-lg m-2">
                 {['PMS Input Selector','Spec Configuration', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration'].map((label, index) => (
                     <div
                         key={index}
