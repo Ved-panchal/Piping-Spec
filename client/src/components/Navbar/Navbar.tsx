@@ -16,7 +16,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
     // Check for token in cookies
     const token = Cookies.get('token');
     if (!token) {
-      handleLogout(false); // Call logout without showing toast
+      handleLogout(false);
     } else {
       const user = JSON.parse(localStorage.getItem('user')!);
       if (user) {
@@ -27,7 +27,7 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
 
   const handleLogout = (showToastMessage = true) => {
     localStorage.removeItem('user');
-    Cookies.remove('token'); // Remove token from cookies if needed
+    Cookies.remove('token'); 
     setUsername(null);
     setIsDropdownOpen(false);
     navigate('/');
