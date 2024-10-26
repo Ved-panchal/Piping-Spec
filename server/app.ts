@@ -21,10 +21,13 @@ const app:Express = express();
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.use(cors(
-    {origin: ['https://piping-spec.vercel.app','http://localhost:5173'],
-    credentials: true
-    } ));
+app.use(cors({
+    origin: ['https://piping-spec.vercel.app', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+  }));
+  
 app.use(express.json());
 app.use(cookieParser());
 
