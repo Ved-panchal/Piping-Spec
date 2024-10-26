@@ -3,8 +3,9 @@ import db from "../models";
 import { Request, Response } from "express";
 
 interface SizeType {
-    size1_size2: number;
+  size1_size2: number;
   code: string;
+  c_code:string;
   size_inch: string;
   size_mm: number;
   od: number;
@@ -39,12 +40,12 @@ export const getSizesByProjectId = async (req: Request, res: Response): Promise<
 
     // Add default sizes to the map
     defaultSizes.forEach((defaultSize: SizeType) => {
-      sizeMap[defaultSize.size1_size2] = defaultSize;
+      sizeMap[defaultSize.code] = defaultSize;
     });
 
     // Override defaults with project-specific sizes
     projectSizes.forEach((size: SizeType) => {
-      sizeMap[size.size1_size2] = size;
+      sizeMap[size.code] = size;
     });
 
     // Convert the map back to an array
@@ -60,8 +61,8 @@ export const getSizesByProjectId = async (req: Request, res: Response): Promise<
 // Add or Update Sizes
 export const addOrUpdateSizes = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { projectId, size1_size2, code, size_inch, size_mm, od } = req.body;
-    const userId =  (req as any).user.id;// Assuming you pass userId in cookies or headers
+    const { projectId, size1_size2, code, c_code, size_inch, size_mm, od } = req.body;
+    const userId =  (req as any).user.id;
 
     // Validate project and user
     const isProjectValid = await validateProjectAndUser(projectId, userId);
@@ -71,27 +72,24 @@ export const addOrUpdateSizes = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Check if a size already exists for the given SIZE1 and projectId
     const existingSize = await db.Size.findOne({
       where: { size1_size2, projectId },
     });
 
     if (existingSize) {
-      // If the CODE or any other field is different, update the size
       if (
-        existingSize.code !== code || 
+        existingSize.c_code !== c_code || 
         existingSize.size_inch !== size_inch || 
         existingSize.size_mm !== size_mm || 
         existingSize.od !== od
       ) {
-        existingSize.code = code;
+        existingSize.c_code = c_code;
         existingSize.size_inch = size_inch;
         existingSize.size_mm = size_mm;
         existingSize.od = od;
         await existingSize.save();
         res.json({ success: true, message: "Size updated successfully." });
       } else {
-        // No update if everything is the same
         res.json({ success: false, message: "No changes detected, no update needed." });
       }
     } else {
@@ -99,6 +97,7 @@ export const addOrUpdateSizes = async (req: Request, res: Response): Promise<voi
       await db.Size.create({
         size1_size2,
         code,
+        c_code,
         size_inch,
         size_mm,
         od,

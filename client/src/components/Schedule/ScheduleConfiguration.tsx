@@ -21,7 +21,7 @@ interface ApiError extends Error {
   };
 }
 
-interface EditableCellProps extends TdHTMLAttributes<any> {
+interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: Schedule;
   editable: boolean;
   dataIndex: keyof Schedule;

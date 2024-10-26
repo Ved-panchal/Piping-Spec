@@ -12,6 +12,13 @@ const defaultRatingModel = (sequelize: any) => {
           is: /^[0-9A-Z]+$/,
         },
       },
+      c_rating_code: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        validate: {
+          is: /^[0-9A-Z]+$/,
+        },
+      },
       ratingValue: {
         type: DataTypes.STRING(10),
         allowNull: false,

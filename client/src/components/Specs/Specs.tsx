@@ -20,7 +20,6 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
         }
     }, [projectId]);
 
-    // On page load or refresh, check if the projectId exists in local storage
     useEffect(() => {
         const storedProjectId = localStorage.getItem('currentProjectId');
         if (!storedProjectId) {

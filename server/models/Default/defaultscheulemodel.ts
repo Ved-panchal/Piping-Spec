@@ -18,6 +18,13 @@ const defaultScheduleModel = (sequelize: any) => {
           is: /^[0-9A-Z]+$/,  // Alphanumeric validation for CODE
         },
       },
+      c_code: {
+        type: DataTypes.STRING(10),  // CODE field, e.g., 'S1', 'S2'
+        allowNull: false,
+        validate: {
+          is: /^[0-9A-Z]+$/,  // Alphanumeric validation for CODE
+        },
+      },
       schDesc: {
         type: DataTypes.STRING,  // Sch Desc field, e.g., 'Sch.10'
         allowNull: false,

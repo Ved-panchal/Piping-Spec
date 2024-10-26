@@ -24,32 +24,37 @@ const router = Router();
  *             required:
  *               - projectId
  *               - size1_size2
- *               - CODE
- *               - sizeInch
- *               - sizeMM
- *               - OD
+ *               - code
+ *               - c_code
+ *               - size_inch
+ *               - size_mm
+ *               - od
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project to associate sizes with.
- *                 example: 1
+ *                 example: "1"
  *               size1_size2:
  *                 type: number
  *                 description: The identifier for the size.
  *                 example: 100
- *               CODE:
+ *               code:
  *                 type: string
  *                 description: Code for the size.
  *                 example: "S1"
- *               sizeInch:
+ *               c_code:
+ *                 type: string
+ *                 description: Additional code for the size.
+ *                 example: "C1"
+ *               size_inch:
  *                 type: string
  *                 description: Size in inches.
  *                 example: "5.5"
- *               sizeMM:
+ *               size_mm:
  *                 type: number
  *                 description: Size in millimeters.
  *                 example: 140
- *               OD:
+ *               od:
  *                 type: number
  *                 description: Outer diameter.
  *                 example: 200
@@ -81,9 +86,9 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateSizes);
  *               - projectId
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project.
- *                 example: 1
+ *                 example: "1"
  *     responses:
  *       200:
  *         description: List of sizes retrieved successfully or default sizes
@@ -103,16 +108,19 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateSizes);
  *                       size1_size2:
  *                         type: number
  *                         example: 100
- *                       CODE:
+ *                       code:
  *                         type: string
  *                         example: "S1"
- *                       sizeInch:
+ *                       c_code:
+ *                         type: string
+ *                         example: "C1"
+ *                       size_inch:
  *                         type: string
  *                         example: "5.5"
- *                       sizeMM:
+ *                       size_mm:
  *                         type: number
  *                         example: 140
- *                       OD:
+ *                       od:
  *                         type: number
  *                         example: 200
  *       404:

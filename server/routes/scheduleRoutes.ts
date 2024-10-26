@@ -26,17 +26,19 @@ const router = Router();
  *               - schedules
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project to associate schedules with.
- *                 example: 1
+ *                 example: "1"
  *               schedules:
  *                 type: array
  *                 items:
  *                   type: object
  *                   required:
+ *                     - d_id
  *                     - sch1_sch2
  *                     - code
  *                     - schDesc
+ *                     - c_code
  *                   properties:
  *                     sch1_sch2:
  *                       type: string
@@ -46,6 +48,10 @@ const router = Router();
  *                       type: string
  *                       description: Code for the schedule.
  *                       example: "S1"
+ *                     c_code:
+ *                       type: string
+ *                       description: Additional code related to the schedule.
+ *                       example: "C1"
  *                     schDesc:
  *                       type: string
  *                       description: Description for the schedule.
@@ -78,9 +84,9 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateSchedules);
  *               - projectId
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project.
- *                 example: 1
+ *                 example: "1"
  *     responses:
  *       200:
  *         description: List of schedules retrieved successfully or default schedules
@@ -96,13 +102,16 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateSchedules);
  *                   type: array
  *                   items:
  *                     type: object
- *                     properties:
+ *                     properties:           
  *                       sch1_sch2:
  *                         type: string
  *                         example: "10"
  *                       code:
  *                         type: string
  *                         example: "S1"
+ *                       c_code:
+ *                         type: string
+ *                         example: "C1"
  *                       schDesc:
  *                         type: string
  *                         example: "Schedule 10"

@@ -6,6 +6,8 @@ import projectModel from "./projectmodel";
 import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
 import specModel from "./specmodels";
+import componentModel from "./componentmodels";
+import defaultComponentModel from "./Default/defaultcomponentdesc";
 import ratingModel from "./ratingmodel";
 import defaultRatingModel from "./Default/defaultratingmodel";
 import scheduleModel from "./schedulemodels";
@@ -26,6 +28,8 @@ const Project = projectModel(sequelize);
 const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
+const Component = componentModel(sequelize);
+const D_Component = defaultComponentModel(sequelize);
 const Rating = ratingModel(sequelize);
 const D_Rating = defaultRatingModel(sequelize);
 const Schedule = scheduleModel(sequelize);
@@ -33,8 +37,7 @@ const D_Schedule = defaultScheduleModel(sequelize);
 const Size = sizeModel(sequelize);
 const D_Size = defaultSizeModel(sequelize);
 
-
-// Define associations
+D_Component.associate({Component});
 Project.associate({ User, Spec });
 Spec.associate({ Project });
 
@@ -45,6 +48,8 @@ const db = {
     Project,
     Subscription,
     Plan,
+    Component,
+    D_Component,
     Rating,
     D_Rating,
     Schedule,

@@ -19,6 +19,13 @@ const scheduleModel = (sequelize: any) => {
           is: /^[0-9A-Z]+$/,
         },
       },
+      c_code: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        validate: {
+          is: /^[0-9A-Z]+$/,
+        },
+      },
       schDesc: {
         type: DataTypes.STRING,  
         allowNull: false,
@@ -31,7 +38,7 @@ const scheduleModel = (sequelize: any) => {
         },
         allowNull: false,
         onDelete: "CASCADE",
-      },
+      }
     },
     {
       timestamps: true,  

@@ -19,6 +19,13 @@ const defaultSizeModel = (sequelize: any) => {
             is: /^[A-Za-z0-9]+$/,
           },
       },
+      c_code: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+        validate: {
+            is: /^[A-Za-z0-9]+$/,
+          },
+      },
       size_inch: {
         type: DataTypes.STRING(10),
         allowNull: false,

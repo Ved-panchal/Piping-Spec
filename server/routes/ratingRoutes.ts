@@ -26,9 +26,9 @@ const router = Router();
  *               - ratings
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project to associate ratings with.
- *                 example: 1
+ *                 example: "1"
  *               ratings:
  *                 type: array
  *                 items:
@@ -36,6 +36,7 @@ const router = Router();
  *                   required:
  *                     - ratingCode
  *                     - ratingValue
+ *                     - c_ratingCode
  *                   properties:
  *                     ratingValue:
  *                       type: string
@@ -45,6 +46,10 @@ const router = Router();
  *                       type: string
  *                       description: Code for the rating.
  *                       example: "C"
+ *                     c_ratingCode:
+ *                       type: string
+ *                       description: Modified rating code.
+ *                       example: "CC"
  *     responses:
  *       200:
  *         description: Ratings added or updated successfully
@@ -73,9 +78,9 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateRatings);
  *               - projectId
  *             properties:
  *               projectId:
- *                 type: integer
+ *                 type: string
  *                 description: The ID of the project.
- *                 example: 1
+ *                 example: "1"
  *     responses:
  *       200:
  *         description: List of ratings retrieved successfully or default ratings
@@ -94,16 +99,21 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateRatings);
  *                     properties:
  *                       ratingCode:
  *                         type: string
- *                         example: "3000#"
+ *                         example: "C"
+ *                       c_ratingCode:
+ *                         type: string
+ *                         example: "CC"
  *                       ratingValue:
  *                         type: string
- *                         example: "C"
+ *                         example: "3000#"
+ *                       projectId:
+ *                         type: string
+ *                         example: "1"
  *       404:
  *         description: Project not found or access denied
  *       500:
  *         description: Internal server error
  */
 router.post("/getall", authenticateJWT, getRatingsByProjectId);
-
 
 export default router;
