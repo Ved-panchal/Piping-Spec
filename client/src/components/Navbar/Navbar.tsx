@@ -17,7 +17,8 @@ const Navbar = ({ openModal }: { openModal: () => void }) => {
     const token = Cookies.get('token');
     console.log(token);
     if (!token) {
-      handleLogout(false);
+      // handleLogout(false);
+      console.log("No token found");
     } else {
       const user = JSON.parse(localStorage.getItem('user')!);
       if (user) {
