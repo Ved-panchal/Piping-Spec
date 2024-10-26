@@ -4,7 +4,6 @@ import { verifyJWT } from '../utils/jwt';
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
     try {
         let token = req.headers.authorization?.split(' ')[1];
-        console.log(token);
         
         if (!token) {
              res.json({status:"401", message: 'Access denied, no token provided' });

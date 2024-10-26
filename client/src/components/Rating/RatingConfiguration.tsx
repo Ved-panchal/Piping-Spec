@@ -1,4 +1,5 @@
 import React, { useState, useEffect, TdHTMLAttributes } from "react";
+import { Spin } from "antd";
 import { Table, Input, Button, Form, message } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
@@ -8,9 +9,9 @@ import showToast from "../../utils/toast";
 // Types for rating data
 interface Rating {
   key: string;
-  ratingCode: string;
+  ratingCode?: string;
   ratingValue: string;
-  
+  c_ratingCode?: string;
 }
 
 interface ApiError extends Error {
@@ -29,12 +30,15 @@ interface EditableCellProps extends TdHTMLAttributes<any> {
 
 const RatingConfiguration: React.FC = () => {
   const [ratings, setRatings] = useState<Rating[]>([]);
+  const [newCRatingCode, setNewCRatingCode] = useState("");
   const [newRatingCode, setNewRatingCode] = useState("");
   const [newRatingValue, setNewRatingValue] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Table loading
   const [editingOriginalValue, setEditingOriginalValue] = useState<string>("");
+  const [buttonLoading, setButtonLoading] = useState(false); // Button loading
+
 
   const ratingCodeRegex = /^[A-Za-z0-9]+$/;
   const ratingValueRegex = /^\d+#$/;
@@ -71,7 +75,8 @@ const RatingConfiguration: React.FC = () => {
       if (response && response.data && response.data.success) {
         const ratingsWithKeys = response.data.ratings.map((rating: any) => ({
           ...rating,
-          key: rating.id,
+          key: rating.ratingCode,
+          c_ratingCode: rating.c_rating_code
         }));
         setRatings(ratingsWithKeys);
         setLoading(false);
@@ -89,7 +94,7 @@ const RatingConfiguration: React.FC = () => {
   };
 
   const handleAddRating = async () => {
-    if (!ratingCodeRegex.test(newRatingCode)) {
+    if (!ratingCodeRegex.test(newCRatingCode)) {
       message.error("Rating code can only include A-Z, a-z, and 0-9");
       return;
     }
@@ -99,6 +104,7 @@ const RatingConfiguration: React.FC = () => {
     }
 
     try {
+      setButtonLoading(true); // Set button loading to true
       if (!currentProjectId) {
         message.error("No current project ID available.");
         return;
@@ -107,13 +113,19 @@ const RatingConfiguration: React.FC = () => {
       const newRating: Rating = {
         key: Math.random().toString(36).substring(7),
         ratingCode: newRatingCode,
+        c_ratingCode: newCRatingCode,
         ratingValue: newRatingValue,
       };
 
       const payload = {
         projectId: currentProjectId,
-        ratingCode: newRatingCode,
-        ratingValue: newRatingValue,
+        ratings: [
+          {
+            ratingCode: newRatingCode,
+            c_ratingCode: newCRatingCode,
+            ratingValue: newRatingValue,
+          },
+        ],
       };
 
       const response = await api.post(
@@ -125,7 +137,8 @@ const RatingConfiguration: React.FC = () => {
       );
 
       if (response && response.data.success) {
-        setRatings([...ratings, newRating]);
+        setRatings([newRating, ...ratings]);
+        setNewCRatingCode("");
         setNewRatingCode("");
         setNewRatingValue("");
         message.success("Rating added successfully");
@@ -137,11 +150,13 @@ const RatingConfiguration: React.FC = () => {
       const errorMessage =
         apiError.response?.data?.error || "Failed to add rating.";
       showToast({ message: errorMessage, type: "error" });
+    } finally {
+      setButtonLoading(false); // Reset button loading state
     }
   };
 
-  const handleEditRatingCode = async (key: string, ratingCode: string) => {
-    if (!ratingCodeRegex.test(ratingCode)) {
+  const handleEditRatingCode = async (key: string, c_ratingCode:string) => {
+    if (!ratingCodeRegex.test(c_ratingCode)) {
       message.error("Invalid rating code");
       return;
     }
@@ -157,21 +172,21 @@ const RatingConfiguration: React.FC = () => {
       return;
     }
 
-    // Check if the value has changed
-    if (currentRating.ratingCode === ratingCode) {
-      setEditingKey(null); // Exit edit mode without API call
+    if (currentRating.c_ratingCode === c_ratingCode) {
+      setEditingKey(null);
       return;
     }
 
     const updatedRatings = ratings.map((rating) =>
-      rating.key === key ? { ...rating, ratingCode } : rating
+      rating.key === key ? { ...rating, c_ratingCode } : rating
     );
     setRatings(updatedRatings);
 
     const payload = {
       projectId: currentProjectId,
       ratings:[{
-        ratingCode,
+        ratingCode:key,
+        c_ratingCode,
         ratingValue: currentRating.ratingValue,
       }
       ]
@@ -201,7 +216,7 @@ const RatingConfiguration: React.FC = () => {
       setRatings(
         ratings.map((rating) =>
           rating.key === key
-            ? { ...rating, ratingCode: editingOriginalValue }
+            ? { ...rating, c_ratingCode: editingOriginalValue }
             : rating
         )
       );
@@ -215,20 +230,34 @@ const RatingConfiguration: React.FC = () => {
     record,
     ...restProps
   }) => {
-    const [inputValue, setInputValue] = useState(record?.ratingCode || "");
+    const [inputValue, setInputValue] = useState(record?.c_ratingCode || "");
 
     useEffect(() => {
       if (editable && record) {
-        setEditingOriginalValue(record.ratingCode);
+        setEditingOriginalValue(record.c_ratingCode);
       }
-    }, [editable, record?.ratingCode]);
+    }, [editable, record?.c_ratingCode]);
+
+    useEffect(() => {
+      const handleEscapeKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setEditingKey(null);
+          return;
+        }
+      };
+      document.addEventListener("keydown", handleEscapeKey);
+      return () => {
+        document.removeEventListener("keydown", handleEscapeKey);
+      };
+    }, []);
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         if (record) {
           handleEditRatingCode(record.key, inputValue);
         }
-      }
+      } 
+      
     };
 
     return (
@@ -239,6 +268,7 @@ const RatingConfiguration: React.FC = () => {
             onChange={(e) => setInputValue(e.target.value)}
             onBlur={() => handleEditRatingCode(record.key, inputValue)}
             onKeyPress={handleKeyPress}
+            autoFocus
           />
         ) : (
           <div onDoubleClick={() => setEditingKey(record?.key)}>{children}</div>
@@ -257,6 +287,11 @@ const RatingConfiguration: React.FC = () => {
       title: "Rating Code",
       dataIndex: "ratingCode",
       key: "ratingCode",
+    },
+    {
+      title: "Client Rating Code",
+      dataIndex: "c_ratingCode",
+      key: "c_ratingCode",
       onCell: (record: Rating) :EditableCellProps => ({
         record,
         editable: editingKey === record.key,
@@ -289,14 +324,26 @@ const RatingConfiguration: React.FC = () => {
           />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" onClick={handleAddRating}>
-            Add Rating
+          <Input
+            placeholder="Client Rating Code (A-Z, a-z, 0-9)"
+            value={newCRatingCode}
+            onChange={(e) => setNewCRatingCode(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button
+            type="primary"
+            onClick={handleAddRating}
+            // loading={buttonLoading}
+            disabled={buttonLoading}
+          >
+            {buttonLoading ? <Spin /> : "Add Rating"}
           </Button>
         </Form.Item>
       </Form>
       <div style={{ color: "grey", fontSize: "12px", marginBottom: "10px" }}>
-        Rating Code can only include A-Z, a-z, 0-9. Rating Value must end with
-        #.
+        Rating Code can only include A-Z, a-z, 0-9. Rating Value must end with #.
       </div>
       <Table
         components={{
@@ -309,7 +356,7 @@ const RatingConfiguration: React.FC = () => {
         dataSource={ratings}
         columns={columns}
         pagination={false}
-      />{" "}
+      />
     </div>
   );
 };

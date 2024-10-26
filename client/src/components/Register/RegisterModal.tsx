@@ -9,6 +9,7 @@ import PricingCard from '../Pricing/PricingCard/PricingCard';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import showToast from '../../utils/toast';
+import { bouncy } from 'ldrs';
 
 interface ApiError extends Error {
   response?: {
@@ -21,8 +22,10 @@ interface ApiError extends Error {
 
 
 const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: boolean; closeModal: () => void; selectedPlanIndex: number | null }) => {
+  bouncy.register();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -57,6 +60,7 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
   });
 
   const onSubmit = async (values: typeof initialValues) => {
+    setLoading(true);
     try {
         const payload = {
             ...values,
@@ -109,6 +113,8 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
                 type: 'error',
             });
         }
+    } finally {
+      setLoading(false);
     }
 };
 
@@ -133,7 +139,15 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
 
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={onSubmit}>
                   {({ handleSubmit }) => (
-                    <Form onSubmit={handleSubmit}>
+                    <Form
+                      onSubmit={handleSubmit}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleSubmit();
+                        }
+                      }}
+                    >
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
@@ -219,11 +233,12 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
                       </div>
 
                       <div className="flex w-full justify-between mt-4">
-                        <button
+                      <button
                           type="submit"
-                          className="relative w-[48%] min-w-20 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center transition-all duration-300 ease-in-out hover:scale-105"
+                          disabled={loading}
+                          className="relative box-border appearance-none select-none whitespace-nowrap subpixel-antialiased overflow-hidden w-[48%] min-w-20 h-10 text-small bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 py-2 flex items-center font-semibold justify-center gap-2 transition-all duration-300 ease-in-out hover:scale-105"
                         >
-                          Register
+                          {loading ? <l-bouncy size="25" speed="1.75" color="white" /> : "Register"}
                         </button>
                         <button
                           type="button"
