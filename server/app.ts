@@ -22,7 +22,7 @@ const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(cors(
-    {origin: 'http://localhost:5173',
+    {origin: '*',
     credentials: true
     } ));
 app.use(express.json());
