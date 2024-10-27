@@ -3,12 +3,12 @@ import { DataTypes } from "sequelize";
 
 const defaultComponentModel = (sequelize: any) => {
   const DefaultComponent = sequelize.define(
-    "default_component",
+    "component_desc",
     {
     component_id: {
         type: DataTypes.INTEGER,
             references: {
-                model: "component",
+                model: "components",
                 key: "id",
             },
             onDelete: "CASCADE",

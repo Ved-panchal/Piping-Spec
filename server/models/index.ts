@@ -7,6 +7,7 @@ import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
 import specModel from "./specmodels";
 import componentModel from "./componentmodels";
+import componentDescModel from "./componentdescmodels";
 import defaultComponentModel from "./Default/defaultcomponentdesc";
 import ratingModel from "./ratingmodel";
 import defaultRatingModel from "./Default/defaultratingmodel";
@@ -29,6 +30,7 @@ const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
 const Component = componentModel(sequelize);
+const ComponentDesc = componentDescModel(sequelize);
 const D_Component = defaultComponentModel(sequelize);
 const Rating = ratingModel(sequelize);
 const D_Rating = defaultRatingModel(sequelize);
@@ -49,6 +51,7 @@ const db = {
     Subscription,
     Plan,
     Component,
+    ComponentDesc,
     D_Component,
     Rating,
     D_Rating,

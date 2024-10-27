@@ -7,6 +7,8 @@ import userRoute from "./routes/userRoutes"
 import projectRoute from "./routes/projectRoutes"
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
+import componentDescRoute from "./routes/componentDescRoutes";
+import componentRoute from "./routes/componentRoutes"
 import ratingRoute from "./routes/ratingRoutes"
 import scheduleRoute from "./routes/scheduleRoutes"
 import sizeRoute from "./routes/sizeRoutes";
@@ -39,5 +41,7 @@ app.use('/specs',specRoute);
 app.use('/ratings',ratingRoute);
 app.use('/schedules',scheduleRoute);
 app.use('/sizes',sizeRoute);
+app.use('/components',componentRoute);
+app.use('/componentdescs',componentDescRoute);
 
 export default app;
