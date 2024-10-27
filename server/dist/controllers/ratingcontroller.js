@@ -54,18 +54,18 @@ const addOrUpdateRatings = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return;
         }
         for (const rating of ratings) {
-            const { c_rating_code, ratingCode, ratingValue } = rating;
+            const { c_ratingCode, ratingCode, ratingValue } = rating;
             const existingRating = yield models_1.default.Rating.findOne({
                 where: { ratingValue, projectId }
             });
             if (existingRating) {
-                existingRating.c_rating_code = c_rating_code;
+                existingRating.c_rating_code = c_ratingCode;
                 yield existingRating.save();
             }
             else {
                 yield models_1.default.Rating.create({
                     ratingCode,
-                    c_rating_code,
+                    c_rating_code: c_ratingCode,
                     ratingValue,
                     projectId,
                 });

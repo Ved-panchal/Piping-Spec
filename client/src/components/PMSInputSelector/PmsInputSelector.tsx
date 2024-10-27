@@ -35,7 +35,7 @@ const PmsInputSelector = ({ projectId }: { projectId?: string }) => {
         const response = await api.get(`${configApi.API_URL.specs.getAllSpecsByProject}/${projectId}`, {
           headers: { 'Content-Type': 'application/json' },
         });
-        if(response && response.data && response.data.error.includes('expire')){
+        if(response && response.data &&  response.data.error && response.data.error.includes('expire')){
           localStorage.clear();
           window.location.href = "/";
         }

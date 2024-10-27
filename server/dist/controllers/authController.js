@@ -60,13 +60,13 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const token = (0, jwt_1.generateJWT)({ id: user.id, email: user.email });
-        res.cookie('token', token, { maxAge: 3600000, path: '/', secure: true, httpOnly: true });
         const _a = user.toJSON(), { password: _ } = _a, userWithoutPassword = __rest(_a, ["password"]);
         // Send success response
         res.json({
             success: true,
             message: "Login successful",
             user: userWithoutPassword,
+            token: token,
             status: "200"
         });
     }

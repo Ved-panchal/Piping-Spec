@@ -24,7 +24,9 @@ const swaggerDocs = (0, swagger_jsdoc_1.default)(swaggeroption_1.default);
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocs));
 app.use((0, cors_1.default)({
     origin: ['https://piping-spec.vercel.app', 'http://localhost:5173'],
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
