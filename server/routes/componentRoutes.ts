@@ -97,7 +97,7 @@ router.put("/update", authenticateJWT, updateComponent);
 
 /**
  * @swagger
- * /components:
+ * /components/getall:
  *   get:
  *     summary: Get all components
  *     tags: [Components]
@@ -122,7 +122,7 @@ router.put("/update", authenticateJWT, updateComponent);
  *       500:
  *         description: Internal server error
  */
-router.get("/", authenticateJWT, getAllComponents);
+router.get("/getall", authenticateJWT, getAllComponents);
 
 /**
  * @swagger

@@ -65,7 +65,7 @@ const ScheduleConfiguration: React.FC = () => {
       });
 
       if (response && response.data && response.data.success) {
-        const schedulesWithKeys = response.data.schedules.map((schedule: any) => ({
+        const schedulesWithKeys = response.data.schedules.map((schedule: Schedule) => ({
           ...schedule,
           key: schedule.code,
           c_code: schedule.c_code,

@@ -8,13 +8,6 @@ export const getComponentDescByComponentId = async (req: Request, res: Response)
     const { componentId } = req.params;
     const userId = (req as any).user.id;
 
-    // Validate that the project and user have access
-    // const isProjectValid = await validateProjectAndUser(componentId, userId); // Assuming componentId is linked to project validation
-    // if (!isProjectValid) {
-    //   res.json({ success: false, message: "Invalid component or unauthorized user.", status: 403 });
-    //   return;
-    // }
-
     // Fetch all default component descriptions
     const defaultComponentDescs = await db.D_Component.findAll({
       where: { component_id:componentId },

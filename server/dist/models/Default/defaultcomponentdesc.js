@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const defaultComponentModel = (sequelize) => {
     const DefaultComponent = sequelize.define("default_component", {
-        componentId: {
+        component_id: {
             type: sequelize_1.DataTypes.INTEGER,
             references: {
                 model: "component",

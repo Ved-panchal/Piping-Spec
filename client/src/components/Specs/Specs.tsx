@@ -5,6 +5,7 @@ import ScheduleConfiguration from '../Schedule/ScheduleConfiguration';
 import SizeConfiguration from '../Size/SizeConfiguration';
 import SpecsCreation from '../SpecsCreation/SpecsCreation';
 import PmsInputSelector from '../PMSInputSelector/PmsInputSelector';
+import ComponentConfiguration from '../ComponentConfiguration/Component';
 
 interface SpecsProps {
     projectId?: string;
@@ -52,7 +53,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md scrollable-container">
                 {activeComponent === 0 && <div className="text-lg text-white"><PmsInputSelector projectId={projectId}/></div>}
                 {activeComponent === 1 && <div className="text-lg text-white"><SpecsCreation/></div>}
-                {activeComponent === 2 && <div className="text-lg text-white">Content for Component 2</div>}
+                {activeComponent === 2 && <div className="text-lg text-white"><ComponentConfiguration/></div>}
                 {activeComponent === 3 && <div className="text-lg text-white"><SizeConfiguration/></div>}
                 {activeComponent === 4 && <div className="text-lg text-white"><ScheduleConfiguration/></div>}
                 {activeComponent === 5 && <div className="text-lg text-white"><RatingConfiguration/></div>}

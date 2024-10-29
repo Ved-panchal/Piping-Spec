@@ -22,6 +22,7 @@ const subscriptionmodel_1 = __importDefault(require("./subscriptionmodel"));
 const planmodels_1 = __importDefault(require("./planmodels"));
 const specmodels_1 = __importDefault(require("./specmodels"));
 const componentmodels_1 = __importDefault(require("./componentmodels"));
+const componentdescmodels_1 = __importDefault(require("./componentdescmodels"));
 const defaultcomponentdesc_1 = __importDefault(require("./Default/defaultcomponentdesc"));
 const ratingmodel_1 = __importDefault(require("./ratingmodel"));
 const defaultratingmodel_1 = __importDefault(require("./Default/defaultratingmodel"));
@@ -41,6 +42,7 @@ const Subscription = (0, subscriptionmodel_1.default)(sequelize);
 const Plan = (0, planmodels_1.default)(sequelize);
 const Spec = (0, specmodels_1.default)(sequelize);
 const Component = (0, componentmodels_1.default)(sequelize);
+const ComponentDesc = (0, componentdescmodels_1.default)(sequelize);
 const D_Component = (0, defaultcomponentdesc_1.default)(sequelize);
 const Rating = (0, ratingmodel_1.default)(sequelize);
 const D_Rating = (0, defaultratingmodel_1.default)(sequelize);
@@ -59,6 +61,7 @@ const db = {
     Subscription,
     Plan,
     Component,
+    ComponentDesc,
     D_Component,
     Rating,
     D_Rating,

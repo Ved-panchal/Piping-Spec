@@ -198,7 +198,7 @@ const SpecsCreation: React.FC = () => {
   };
 
   // Editable cell component
-  const EditableCell: React.FC<any> = ({
+  const EditableCell: React.FC<EditableCellProps> = ({
     editable,
     children,
     record,
