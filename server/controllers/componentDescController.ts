@@ -56,7 +56,7 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
 
       // Check if the description already exists for this component
       const existingComponentDesc = await db.ComponentDesc.findOne({
-        where: { code, componentId }
+        where: { code, component_id:componentId }
       });
 
       if (existingComponentDesc) {
@@ -67,7 +67,7 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
         await existingComponentDesc.save();
       } else {
         await db.ComponentDesc.create({
-          componentId,
+          component_id:componentId,
           code,
           c_code,
           itemDescription,

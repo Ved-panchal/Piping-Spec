@@ -120,7 +120,7 @@ const ComponentConfiguration: React.FC = () => {
       };
 
       const payload = {
-        componentId: selectedComponentId,
+        componentId: selectedComponentId?.toString(),
         componentDescs: [
           {
             code: newCode,
@@ -211,26 +211,38 @@ const ComponentConfiguration: React.FC = () => {
     );
   };
 
-  const handleEditComponentData = async (key: string, field: keyof ComponentData, value: string | boolean) => {
+  const handleEditComponentData = async (
+    key: string,
+    field: keyof ComponentData,
+    value: string | boolean
+  ) => {
     const originalData = [...componentData];
     const updatedData = componentData.map((item) =>
       item.key === key ? { ...item, [field]: value } : item
     );
     setComponentData(updatedData);
-
+  
+    const componentToUpdate = componentData.find((item) => item.key === key);
+    if (!componentToUpdate) return;
+  
     const payload = {
-      componentId: selectedComponentId,
-      data: {
-        key,
-        [field]: value,
-      },
+      componentId: selectedComponentId?.toString(),
+      componentDescs: [
+        {
+          code: componentToUpdate.code,
+          c_code: componentToUpdate.c_code,
+          itemDescription: componentToUpdate.itemDescription,
+          dimensionalStandards: componentToUpdate.dimensionalStandards,
+          ratingrequired: field === 'ratingrequired' ? value : componentToUpdate.ratingrequired,
+        },
+      ],
     };
-
+  
     try {
       const response = await api.post(configApi.API_URL.components.addorupdate, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (response && response.data.success) {
         message.success('Component data updated successfully');
       } else {
@@ -243,6 +255,7 @@ const ComponentConfiguration: React.FC = () => {
       showToast({ message: errorMessage, type: 'error' });
     }
   };
+  
 
   const columns: ColumnsType<ComponentData> = [
     {
