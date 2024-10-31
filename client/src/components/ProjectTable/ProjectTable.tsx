@@ -3,7 +3,7 @@ import { ArrowUpDown, Folder, Pencil, Trash2 } from 'lucide-react';
 import showToast from '../../utils/toast';
 import { api as configApi } from "../../utils/api/config";
 import deleteWithBody from '../../utils/api/DeleteAxios';
-import ConfirmationModal from './CornfirmationModal'; // Import your ConfirmationModal
+import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal'; // Import your ConfirmationModal
 
 interface Project {
   id: string;
@@ -140,9 +140,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        project={projectToDelete}
+        onConfirm={() => handleDelete(projectToDelete!)}
+        title="Delete Project"
+        message={`Are you sure you want to delete the project ${projectToDelete?.projectCode}?`}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
+
       <div className="flex justify-between items-center mb-4">
         <input
           type="text"

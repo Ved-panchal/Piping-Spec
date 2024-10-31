@@ -25,7 +25,7 @@ const Navbar = ({ openModal, setUsername,username  }: { openModal: () => void, s
 
   const handleLogout = (showToastMessage = true) => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.clear();
     setUsername('');
     setIsDropdownOpen(false);
     navigate('/');

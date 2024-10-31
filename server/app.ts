@@ -7,6 +7,7 @@ import userRoute from "./routes/userRoutes"
 import projectRoute from "./routes/projectRoutes"
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
+import sizeRangeRoute from "./routes/sizeRangeRoutes";
 import componentDescRoute from "./routes/componentDescRoutes";
 import componentRoute from "./routes/componentRoutes"
 import ratingRoute from "./routes/ratingRoutes"
@@ -38,6 +39,7 @@ app.use('/users', userRoute);
 app.use('/projects',projectRoute);
 app.use('/plans',planRoute);
 app.use('/specs',specRoute);
+app.use('/sizeranges',sizeRangeRoute);
 app.use('/ratings',ratingRoute);
 app.use('/schedules',scheduleRoute);
 app.use('/sizes',sizeRoute);

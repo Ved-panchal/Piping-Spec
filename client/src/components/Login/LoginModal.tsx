@@ -91,11 +91,12 @@ const LoginModal = ({ isOpen, closeModal,onLoginSuccess  }: LoginModalProps) => 
             });
 
             if (response && response.data) {
-                const { success, message, error, user } = response.data;
+                const { success, message, error, user,token,plan } = response.data;
 
                 if (success) {
                     localStorage.setItem("user", JSON.stringify(user));
-                    localStorage.setItem("token", JSON.stringify(response.data.token));
+                    localStorage.setItem("token", JSON.stringify(token));
+                    localStorage.setItem("plan", JSON.stringify(plan));
                     showToast({ message: message || "Login Successful!!", type: "success" });
 
                     onLoginSuccess(user); // Call the success function

@@ -29,6 +29,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const plan = await db.Subscription.findOne({ where: {userId:user.id}});
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             res.json({
@@ -48,6 +50,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             message: "Login successful",
             user: userWithoutPassword,
             token :token,
+            plan: plan,
             status: "200"
         });
     } catch (error: any) {

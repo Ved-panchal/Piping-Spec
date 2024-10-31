@@ -1,5 +1,5 @@
-// export const API_URL = 'http://localhost:5500/';
-export const API_URL = 'https://piping-spec.onrender.com/'
+export const API_URL = 'http://localhost:5500/';
+// export const API_URL = 'https://piping-spec.onrender.com/'
 
 export const api = {
     API_URL: {
@@ -42,6 +42,12 @@ export const api = {
         list:'components/getall',
         data:'componentdescs/getall',
         addorupdate:'componentdescs/add-or-update'
+      },
+      sizeranges:{
+        getall:'sizeranges/getbyspecid',
+        create:'sizeranges/create',
+        update:'sizeranges/update',
+        delete:'sizeranges/delete'
       }
     },
 };

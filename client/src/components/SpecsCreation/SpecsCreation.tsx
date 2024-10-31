@@ -4,6 +4,9 @@ import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
 import showToast from '../../utils/toast';
+import { Trash2 } from 'lucide-react';
+import deleteWithBody from '../../utils/api/DeleteAxios';
+import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal';
 
 const { Option } = Select;
 
@@ -14,6 +17,13 @@ interface Spec {
   baseMaterial: string;
 }
 
+interface DeleteResponse {
+  data: {
+    success: boolean;
+    message: string;
+    error?: string;
+  }
+}
 interface ApiError extends Error {
   response?: {
     data?: {
@@ -41,6 +51,9 @@ const SpecsCreation: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
   const [, setFormSubmitted] = useState(false);
   const [ratingOptions, setRatingOptions] = useState<string[]>([]); // State for rating options
+  const [isModalOpen, setIsModalOpen] = useState(false);
+const [specToDelete, setSpecToDelete] = useState<Spec | null>(null);
+
 
   // Fetch project ID from local storage
   useEffect(() => {
@@ -126,7 +139,7 @@ const SpecsCreation: React.FC = () => {
 
       const payload = {
         specName: newSpec.specName,
-        rating: newSpec.rating, // send ratingValue to the backend
+        rating: newSpec.rating,
         baseMaterial: newSpec.baseMaterial,
         projectId: currentProjectId,
       };
@@ -138,10 +151,11 @@ const SpecsCreation: React.FC = () => {
       if (response && response.data.success) {
         setSpecs([...specs, newSpec]);
         setNewspecName('');
-        setNewRating('');
-        setNewBaseMaterial('');
+        setNewRating('Rating');
+        setNewBaseMaterial('BaseMaterial');
         setFormSubmitted(false);
         message.success('Spec added successfully');
+        await fetchSpecs();
       } else {
         throw new Error('Failed to add spec.');
       }
@@ -196,6 +210,44 @@ const SpecsCreation: React.FC = () => {
       showToast({ message: errorMessage, type: 'error' });
     }
   };
+
+  const handleDeleteSpec = async (key: string) => {
+    if (!key) return;
+  
+    const plan = JSON.parse(localStorage.getItem('plan')!);
+    if (plan.planId === 1) {
+      showToast({ message: 'You cannot delete specs under the free plan. Upgrade to premium.', type: 'error' });
+      return;
+    }
+  
+    // const updatedSpecs = specs.filter((spec) => spec.key !== key);
+    // setSpecs(updatedSpecs);
+  
+    const payload = {
+      specId: key,
+    };
+  
+    try {
+      const response = await deleteWithBody<DeleteResponse>(`${configApi.API_URL.specs.delete}`, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (response && response.data.success) {
+        const updatedSpecs = specs.filter((spec) => spec.key !== key);
+        setSpecs(updatedSpecs);
+        message.success('Spec deleted successfully');
+        setIsModalOpen(false);
+      } else {
+        setIsModalOpen(false);
+        throw new Error('Failed to delete spec.');
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.response?.data?.error || 'Failed to delete spec.';
+      showToast({ message: errorMessage, type: 'error' });
+    }
+  };
+  
 
   // Editable cell component
   const EditableCell: React.FC<EditableCellProps> = ({
@@ -330,6 +382,21 @@ const SpecsCreation: React.FC = () => {
         dataIndex: 'baseMaterial',
       }),
     },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Trash2
+          size={17}
+          style={{ cursor: 'pointer', color: 'red' }}
+          onClick={() => {
+            setSpecToDelete(record); 
+            setIsModalOpen(true);
+          }}
+        />
+      ),
+    }
+    
   ];
 
   // Fetch specs when project ID changes
@@ -411,6 +478,19 @@ const SpecsCreation: React.FC = () => {
             cell: EditableCell,
           },
         }}
+      />
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={() => {
+          if (specToDelete) {
+            handleDeleteSpec(specToDelete.key);
+          }
+        }}
+        title="Delete Specification"
+        message={`Are you sure you want to delete the specification ${specToDelete?.specName}?`}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
   );

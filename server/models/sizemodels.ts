@@ -13,6 +13,7 @@ const sizeModel = (sequelize: any) => {
       code: {
         type: DataTypes.STRING(10),
         allowNull: false,
+        unique:true,
         validate: {
             is: /^[A-Za-z0-9]+$/,
           },

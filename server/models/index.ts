@@ -6,6 +6,7 @@ import projectModel from "./projectmodel";
 import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
 import specModel from "./specmodels";
+import sizeRangeModel from "./sizerangemodels";
 import componentModel from "./componentmodels";
 import componentDescModel from "./componentdescmodels";
 import defaultComponentModel from "./Default/defaultcomponentdesc";
@@ -29,6 +30,7 @@ const Project = projectModel(sequelize);
 const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
+const SizeRange = sizeRangeModel(sequelize);
 const Component = componentModel(sequelize);
 const ComponentDesc = componentDescModel(sequelize);
 const D_Component = defaultComponentModel(sequelize);
@@ -42,6 +44,7 @@ const D_Size = defaultSizeModel(sequelize);
 D_Component.associate({Component});
 Project.associate({ User, Spec });
 Spec.associate({ Project });
+SizeRange.associate({ Size, Schedule, Spec });
 
 const db = {
     sequelize,
@@ -50,6 +53,7 @@ const db = {
     Project,
     Subscription,
     Plan,
+    SizeRange,
     Component,
     ComponentDesc,
     D_Component,

@@ -107,7 +107,33 @@ const ComponentConfiguration: React.FC = () => {
       message.error('All fields are required.');
       return;
     }
+  
+    // Check if the code or c_code already exists in the componentData
+    const codeExists = componentData.some((item) => item.code === newCode);
+    const clientCodeExists = componentData.some((item) => item.c_code === newClientCode);
+    const clientDescExists = componentData.some((item) => item.itemDescription === newDescription);
+    const clientDimensionalStandardsExists = componentData.some((item) => item.dimensionalStandards === newDimensionalStandards);
+  
+    if (codeExists) {
+      message.error('This code is already in use.');
+      return;
+    }
+    
+    if (clientCodeExists) {
+      message.error('This client code is already in use.');
+      return;
+    }
 
+    if (clientDescExists){
+      message.error('This description is already in use.');
+      return;
+    }
+
+    if (clientDimensionalStandardsExists){
+      message.error('This dimensional standards is already in use.');
+      return;
+    }
+  
     try {
       setButtonLoading(true);
       const newData = {
@@ -118,7 +144,7 @@ const ComponentConfiguration: React.FC = () => {
         dimensionalStandards: newDimensionalStandards,
         ratingrequired: newRatingRequired,
       };
-
+  
       const payload = {
         componentId: selectedComponentId?.toString(),
         componentDescs: [
@@ -131,11 +157,11 @@ const ComponentConfiguration: React.FC = () => {
           },
         ],
       };
-
+  
       const response = await api.post(configApi.API_URL.components.addorupdate, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (response && response.data.success) {
         setComponentData((prevData) => [newData, ...prevData]);
         setNewDescription('');
@@ -220,10 +246,37 @@ const ComponentConfiguration: React.FC = () => {
     const updatedData = componentData.map((item) =>
       item.key === key ? { ...item, [field]: value } : item
     );
-    setComponentData(updatedData);
   
     const componentToUpdate = componentData.find((item) => item.key === key);
     if (!componentToUpdate) return;
+  
+    // Validation: Check if the updated code or c_code is already in use
+    const codeExists = componentData.some((item) => item.code === value && item.key !== key);
+    const clientCodeExists = componentData.some((item) => item.c_code === value && item.key !== key);
+    const clientDescExists = componentData.some((item) => item.itemDescription === value && item.key !== key);
+    const clientDimensionalStandardsExists = componentData.some((item) => item.dimensionalStandards === value && item.key !== key);
+  
+    if (field === 'code' && codeExists) {
+      message.error('This code is already in use.');
+      return;
+    }
+    
+    if (field === 'c_code' && clientCodeExists) {
+      message.error('This client code is already in use.');
+      return;
+    }
+
+    if (clientDescExists){
+      message.error('This description is already in use.');
+      return;
+    }
+
+    if (clientDimensionalStandardsExists){
+      message.error('This dimensional standards is already in use.');
+      return;
+    }
+  
+    setComponentData(updatedData);
   
     const payload = {
       componentId: selectedComponentId?.toString(),
