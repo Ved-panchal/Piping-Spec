@@ -10,7 +10,6 @@ interface ComponentData {
   itemDescription: string;
   code: string;
   c_code: string;
-  dimensionalStandards: string;
   ratingrequired: boolean;
 }
 
@@ -46,7 +45,6 @@ const ComponentConfiguration: React.FC = () => {
   const [newDescription, setNewDescription] = useState('');
   const [newCode, setNewCode] = useState('');
   const [newClientCode, setNewClientCode] = useState('');
-  const [newDimensionalStandards, setNewDimensionalStandards] = useState('');
   const [newRatingRequired, setNewRatingRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -103,7 +101,7 @@ const ComponentConfiguration: React.FC = () => {
   };
 
   const handleAddComponentData = async () => {
-    if (!newDescription || !newCode || !newClientCode || !newDimensionalStandards) {
+    if (!newDescription || !newCode || !newClientCode) {
       message.error('All fields are required.');
       return;
     }
@@ -112,7 +110,6 @@ const ComponentConfiguration: React.FC = () => {
     const codeExists = componentData.some((item) => item.code === newCode);
     const clientCodeExists = componentData.some((item) => item.c_code === newClientCode);
     const clientDescExists = componentData.some((item) => item.itemDescription === newDescription);
-    const clientDimensionalStandardsExists = componentData.some((item) => item.dimensionalStandards === newDimensionalStandards);
   
     if (codeExists) {
       message.error('This code is already in use.');
@@ -129,10 +126,6 @@ const ComponentConfiguration: React.FC = () => {
       return;
     }
 
-    if (clientDimensionalStandardsExists){
-      message.error('This dimensional standards is already in use.');
-      return;
-    }
   
     try {
       setButtonLoading(true);
@@ -141,7 +134,6 @@ const ComponentConfiguration: React.FC = () => {
         itemDescription: newDescription,
         code: newCode,
         c_code: newClientCode,
-        dimensionalStandards: newDimensionalStandards,
         ratingrequired: newRatingRequired,
       };
   
@@ -152,7 +144,6 @@ const ComponentConfiguration: React.FC = () => {
             code: newCode,
             c_code: newClientCode,
             itemDescription: newDescription,
-            dimensionalStandards: newDimensionalStandards,
             ratingrequired: newRatingRequired,
           },
         ],
@@ -167,7 +158,6 @@ const ComponentConfiguration: React.FC = () => {
         setNewDescription('');
         setNewCode('');
         setNewClientCode('');
-        setNewDimensionalStandards('');
         setNewRatingRequired(false);
         message.success('Component data added successfully');
       } else {
@@ -254,7 +244,6 @@ const ComponentConfiguration: React.FC = () => {
     const codeExists = componentData.some((item) => item.code === value && item.key !== key);
     const clientCodeExists = componentData.some((item) => item.c_code === value && item.key !== key);
     const clientDescExists = componentData.some((item) => item.itemDescription === value && item.key !== key);
-    const clientDimensionalStandardsExists = componentData.some((item) => item.dimensionalStandards === value && item.key !== key);
   
     if (field === 'code' && codeExists) {
       message.error('This code is already in use.');
@@ -270,11 +259,6 @@ const ComponentConfiguration: React.FC = () => {
       message.error('This description is already in use.');
       return;
     }
-
-    if (clientDimensionalStandardsExists){
-      message.error('This dimensional standards is already in use.');
-      return;
-    }
   
     setComponentData(updatedData);
   
@@ -285,7 +269,6 @@ const ComponentConfiguration: React.FC = () => {
           code: componentToUpdate.code,
           c_code: componentToUpdate.c_code,
           itemDescription: componentToUpdate.itemDescription,
-          dimensionalStandards: componentToUpdate.dimensionalStandards,
           ratingrequired: field === 'ratingrequired' ? value : componentToUpdate.ratingrequired,
         },
       ],
@@ -337,16 +320,6 @@ const ComponentConfiguration: React.FC = () => {
       }),
     },
     {
-      title: 'Dimensional Standards',
-      dataIndex: 'dimensionalStandards',
-      key: 'dimensionalStandards',
-      onCell: (record: ComponentData): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key && editingColumn === 'dimensionalStandards',
-        dataIndex: 'dimensionalStandards',
-      }),
-    },
-    {
       title: 'Rating Required',
       dataIndex: 'ratingrequired',
       key: 'ratingrequired',
@@ -395,13 +368,6 @@ const ComponentConfiguration: React.FC = () => {
             placeholder="Client Code"
             value={newClientCode}
             onChange={(e) => setNewClientCode(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Input
-            placeholder="Dimensional Standards"
-            value={newDimensionalStandards}
-            onChange={(e) => setNewDimensionalStandards(e.target.value)}
           />
         </Form.Item>
         <Form.Item>

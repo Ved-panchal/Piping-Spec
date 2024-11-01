@@ -31,15 +31,23 @@ const defaultComponentModel = (sequelize: any) => {
           is: /^[0-9A-Z]+$/,
         },
       },
-      dimensionalStandards: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       ratingrequired: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false,
+      },  
+      g_type:{
+        type:DataTypes.STRING,
+        allownull:true,
       },
+      s_type:{
+        type:DataTypes.STRING,
+        allownull:true,
+      },
+      short_code:{
+        type:DataTypes.STRING,
+        allownull:true,
+      }
     },
     {
       timestamps: true,

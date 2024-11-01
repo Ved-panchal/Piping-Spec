@@ -52,7 +52,7 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
 
     // Iterate through the component descriptions
     for (const desc of componentDescs) {
-      const { code, c_code, itemDescription, dimensionalStandards, ratingrequired } = desc;
+      const { code, c_code, itemDescription, ratingrequired } = desc;
 
       // Check if the description already exists for this component
       const existingComponentDesc = await db.ComponentDesc.findOne({
@@ -62,7 +62,6 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
       if (existingComponentDesc) {
         existingComponentDesc.c_code = c_code;
         existingComponentDesc.itemDescription = itemDescription;
-        existingComponentDesc.dimensionalStandards = dimensionalStandards;
         existingComponentDesc.ratingrequired = ratingrequired;
         await existingComponentDesc.save();
       } else {
@@ -71,7 +70,6 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
           code,
           c_code,
           itemDescription,
-          dimensionalStandards,
           ratingrequired
         });
       }
