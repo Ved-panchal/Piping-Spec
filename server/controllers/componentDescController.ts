@@ -5,20 +5,17 @@ import { validateProjectAndUser } from "../helpers/validateProjectUser"; // Impo
 // Get component description by component ID
 export const getComponentDescByComponentId = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { componentId } = req.params;
-    const userId = (req as any).user.id;
+    const { componentId, projectId } = req.body;
+    // const userId = (req as any).user.id;
 
-    // Fetch all default component descriptions
     const defaultComponentDescs = await db.D_Component.findAll({
       where: { component_id:componentId },
     });
 
-    // Fetch user-updated or added component descriptions
     const userComponentDescs = await db.ComponentDesc.findAll({
-      where: { component_id:componentId },
+      where: { component_id:componentId,project_id:projectId },
     });
 
-    // Merge default descriptions with user-updated/added ones
     const componentDescMap: Record<string, any> = {};
 
     defaultComponentDescs.forEach((defaultDesc: any) => {
@@ -43,18 +40,18 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
     const { componentId, componentDescs } = req.body;
     const userId = (req as any).user.id;
 
-    // Validate project and user access
-    const isProjectValid = await validateProjectAndUser(componentId, userId);
-    if (!isProjectValid) {
-      res.json({ success: false, message: "Invalid component or unauthorized user.", status: 403 });
-      return;
-    }
+    const {project_id} = componentDescs[0];
+    const validProject = await validateProjectAndUser(project_id, userId);
 
-    // Iterate through the component descriptions
     for (const desc of componentDescs) {
-      const { code, c_code, itemDescription, ratingrequired } = desc;
+      const { code, c_code, itemDescription,g_type,s_type,short_code,project_id } = desc;
 
-      // Check if the description already exists for this component
+
+      if(!validProject){
+        res.json({ success: false, error: "Invalid project.", status: 403 });
+        return;
+      }
+
       const existingComponentDesc = await db.ComponentDesc.findOne({
         where: { code, component_id:componentId }
       });
@@ -62,7 +59,9 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
       if (existingComponentDesc) {
         existingComponentDesc.c_code = c_code;
         existingComponentDesc.itemDescription = itemDescription;
-        existingComponentDesc.ratingrequired = ratingrequired;
+        existingComponentDesc.g_type = g_type;
+        existingComponentDesc.s_type = s_type;
+        existingComponentDesc.short_code = short_code;
         await existingComponentDesc.save();
       } else {
         await db.ComponentDesc.create({
@@ -70,7 +69,11 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
           code,
           c_code,
           itemDescription,
-          ratingrequired
+          ratingrequired:false,
+          g_type,
+          s_type,
+          short_code,
+          project_id,
         });
       }
     }

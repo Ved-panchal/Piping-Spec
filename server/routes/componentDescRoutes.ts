@@ -122,6 +122,6 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateComponentDesc);
  *       500:
  *         description: Internal server error
  */
-router.get("/getall/:componentId", authenticateJWT, getComponentDescByComponentId);
+router.post("/getall", authenticateJWT, getComponentDescByComponentId);
 
 export default router;

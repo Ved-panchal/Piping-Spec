@@ -1,5 +1,5 @@
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, Select, message, Spin, Checkbox } from 'antd';
+import { Table, Input, Button, Form, Select, message, Spin } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
@@ -10,13 +10,14 @@ interface ComponentData {
   itemDescription: string;
   code: string;
   c_code: string;
-  ratingrequired: boolean;
+  g_type: string;
+  s_type: string;
+  short_code: string;
 }
 
 interface Component {
   id: number;
   componentname: string;
-  ratingrequired: boolean;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +32,10 @@ interface ApiError extends Error {
   };
 }
 
+const GTypeList = [
+  'CAP', 'COUP', 'CROS', 'ELBO', 'FLAN', 'FTUB', 'GASK', 'OLET', 'PCOM', 'REDU', 'TEE', 'TUBE', 'UNIO'
+];
+
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: ComponentData;
   editable: boolean;
@@ -40,18 +45,30 @@ interface EditableCellProps extends TdHTMLAttributes<unknown> {
 
 const ComponentConfiguration: React.FC = () => {
   const [componentData, setComponentData] = useState<ComponentData[]>([]);
+  const [currentProjectId,setCurrentProjectId] = useState<string>();
   const [componentsList, setComponentsList] = useState<Component[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
   const [newDescription, setNewDescription] = useState('');
   const [newCode, setNewCode] = useState('');
   const [newClientCode, setNewClientCode] = useState('');
-  const [newRatingRequired, setNewRatingRequired] = useState(false);
+  const [newGType, setNewGType] = useState('G Type');
+  const [newSType, setNewSType] = useState('');
+  const [newShortCode, setNewShortCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null);
 
   useEffect(() => {
+    const projectId = localStorage.getItem('currentProjectId');
+    if (projectId) {
+      setCurrentProjectId(projectId);
+    } else {
+      showToast({
+        message: "No current project ID found in local storage.",
+        type: "error",
+      });
+    }
     const fetchComponentsList = async () => {
       try {
         setLoading(true);
@@ -62,7 +79,7 @@ const ComponentConfiguration: React.FC = () => {
           showToast({ message: 'Failed to fetch components list.', type: 'error' });
         }
       } catch (error) {
-        const apiError = error as ApiError;
+        const apiError = error as ApiError; 
         const errorMessage = apiError.response?.data?.error || 'Error fetching components list.';
         showToast({ message: errorMessage, type: 'error' });
       } finally {
@@ -75,8 +92,12 @@ const ComponentConfiguration: React.FC = () => {
 
   const fetchComponentData = async (componentId: number) => {
     try {
+      const payload = {
+        componentId: componentId,
+        projectId: currentProjectId,
+      }
       setLoading(true);
-      const response = await api.get(`${configApi.API_URL.components.data}/${componentId}`);
+      const response = await api.post(configApi.API_URL.components.data,payload);
       if (response && response.data && response.data.success) {
         const fetchedData = response.data.componentDescs.map((item: ComponentData) => ({
           ...item,
@@ -101,7 +122,7 @@ const ComponentConfiguration: React.FC = () => {
   };
 
   const handleAddComponentData = async () => {
-    if (!newDescription || !newCode || !newClientCode) {
+    if (!newDescription || !newCode || !newClientCode || !newGType || !newSType || !newShortCode) {
       message.error('All fields are required.');
       return;
     }
@@ -110,6 +131,7 @@ const ComponentConfiguration: React.FC = () => {
     const codeExists = componentData.some((item) => item.code === newCode);
     const clientCodeExists = componentData.some((item) => item.c_code === newClientCode);
     const clientDescExists = componentData.some((item) => item.itemDescription === newDescription);
+    const clientShortCodeExists = componentData.some((item) => item.short_code === newShortCode);
   
     if (codeExists) {
       message.error('This code is already in use.');
@@ -125,6 +147,10 @@ const ComponentConfiguration: React.FC = () => {
       message.error('This description is already in use.');
       return;
     }
+    if (clientShortCodeExists){
+      message.error('This Short Code is already in use.');
+      return;
+    }
 
   
     try {
@@ -134,7 +160,9 @@ const ComponentConfiguration: React.FC = () => {
         itemDescription: newDescription,
         code: newCode,
         c_code: newClientCode,
-        ratingrequired: newRatingRequired,
+        g_type: newGType,
+        s_type: newSType,
+        short_code: newShortCode,
       };
   
       const payload = {
@@ -144,7 +172,10 @@ const ComponentConfiguration: React.FC = () => {
             code: newCode,
             c_code: newClientCode,
             itemDescription: newDescription,
-            ratingrequired: newRatingRequired,
+            g_type: newGType,
+            s_type: newSType,
+            short_code: newShortCode,
+            project_id:currentProjectId,
           },
         ],
       };
@@ -158,7 +189,9 @@ const ComponentConfiguration: React.FC = () => {
         setNewDescription('');
         setNewCode('');
         setNewClientCode('');
-        setNewRatingRequired(false);
+        setNewGType('G Type');
+        setNewSType('');
+        setNewShortCode('');
         message.success('Component data added successfully');
       } else {
         throw new Error('Failed to add component data.');
@@ -182,7 +215,7 @@ const ComponentConfiguration: React.FC = () => {
   }) => {
     const initialInputValue = record ? String(record[dataIndex]) : '';
     const [localInputValue, setLocalInputValue] = useState<string>(initialInputValue);
-
+  
     const handleBlur = () => {
       if (localInputValue !== initialInputValue) {
         handleEditComponentData(record.key, dataIndex as keyof ComponentData, localInputValue);
@@ -190,16 +223,34 @@ const ComponentConfiguration: React.FC = () => {
       setEditingKey(null);
       setEditingColumn(null);
     };
-
+  
+    const handleSelectChange = (value: string) => {
+      setLocalInputValue(value);
+      handleEditComponentData(record.key, dataIndex as keyof ComponentData, value);
+      setEditingKey(null);
+      setEditingColumn(null);
+    };
+  
     return (
       <td {...restProps}>
         {editable ? (
-          dataIndex === 'ratingrequired' ? (
-            <Checkbox
-              checked={record.ratingrequired}
-              onChange={(e) => toggleCheckbox && toggleCheckbox(e.target.checked)}
-            />
+          dataIndex === 'g_type' ? (
+            // Render Select component for 'g_type' field with GTypeList options
+            <Select
+              value={localInputValue}
+              onChange={handleSelectChange}
+              onBlur={handleBlur}
+              autoFocus
+              style={{ width: '100%' }}
+            >
+              {GTypeList.map((item) => (
+                <Select.Option key={item} value={item}>
+                  {item}
+                </Select.Option>
+              ))}
+            </Select>
           ) : (
+            // Render Input component for other fields
             <Input
               value={localInputValue}
               onChange={(e) => setLocalInputValue(e.target.value)}
@@ -208,12 +259,8 @@ const ComponentConfiguration: React.FC = () => {
               autoFocus
             />
           )
-        ) : dataIndex === 'ratingrequired' ? (
-          <Checkbox
-            checked={record.ratingrequired}
-            onChange={(e) => toggleCheckbox && toggleCheckbox(e.target.checked)}
-          />
         ) : (
+          // Render cell content when not in edit mode
           <div
             onDoubleClick={() => {
               setEditingKey(record.key);
@@ -244,6 +291,7 @@ const ComponentConfiguration: React.FC = () => {
     const codeExists = componentData.some((item) => item.code === value && item.key !== key);
     const clientCodeExists = componentData.some((item) => item.c_code === value && item.key !== key);
     const clientDescExists = componentData.some((item) => item.itemDescription === value && item.key !== key);
+    const clientShortCodeExists = componentData.some((item) => item.short_code === value && item.key !== key);
   
     if (field === 'code' && codeExists) {
       message.error('This code is already in use.');
@@ -255,8 +303,13 @@ const ComponentConfiguration: React.FC = () => {
       return;
     }
 
-    if (clientDescExists){
+    if (field ==='itemDescription' && clientDescExists){
       message.error('This description is already in use.');
+      return;
+    }
+
+    if (field ==='short_code' && clientShortCodeExists){
+      message.error('This Short Code is already in use.');
       return;
     }
   
@@ -269,7 +322,10 @@ const ComponentConfiguration: React.FC = () => {
           code: componentToUpdate.code,
           c_code: componentToUpdate.c_code,
           itemDescription: componentToUpdate.itemDescription,
-          ratingrequired: field === 'ratingrequired' ? value : componentToUpdate.ratingrequired,
+          g_type: componentToUpdate.g_type,
+          s_type: componentToUpdate.s_type,
+          short_code: componentToUpdate.short_code,
+          project_id: currentProjectId,
         },
       ],
     };
@@ -320,17 +376,34 @@ const ComponentConfiguration: React.FC = () => {
       }),
     },
     {
-      title: 'Rating Required',
-      dataIndex: 'ratingrequired',
-      key: 'ratingrequired',
-      render: (_, record) => (
-        <Checkbox
-          checked={record.ratingrequired}
-          onChange={(e) =>
-            handleEditComponentData(record.key, 'ratingrequired', e.target.checked)
-          }
-        />
-      ),
+      title: 'G Type',
+      dataIndex: 'g_type',
+      key: 'g_type',
+      onCell: (record: ComponentData): EditableCellProps => ({
+        record,
+        editable: editingKey === record.key && editingColumn === 'g_type',
+        dataIndex: 'g_type',
+      }),
+    },
+    {
+      title: 'S Type',
+      dataIndex: 's_type',
+      key: 's_type',
+      onCell: (record: ComponentData): EditableCellProps => ({
+        record,
+        editable: editingKey === record.key && editingColumn === 's_type',
+        dataIndex: 's_type',
+      }),
+    },
+    {
+      title: 'Short Code',
+      dataIndex: 'short_code',
+      key: 'short_code',
+      onCell: (record: ComponentData): EditableCellProps => ({
+        record,
+        editable: editingKey === record.key && editingColumn === 'short_code',
+        dataIndex: 'short_code',
+      }),
     },
   ];
 
@@ -371,12 +444,27 @@ const ComponentConfiguration: React.FC = () => {
           />
         </Form.Item>
         <Form.Item>
-          <Checkbox
-            checked={newRatingRequired}
-            onChange={(e) => setNewRatingRequired(e.target.checked)}
-          >
-            Rating Required
-          </Checkbox>
+          <Select
+            placeholder="Select a G Type"
+            style={{ width: '10rem', marginBottom: '1rem' }}
+            value={newGType}
+            onChange={(value) => setNewGType(value)}
+            options={GTypeList.map((type) => ({ value: type, label: type }))}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Input
+            placeholder="S Type"
+            value={newSType}
+            onChange={(e) => setNewSType(e.target.value)}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Input
+            placeholder="Short Code"
+            value={newShortCode}
+            onChange={(e) => setNewShortCode(e.target.value)}
+          />
         </Form.Item>
         <Form.Item>
           <Button

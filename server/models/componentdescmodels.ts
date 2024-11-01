@@ -1,5 +1,6 @@
 // defaultComponentModel.ts
 import { DataTypes } from "sequelize";
+import projectModel from "./projectmodel";
 
 const defaultComponentModel = (sequelize: any) => {
   const DefaultComponent = sequelize.define(
@@ -47,7 +48,16 @@ const defaultComponentModel = (sequelize: any) => {
       short_code:{
         type:DataTypes.STRING,
         allownull:true,
-      }
+      },
+      project_id: {
+        type: DataTypes.INTEGER,
+        references: {
+          model: projectModel(sequelize),
+          key: 'id',
+        },
+        allowNull: false,
+        onDelete: "CASCADE",
+      },
     },
     {
       timestamps: true,
@@ -65,6 +75,10 @@ const defaultComponentModel = (sequelize: any) => {
     DefaultComponent.belongsTo(models.Component, {
       foreignKey: "component_id",
       as: "components",
+    });
+    DefaultComponent.belongsTo(models.Project, {
+      foreignKey: "project_id",
+      as: "projects",
     });
   };
 
