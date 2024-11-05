@@ -307,21 +307,21 @@ const ScheduleConfiguration: React.FC = () => {
   const columns: ColumnsType<Schedule> = [
     {
       title: (
-        <div onDoubleClick={() => handleSort('sch1_sch2')}>
-          Schedule 1/ Schedule 2
-        </div>
-      ),
-      dataIndex: 'sch1_sch2',
-      key: 'sch1_sch2',
-    },
-    {
-      title: (
         <div onDoubleClick={() => handleSort('code')}>
           Code
         </div>
       ),
       dataIndex: 'code',
       key: 'code',
+    },
+    {
+      title: (
+        <div onDoubleClick={() => handleSort('sch1_sch2')}>
+          Schedule 1/ Schedule 2
+        </div>
+      ),
+      dataIndex: 'sch1_sch2',
+      key: 'sch1_sch2',
     },
     {
       title: (

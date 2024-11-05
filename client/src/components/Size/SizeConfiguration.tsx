@@ -358,21 +358,22 @@ const SizeConfiguration: React.FC = () => {
   const columns: ColumnsType<Size> = [
     {
       title: (
-        <div onDoubleClick={() => handleSort('size1_size2')}>
-          Size 1-2
-        </div>
-      ),
-      dataIndex: "size1_size2",
-      key: "size1_size2",
-    },
-    {
-      title: (
         <div onDoubleClick={() => handleSort('code')}>
           Code
         </div>
       ),
       dataIndex: "code",
       key: "code",
+    },
+    {
+      
+      title: (
+        <div onDoubleClick={() => handleSort('size1_size2')}>
+          Size 1-2
+        </div>
+      ),
+      dataIndex: "size1_size2",
+      key: "size1_size2",
     },
     {
       title: (

@@ -306,14 +306,14 @@ const RatingConfiguration: React.FC = () => {
 
   const columns: ColumnsType<Rating> = [
     {
-      title: "Rating Value",
-      dataIndex: "ratingValue",
-      key: "ratingValue",
-    },
-    {
       title: "Rating Code",
       dataIndex: "ratingCode",
       key: "ratingCode",
+    },
+    {
+      title: "Rating Value",
+      dataIndex: "ratingValue",
+      key: "ratingValue",
     },
     {
       title: "Client Rating Code",

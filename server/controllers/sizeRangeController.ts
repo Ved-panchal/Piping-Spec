@@ -42,7 +42,12 @@ export const updateSizeRange = async (req: Request, res: Response): Promise<void
             return;
         }
 
-        const sizeRange = await db.SizeRange.findByPk(id);
+        const sizeRange = await db.SizeRange.findOne({
+            where: {
+                id: id,
+                specId: specId
+            }
+        });
         if (!sizeRange) {
             res.json({ success: false, error: "SizeRange not found.", status: 404 });
             return;

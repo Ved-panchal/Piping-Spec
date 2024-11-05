@@ -9,12 +9,10 @@ const sizeRangeModel = (sequelize: any) => {
     {
       size_code: {
         type: DataTypes.STRING,
-        unique:true,
         allowNull: false,
       },
       schedule_code: {
         type: DataTypes.STRING,
-        unique:true,
         allowNull: false,
       },
       specId: {

@@ -15,7 +15,6 @@ const scheduleModel = (sequelize: any) => {
       code: {
         type: DataTypes.STRING(10),
         allowNull: false,
-        unique:true,
         validate: {
           is: /^[0-9A-Z]+$/,
         },

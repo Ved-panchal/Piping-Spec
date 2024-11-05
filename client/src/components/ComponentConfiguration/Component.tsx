@@ -103,6 +103,7 @@ const ComponentConfiguration: React.FC = () => {
           ...item,
           key: item.code,
         }));
+        console.log('fetched',fetchedData);
         setComponentData(fetchedData);
       } else {
         showToast({ message: 'Failed to fetch component data.', type: 'error' });
@@ -169,13 +170,13 @@ const ComponentConfiguration: React.FC = () => {
         componentId: selectedComponentId?.toString(),
         componentDescs: [
           {
+            project_id:currentProjectId,
             code: newCode,
             c_code: newClientCode,
             itemDescription: newDescription,
             g_type: newGType,
             s_type: newSType,
             short_code: newShortCode,
-            project_id:currentProjectId,
           },
         ],
       };
@@ -284,7 +285,7 @@ const ComponentConfiguration: React.FC = () => {
       item.key === key ? { ...item, [field]: value } : item
     );
   
-    const componentToUpdate = componentData.find((item) => item.key === key);
+    const componentToUpdate = updatedData.find((item) => item.key === key);
     if (!componentToUpdate) return;
   
     // Validation: Check if the updated code or c_code is already in use
@@ -314,18 +315,20 @@ const ComponentConfiguration: React.FC = () => {
     }
   
     setComponentData(updatedData);
+    console.log('updated data: ',updatedData);
+    console.log('Component to update: ',componentToUpdate);
   
     const payload = {
       componentId: selectedComponentId?.toString(),
       componentDescs: [
         {
+          project_id: currentProjectId,
           code: componentToUpdate.code,
           c_code: componentToUpdate.c_code,
           itemDescription: componentToUpdate.itemDescription,
           g_type: componentToUpdate.g_type,
           s_type: componentToUpdate.s_type,
           short_code: componentToUpdate.short_code,
-          project_id: currentProjectId,
         },
       ],
     };

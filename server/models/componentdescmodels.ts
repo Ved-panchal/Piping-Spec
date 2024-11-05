@@ -2,8 +2,8 @@
 import { DataTypes } from "sequelize";
 import projectModel from "./projectmodel";
 
-const defaultComponentModel = (sequelize: any) => {
-  const DefaultComponent = sequelize.define(
+const ComponentDescModel = (sequelize: any) => {
+  const ComponentDesc = sequelize.define(
     "component_desc",
     {
     component_id: {
@@ -62,27 +62,21 @@ const defaultComponentModel = (sequelize: any) => {
     {
       timestamps: true,
       underscored: true,
-      indexes: [
-        {
-          unique: true,
-          fields: ["component_id", "code"],
-        },
-      ],
     }
   );
 
-  DefaultComponent.associate = (models: any) => {
-    DefaultComponent.belongsTo(models.Component, {
+  ComponentDesc.associate = (models: any) => {
+    ComponentDesc.belongsTo(models.Component, {
       foreignKey: "component_id",
       as: "components",
     });
-    DefaultComponent.belongsTo(models.Project, {
+    ComponentDesc.belongsTo(models.Project, {
       foreignKey: "project_id",
       as: "projects",
     });
   };
 
-  return DefaultComponent;
+  return ComponentDesc;
 };
 
-export default defaultComponentModel;
+export default ComponentDescModel;

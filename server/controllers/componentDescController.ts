@@ -27,6 +27,7 @@ export const getComponentDescByComponentId = async (req: Request, res: Response)
     });
 
     const mergedComponentDescs = Object.values(componentDescMap);
+    console.log(mergedComponentDescs);
     res.json({ success: true, componentDescs: mergedComponentDescs });
   } catch (error: unknown) {
     console.error("Error fetching component descriptions:", error);
@@ -53,7 +54,7 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
       }
 
       const existingComponentDesc = await db.ComponentDesc.findOne({
-        where: { code, component_id:componentId }
+        where: { code, component_id:componentId, project_id:project_id }
       });
 
       if (existingComponentDesc) {
