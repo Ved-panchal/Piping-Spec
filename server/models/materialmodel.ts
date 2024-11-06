@@ -27,6 +27,10 @@ const MaterialModel = (sequelize: any) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
+            base_material:{
+                type:DataTypes.STRING,
+                allowNull:false,
+            },
             projectId: {
                 type: DataTypes.INTEGER, 
                 references: {
@@ -46,6 +50,10 @@ const MaterialModel = (sequelize: any) => {
     )
     
     Material.associate = (models: any) => {
+        Material.belongsTo(models.Component, {
+            foreignKey: "component_id",
+            as: "components",
+          });
         Material.belongsTo(models.Project, {
             foreignKey: "projectId",
             as: "project",

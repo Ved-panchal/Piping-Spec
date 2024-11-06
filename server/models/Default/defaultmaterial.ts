@@ -25,6 +25,10 @@ const defaultMaterialModel = (sequelize: any) => {
             comp_matching_id:{
                 type: DataTypes.INTEGER,
                 allowNull: false,
+            },
+            base_material:{
+                type:DataTypes.STRING,
+                allowNull:false,
             }
         }
     )

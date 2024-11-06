@@ -4,10 +4,11 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import authRoute from "./routes/authRoutes"
 import userRoute from "./routes/userRoutes"
-import projectRoute from "./routes/projectRoutes"
+import projectRoute from "./routes/projectRoutes";
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
 import sizeRangeRoute from "./routes/sizeRangeRoutes";
+import materialRoute from "./routes/materialRoutes";
 import componentDescRoute from "./routes/componentDescRoutes";
 import componentRoute from "./routes/componentRoutes"
 import ratingRoute from "./routes/ratingRoutes"
@@ -45,5 +46,6 @@ app.use('/schedules',scheduleRoute);
 app.use('/sizes',sizeRoute);
 app.use('/components',componentRoute);
 app.use('/componentdescs',componentDescRoute);
+app.use('/materials',materialRoute);
 
 export default app;

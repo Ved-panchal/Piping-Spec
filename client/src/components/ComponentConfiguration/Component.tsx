@@ -315,8 +315,6 @@ const ComponentConfiguration: React.FC = () => {
     }
   
     setComponentData(updatedData);
-    console.log('updated data: ',updatedData);
-    console.log('Component to update: ',componentToUpdate);
   
     const payload = {
       componentId: selectedComponentId?.toString(),
