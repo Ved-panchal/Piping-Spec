@@ -211,7 +211,7 @@ const ComponentConfiguration: React.FC = () => {
     children,
     record,
     dataIndex,
-    toggleCheckbox,
+    // toggleCheckbox,
     ...restProps
   }) => {
     const initialInputValue = record ? String(record[dataIndex]) : '';

@@ -52,12 +52,6 @@ const defaultComponentModel = (sequelize: any) => {
     {
       timestamps: true,
       underscored: true,
-      indexes: [
-        {
-          unique: true,
-          fields: ["component_id", "code"],
-        },
-      ],
     }
   );
 

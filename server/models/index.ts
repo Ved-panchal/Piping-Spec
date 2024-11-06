@@ -7,6 +7,8 @@ import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
 import specModel from "./specmodels";
 import sizeRangeModel from "./sizerangemodels";
+import MaterialModel from "./materialmodel";
+import defaultMaterialModel from "./Default/defaultmaterial";
 import componentModel from "./componentmodels";
 import componentDescModel from "./componentdescmodels";
 import defaultComponentModel from "./Default/defaultcomponentdesc";
@@ -31,6 +33,8 @@ const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
 const SizeRange = sizeRangeModel(sequelize);
+const Material = MaterialModel(sequelize)
+const D_Material = defaultMaterialModel(sequelize);
 const Component = componentModel(sequelize);
 const ComponentDesc = componentDescModel(sequelize);
 const D_Component = defaultComponentModel(sequelize);
@@ -54,6 +58,8 @@ const db = {
     Subscription,
     Plan,
     SizeRange,
+    Material,
+    D_Material,
     Component,
     ComponentDesc,
     D_Component,
