@@ -8,6 +8,7 @@ import projectRoute from "./routes/projectRoutes";
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
 import sizeRangeRoute from "./routes/sizeRangeRoutes";
+import dimensionalStandardRoute from "./routes/dimensionalStandardRoutes";
 import materialRoute from "./routes/materialRoutes";
 import componentDescRoute from "./routes/componentDescRoutes";
 import componentRoute from "./routes/componentRoutes"
@@ -47,5 +48,6 @@ app.use('/sizes',sizeRoute);
 app.use('/components',componentRoute);
 app.use('/componentdescs',componentDescRoute);
 app.use('/materials',materialRoute);
+app.use('/dimensional-standards',dimensionalStandardRoute);
 
 export default app;

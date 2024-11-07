@@ -18,6 +18,7 @@ import scheduleModel from "./schedulemodels";
 import defaultScheduleModel from "./Default/defaultscheulemodel";
 import sizeModel from "./sizemodels";
 import defaultSizeModel from "./Default/defaultsizemodel";
+import DimensionalStandardModel from "./dimensionalmodel";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
 const SizeRange = sizeRangeModel(sequelize);
+const DimensionalStandard = DimensionalStandardModel(sequelize);
 const Material = MaterialModel(sequelize)
 const D_Material = defaultMaterialModel(sequelize);
 const Component = componentModel(sequelize);
@@ -58,6 +60,7 @@ const db = {
     Subscription,
     Plan,
     SizeRange,
+    DimensionalStandard,
     Material,
     D_Material,
     Component,
