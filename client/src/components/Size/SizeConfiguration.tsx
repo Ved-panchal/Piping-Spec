@@ -4,31 +4,12 @@ import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
+import { ApiError, Size } from "../../utils/interface";
 
-// Types for size data
-interface Size {
-  key: string;
-  size1_size2: string;
-  code: string;
-  c_code:string;
-  size_inch: string;
-  size_mm: number;
-  od: string;
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
-
-interface EditableCellProps extends TdHTMLAttributes<any> {
-  record:Size;
+interface EditableCellProps extends TdHTMLAttributes<unknown> {
+  record: Size;
   editable?: boolean;
-  field:string;
+  field:keyof Size;
 }
 
 const SizeConfiguration: React.FC = () => {
@@ -76,7 +57,7 @@ const SizeConfiguration: React.FC = () => {
       );
 
       if (response && response.data && response.data.success) {
-        const sizesWithKeys = response.data.sizes.map((size: any) => ({
+        const sizesWithKeys = response.data.sizes.map((size: Size) => ({
           ...size,
           key: size.code,
           c_code: size.c_code,
@@ -286,7 +267,7 @@ const SizeConfiguration: React.FC = () => {
     }
   };
 
-  const EditableCell: React.FC<any> = ({
+  const EditableCell: React.FC<EditableCellProps> = ({
     editable,
     field,
     children,

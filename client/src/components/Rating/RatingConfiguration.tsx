@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from "react";
 import { Spin } from "antd";
 import { Table, Input, Button, Form, message } from "antd";

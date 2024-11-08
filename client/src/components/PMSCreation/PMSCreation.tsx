@@ -4,24 +4,10 @@ import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
+import { ApiError, Component, ComponentDesc, DropdownOption, PMSItem, Rating, SizeRange } from "../../utils/interface";
 
-// Type Definitions
-interface PMSItem {
-  key: string;
-  compType: string;
-  itemDescription: string;
-  size1: string;
-  size2: string;
-  schedule: string;
-  rating: string;
-  material: string;
-  dimensionalStandard: string;
-}
 
-interface DropdownOption {
-  label: string;
-  value: string;
-}
+
 
 // Component for PMS Creation
 const PMSCreation = ({ specId }: { specId: string }) => {
@@ -52,7 +38,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     try {
       const response = await api.get(configApi.API_URL.components.list);
       if (response?.data?.success) {
-        const compTypes = response.data.components.map((item: any) => ({
+        const compTypes = response.data.components.map((item: Component) => ({
           label: item.componentname,
           value: item.id,
         }));
@@ -64,7 +50,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         showToast({ message: "Failed to fetch components data", type: "error" });
       }
     } catch (error) {
-      showToast({ message: "Error fetching components data", type: "error" });
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || 'Error fetching Components data.';
+      showToast({ message: errMessage, type: "error" });
     }
   };
   
@@ -79,7 +67,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       if (response?.data?.success) {
         setDropdownData((prevData) => ({
           ...prevData,
-          itemDescription: response.data.componentDescs.map((item: any) => ({
+          itemDescription: response.data.componentDescs.map((item: ComponentDesc) => ({
             label: item.itemDescription,
             value: item.code,
           })),
@@ -88,7 +76,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         showToast({ message: "Failed to fetch component descriptions", type: "error" });
       }
     } catch (error) {
-      showToast({ message: "Error fetching component descriptions", type: "error" });
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching component descriptions";
+      showToast({ message: errMessage, type: "error" });
     }
   };
 
@@ -96,11 +86,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response?.data?.success) {
-        const sizeRangesOptions = response.data.sizeranges.map((item: any) => ({
+        const sizeRangesOptions = response.data.sizeranges.map((item: SizeRange) => ({
           label: item.sizeValue,
           value: item.sizeCode,
         }));
-        const ScheduleRangesoptions = response.data.sizeranges.map((item: any) => ({
+        const ScheduleRangesoptions = response.data.sizeranges.map((item: SizeRange) => ({
           label: item.scheduleValue,
           value: item.scheduleCode,
         }));
@@ -114,7 +104,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         showToast({ message: "Failed to fetch sizes data", type: "error" });
       }
     } catch (error) {
-      showToast({ message: "Error fetching sizes data", type: "error" });
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching sizes data";
+      showToast({ message: errMessage, type: "error" });
     }
   };
 
@@ -125,7 +117,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       if (response?.data?.success) {
         setDropdownData((prevData) => ({
           ...prevData,
-          rating: response.data.ratings.map((item: any) => ({
+          rating: response.data.ratings.map((item: Rating) => ({
             label: item.ratingValue,
             value: item.ratingCode,
           })),
@@ -134,7 +126,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         showToast({ message: "Failed to fetch ratings data", type: "error" });
       }
     } catch (error) {
-      showToast({ message: "Error fetching ratings data", type: "error" });
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching ratings data";
+      showToast({ message: errMessage, type: "error" });
     }
   };
 
@@ -156,7 +150,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         message.error("Failed to add item");
       }
     } catch (error) {
-      message.error("Error adding item");
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error adding item";
+      message.error(errMessage);
     } finally {
       setButtonLoading(false);
     }
@@ -177,7 +173,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         message.error("Failed to update item");
       }
     } catch (error) {
-      message.error("Error updating item");
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error updating item";
+      message.error(errMessage);
     }
   };
 

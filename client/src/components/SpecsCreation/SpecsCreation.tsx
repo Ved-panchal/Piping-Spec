@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
 import { Table, Input, Button, Form, message, Select } from 'antd';
 import { ColumnsType } from 'antd/es/table';
@@ -7,6 +8,7 @@ import showToast from '../../utils/toast';
 import { Trash2 } from 'lucide-react';
 import deleteWithBody from '../../utils/api/DeleteAxios';
 import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal';
+import { Rating } from '../../utils/interface';
 
 const { Option } = Select;
 
@@ -98,13 +100,15 @@ const [specToDelete, setSpecToDelete] = useState<Spec | null>(null);
       const response = await api.post(configApi.API_URL.ratings.getAll, { projectId: currentProjectId });
       if (response.data.success) {
         // Extract only the ratingValue for the dropdown
-        const ratings = response.data.ratings.map((rating: any) => rating.ratingValue);
+        const ratings = response.data.ratings.map((rating: Rating) => rating.ratingValue);
         setRatingOptions(ratings); // Set ratings options from API
       } else {
         throw new Error('Failed to fetch ratings.');
       }
     } catch (error) {
-      showToast({ message: 'Failed to fetch ratings from API.', type: 'error' });
+      const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error || 'Failed to fetch ratings from API.';
+      showToast({ message: errorMessage, type: 'error' });
     }
   };
 

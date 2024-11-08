@@ -7,6 +7,8 @@ import showToast from '../../utils/toast';
 import { Trash2 } from 'lucide-react';
 import deleteWithBody from '../../utils/api/DeleteAxios';
 import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal';
+import { ApiError, DeleteResponse, Schedule, Size } from '../../utils/interface';
+import type { SizeRange } from '../../utils/interface';
 
 const { Option } = Select;
 
@@ -15,32 +17,7 @@ interface OptionType {
   label: string;
 }
 
-interface SizeRange {
-  key: number | string;
-  sizeValue: string;
-  sizeCode: string;
-  scheduleValue: string;
-  scheduleCode: string;
-}
-
-interface DeleteResponse {
-  data: {
-    success: boolean;
-    message: string;
-    error?: string;
-  };
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
-
-interface EditableCellProps extends TdHTMLAttributes<any> {
+interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: SizeRange;
   editable: boolean;
   dataIndex: keyof SizeRange;
@@ -77,15 +54,15 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       const scheduleResponse = await api.post(configApi.API_URL.schedules.getall, payload);
 
       if (sizeResponse.data.success && scheduleResponse.data.success) {
-        const sizes = sizeResponse.data.sizes.map((size: any) => ({
+        const sizes = sizeResponse.data.sizes.map((size: Size) => ({
           value: size.code,
           label: size.size1_size2,
-        })).sort((a: { label: string; }, b: { label: any; }) => a.label.localeCompare(b.label));
+        })).sort((a: { label: string; }, b: { label: string; }) => a.label.localeCompare(b.label));
 
-        const schedules = scheduleResponse.data.schedules.map((schedule: any) => ({
+        const schedules = scheduleResponse.data.schedules.map((schedule: Schedule) => ({
           value: schedule.code,
           label: schedule.sch1_sch2,
-        })).sort((a: { label: string; }, b: { label: any; }) => a.label.localeCompare(b.label));
+        })).sort((a: { label: string; }, b: { label: string; }) => a.label.localeCompare(b.label));
 
         setSizeOptions(sizes);
         setScheduleOptions(schedules);
@@ -93,7 +70,9 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         throw new Error('Failed to fetch options');
       }
     } catch (error) {
-      showToast({ message: 'Failed to fetch dropdown options.', type: 'error' });
+      const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error || 'Failed to fetch dropdown options.';
+      showToast({ message: errorMessage, type: 'error' });
     }
   };
 
@@ -103,7 +82,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
         console.log(response.data.sizeranges);
-        const sizeRangesWithKey = response.data.sizeranges.map((range: any) => ({
+        const sizeRangesWithKey = response.data.sizeranges.map((range: SizeRange) => ({
           key: range.id,
           sizeValue: range.sizeValue,
           sizeCode: range.sizeCode,
@@ -115,7 +94,9 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         throw new Error('Failed to fetch Size Ranges.');
       }
     } catch (error) {
-      showToast({ message: 'Failed to fetch Size Ranges.', type: 'error' });
+      const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error || 'Failed to update Size Range.';
+      showToast({ message: errorMessage, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -172,7 +153,9 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       setIsModalOpen(false);
       message.success('Size range deleted successfully');
     } catch (error) {
-      showToast({ message: 'Failed to delete size range.', type: 'error' });
+      const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error || 'Failed to delete size range.';
+      showToast({ message: errorMessage , type: 'error' });
     }
   };
 
@@ -208,7 +191,6 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   };
 
   const EditableCell: React.FC<EditableCellProps> = ({
-    editable,
     children,
     record,
     dataIndex,
@@ -231,8 +213,10 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
           await handleEdit(record.key, dataIndex, localInputValue as string);
           setInitialValue(localInputValue);
         } catch (error) {
+          const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.error || 'Failed to update Size range.';
           setLocalInputValue(initialValue);
-          showToast({ message: 'Failed to update Size range.', type: 'error' });
+          showToast({ message:errorMessage , type: 'error' });
         }
       }
       setIsEditing(false); // Exit edit mode

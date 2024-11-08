@@ -1,15 +1,5 @@
 import { Field, FieldProps } from "formik";
-import { RefObject } from "react";
-
-interface InputProps {
-  type: string;
-  name: string;
-  placeholder: string;
-  className?: string;
-  innerRef?: RefObject<HTMLInputElement>;
-  autoFocus?: boolean;
-  disabled?:boolean;
-}
+import { InputProps } from "../../utils/interface";
 
 const FormikInput = ({ type, name, placeholder, className, innerRef, autoFocus,disabled }: InputProps) => {
   return (

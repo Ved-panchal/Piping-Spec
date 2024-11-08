@@ -1,5 +1,5 @@
 import { CircleCheck } from 'lucide-react';
-import { PricingCardProps } from '../PricingInterface';
+import { PricingCardProps } from '../../../utils/interface';
 
 const PricingCard = ({ name, Price, benefits, index, showButton, openModal }: PricingCardProps) => {
   return (

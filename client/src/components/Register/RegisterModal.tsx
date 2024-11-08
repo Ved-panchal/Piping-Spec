@@ -10,15 +10,7 @@ import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import showToast from '../../utils/toast';
 import { bouncy } from 'ldrs';
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?:string;
-    };
-    status?: number;
-  };
-}
+import { ApiError } from '../../utils/interface';
 
 
 const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: boolean; closeModal: () => void; selectedPlanIndex: number | null }) => {

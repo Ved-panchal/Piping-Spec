@@ -7,19 +7,9 @@ import CreateProjectModal from '../components/CreateProjectModal/CreateProjectMo
 import Specs from '../components/Specs/Specs'; // Import the Specs component
 import api from '../utils/api/apiutils';
 import { api as configApi } from "../utils/api/config";
+import { Project, ProjectFormValues } from '../utils/interface';
 
-interface Project {
-  id: string;
-  projectCode: string;
-  projectDescription: string;
-  companyName: string;
-}
 
-interface ProjectFormValues {
-  code: string;
-  description: string;
-  company: string;
-}
 
 const PipingSpecCreation = () => {
   const [projectlist, setProjectList] = useState<Project[]>([]);

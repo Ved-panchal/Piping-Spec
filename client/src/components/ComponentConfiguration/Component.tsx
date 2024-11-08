@@ -4,47 +4,23 @@ import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
 import showToast from '../../utils/toast';
+import { ApiError, Component, ComponentDesc } from '../../utils/interface';
 
-interface ComponentData {
-  key: string;
-  itemDescription: string;
-  code: string;
-  c_code: string;
-  g_type: string;
-  s_type: string;
-  short_code: string;
-}
 
-interface Component {
-  id: number;
-  componentname: string;
-  isDeleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
 
 const GTypeList = [
   'CAP', 'COUP', 'CROS', 'ELBO', 'FLAN', 'FTUB', 'GASK', 'OLET', 'PCOM', 'REDU', 'TEE', 'TUBE', 'UNIO'
 ];
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
-  record: ComponentData;
+  record: ComponentDesc;
   editable: boolean;
-  dataIndex: keyof ComponentData;
+  dataIndex: keyof ComponentDesc;
   toggleCheckbox?: (checked: boolean) => void;
 }
 
 const ComponentConfiguration: React.FC = () => {
-  const [componentData, setComponentData] = useState<ComponentData[]>([]);
+  const [ComponentDesc, setComponentDesc] = useState<ComponentDesc[]>([]);
   const [currentProjectId,setCurrentProjectId] = useState<string>();
   const [componentsList, setComponentsList] = useState<Component[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
@@ -90,7 +66,7 @@ const ComponentConfiguration: React.FC = () => {
     fetchComponentsList();
   }, []);
 
-  const fetchComponentData = async (componentId: number) => {
+  const fetchComponentDesc = async (componentId: number) => {
     try {
       const payload = {
         componentId: componentId,
@@ -99,12 +75,12 @@ const ComponentConfiguration: React.FC = () => {
       setLoading(true);
       const response = await api.post(configApi.API_URL.components.data,payload);
       if (response && response.data && response.data.success) {
-        const fetchedData = response.data.componentDescs.map((item: ComponentData) => ({
+        const fetchedData = response.data.componentDescs.map((item: ComponentDesc) => ({
           ...item,
           key: item.code,
         }));
         console.log('fetched',fetchedData);
-        setComponentData(fetchedData);
+        setComponentDesc(fetchedData);
       } else {
         showToast({ message: 'Failed to fetch component data.', type: 'error' });
       }
@@ -119,20 +95,20 @@ const ComponentConfiguration: React.FC = () => {
 
   const handleComponentChange = (componentId: number) => {
     setSelectedComponentId(componentId);
-    fetchComponentData(componentId);
+    fetchComponentDesc(componentId);
   };
 
-  const handleAddComponentData = async () => {
+  const handleAddComponentDesc = async () => {
     if (!newDescription || !newCode || !newClientCode || !newGType || !newSType || !newShortCode) {
       message.error('All fields are required.');
       return;
     }
   
-    // Check if the code or c_code already exists in the componentData
-    const codeExists = componentData.some((item) => item.code === newCode);
-    const clientCodeExists = componentData.some((item) => item.c_code === newClientCode);
-    const clientDescExists = componentData.some((item) => item.itemDescription === newDescription);
-    const clientShortCodeExists = componentData.some((item) => item.short_code === newShortCode);
+    // Check if the code or c_code already exists in the ComponentDesc
+    const codeExists = ComponentDesc.some((item) => item.code === newCode);
+    const clientCodeExists = ComponentDesc.some((item) => item.c_code === newClientCode);
+    const clientDescExists = ComponentDesc.some((item) => item.itemDescription === newDescription);
+    const clientShortCodeExists = ComponentDesc.some((item) => item.short_code === newShortCode);
   
     if (codeExists) {
       message.error('This code is already in use.');
@@ -186,7 +162,7 @@ const ComponentConfiguration: React.FC = () => {
       });
   
       if (response && response.data.success) {
-        setComponentData((prevData) => [newData, ...prevData]);
+        setComponentDesc((prevData) => [newData, ...prevData]);
         setNewDescription('');
         setNewCode('');
         setNewClientCode('');
@@ -219,7 +195,7 @@ const ComponentConfiguration: React.FC = () => {
   
     const handleBlur = () => {
       if (localInputValue !== initialInputValue) {
-        handleEditComponentData(record.key, dataIndex as keyof ComponentData, localInputValue);
+        handleEditComponentDesc(record.key, dataIndex as keyof ComponentDesc, localInputValue);
       }
       setEditingKey(null);
       setEditingColumn(null);
@@ -227,7 +203,7 @@ const ComponentConfiguration: React.FC = () => {
   
     const handleSelectChange = (value: string) => {
       setLocalInputValue(value);
-      handleEditComponentData(record.key, dataIndex as keyof ComponentData, value);
+      handleEditComponentDesc(record.key, dataIndex as keyof ComponentDesc, value);
       setEditingKey(null);
       setEditingColumn(null);
     };
@@ -275,13 +251,13 @@ const ComponentConfiguration: React.FC = () => {
     );
   };
 
-  const handleEditComponentData = async (
+  const handleEditComponentDesc = async (
     key: string,
-    field: keyof ComponentData,
+    field: keyof ComponentDesc,
     value: string | boolean
   ) => {
-    const originalData = [...componentData];
-    const updatedData = componentData.map((item) =>
+    const originalData = [...ComponentDesc];
+    const updatedData = ComponentDesc.map((item) =>
       item.key === key ? { ...item, [field]: value } : item
     );
   
@@ -289,10 +265,10 @@ const ComponentConfiguration: React.FC = () => {
     if (!componentToUpdate) return;
   
     // Validation: Check if the updated code or c_code is already in use
-    const codeExists = componentData.some((item) => item.code === value && item.key !== key);
-    const clientCodeExists = componentData.some((item) => item.c_code === value && item.key !== key);
-    const clientDescExists = componentData.some((item) => item.itemDescription === value && item.key !== key);
-    const clientShortCodeExists = componentData.some((item) => item.short_code === value && item.key !== key);
+    const codeExists = ComponentDesc.some((item) => item.code === value && item.key !== key);
+    const clientCodeExists = ComponentDesc.some((item) => item.c_code === value && item.key !== key);
+    const clientDescExists = ComponentDesc.some((item) => item.itemDescription === value && item.key !== key);
+    const clientShortCodeExists = ComponentDesc.some((item) => item.short_code === value && item.key !== key);
   
     if (field === 'code' && codeExists) {
       message.error('This code is already in use.');
@@ -314,7 +290,7 @@ const ComponentConfiguration: React.FC = () => {
       return;
     }
   
-    setComponentData(updatedData);
+    setComponentDesc(updatedData);
   
     const payload = {
       componentId: selectedComponentId?.toString(),
@@ -339,7 +315,7 @@ const ComponentConfiguration: React.FC = () => {
       if (response && response.data.success) {
         message.success('Component data updated successfully');
       } else {
-        setComponentData(originalData);
+        setComponentDesc(originalData);
         throw new Error('Failed to update component data.');
       }
     } catch (error) {
@@ -350,7 +326,7 @@ const ComponentConfiguration: React.FC = () => {
   };
   
 
-  const columns: ColumnsType<ComponentData> = [
+  const columns: ColumnsType<ComponentDesc> = [
     {
       title: 'Code',
       dataIndex: 'code',
@@ -360,7 +336,7 @@ const ComponentConfiguration: React.FC = () => {
       title: 'Component Description',
       dataIndex: 'itemDescription',
       key: 'itemDescription',
-      onCell: (record: ComponentData): EditableCellProps => ({
+      onCell: (record: ComponentDesc): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'itemDescription',
         dataIndex: 'itemDescription',
@@ -370,7 +346,7 @@ const ComponentConfiguration: React.FC = () => {
       title: 'Client Code',
       dataIndex: 'c_code',
       key: 'c_code',
-      onCell: (record: ComponentData): EditableCellProps => ({
+      onCell: (record: ComponentDesc): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'c_code',
         dataIndex: 'c_code',
@@ -380,7 +356,7 @@ const ComponentConfiguration: React.FC = () => {
       title: 'G Type',
       dataIndex: 'g_type',
       key: 'g_type',
-      onCell: (record: ComponentData): EditableCellProps => ({
+      onCell: (record: ComponentDesc): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'g_type',
         dataIndex: 'g_type',
@@ -390,7 +366,7 @@ const ComponentConfiguration: React.FC = () => {
       title: 'S Type',
       dataIndex: 's_type',
       key: 's_type',
-      onCell: (record: ComponentData): EditableCellProps => ({
+      onCell: (record: ComponentDesc): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 's_type',
         dataIndex: 's_type',
@@ -400,7 +376,7 @@ const ComponentConfiguration: React.FC = () => {
       title: 'Short Code',
       dataIndex: 'short_code',
       key: 'short_code',
-      onCell: (record: ComponentData): EditableCellProps => ({
+      onCell: (record: ComponentDesc): EditableCellProps => ({
         record,
         editable: editingKey === record.key && editingColumn === 'short_code',
         dataIndex: 'short_code',
@@ -470,7 +446,7 @@ const ComponentConfiguration: React.FC = () => {
         <Form.Item>
           <Button
             type="primary"
-            onClick={handleAddComponentData}
+            onClick={handleAddComponentDesc}
             loading={buttonLoading}
           >
             Add Data
@@ -482,7 +458,7 @@ const ComponentConfiguration: React.FC = () => {
         <Spin />
       ) : (
         <Table
-          dataSource={componentData}
+          dataSource={ComponentDesc}
           columns={columns}
           rowKey="key"
           pagination={false}

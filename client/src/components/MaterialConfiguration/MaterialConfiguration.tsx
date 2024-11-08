@@ -1,36 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
 import { Table, Input, Button, Form, Select, message, Spin } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import showToast from '../../utils/toast';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from "../../utils/api/config";
+import { ApiError, Component, MaterialData } from '../../utils/interface';
 
-interface MaterialData {
-  key: string;
-  code: string;
-  c_code: string;
-  material_description: string;
-  base_material: string;  // New field
-}
-
-interface Component {
-  id: number;
-  componentname: string;
-  isDeleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
-
-interface EditableCellProps extends TdHTMLAttributes<unknown> {
+export interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: MaterialData;
   editable: boolean;
   dataIndex: keyof MaterialData;
@@ -336,7 +313,7 @@ const MaterialConfiguration: React.FC = () => {
     },
   ];
 
-  const handleApiError = (error: any) => {
+  const handleApiError = (error:any) => {
     const apiError = error as ApiError;
     const errorMessage = apiError.response?.data?.error || 'An error occurred';
     showToast({ message: errorMessage, type: 'error' });

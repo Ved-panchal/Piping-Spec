@@ -7,28 +7,8 @@ import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import { bouncy } from 'ldrs';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
+import { ApiError, CreateProjectModalProps, ProjectFormValues } from '../../utils/interface';
 
-interface ProjectFormValues {
-  code: string;
-  description: string;
-  company: string;
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?:string;
-    };
-    status?: number;
-  };
-}
-
-interface CreateProjectModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (project: ProjectFormValues) => void;
-  project?: ProjectFormValues | null; // Optional project prop for edit mode
-}
 
 const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSubmit, project }) => {
   const [loading, setLoading] = useState(false);

@@ -4,36 +4,8 @@ import showToast from '../../utils/toast';
 import { api as configApi } from "../../utils/api/config";
 import deleteWithBody from '../../utils/api/DeleteAxios';
 import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal'; // Import your ConfirmationModal
+import { ApiError, DeleteResponse, Project, ProjectFormValues } from '../../utils/interface';
 
-interface Project {
-  id: string;
-  projectCode: string;        
-  projectDescription: string; 
-  companyName: string;        
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
-
-interface ProjectFormValues {
-  code: string;
-  description: string;
-  company: string;
-}
-
-interface DeleteResponse {
-  data: {
-    success: boolean;
-    message: string;
-    error?: string;
-  }
-}
 
 interface ProjectTableProps {
   projects: Project[];

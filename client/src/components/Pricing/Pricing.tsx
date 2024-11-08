@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { fadeIn } from '../../Shared/variants';
 import PricingCard from './PricingCard/PricingCard';
-import { Plan } from './PricingInterface';
 import { packages } from './PricingPackages';
+import { Plan } from '../../utils/interface';
 
 const Pricing = ({ openModal, setPlanValue }: { openModal: () => void, setPlanValue: (value: number) => void }) => {
   

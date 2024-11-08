@@ -52,6 +52,13 @@ export const api = {
       materials:{
         getall:'materials/getall',
         addorupdate:'materials/add-or-update',
+      },
+      dimensionalstandards:{
+        create:"dimensional-standards/create",
+        update:"dimensional-standards/update",
+        getall:"dimensional-standards/getall",
+        bycomponent:"dimensional-standards/by-component",
+        delete:"/dimensional-standards/delete"
       }
     },
 };

@@ -5,24 +5,9 @@ import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import SizeRange from '../SizeRange/SizeRange';
 import PMSCreation from '../PMSCreation/PMSCreation';
+import { ApiError, Spec } from '../../utils/interface';
 
 const { Option } = Select;
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
-
-interface Spec {
-  id: string;
-  specName: string;
-  rating: string;
-  baseMaterial: string;
-}
 
 // Placeholder Components for PMS, SizingRange, and BranchTable
 const PMS = ({ specId }: { specId?: string }) => <div className='text-black'><PMSCreation specId={specId!}/></div>;
@@ -32,7 +17,7 @@ const BranchTable = ({ specId }: { specId?: string }) => <div className='text-bl
 const PmsInputSelector = ({ projectId }: { projectId?: string }) => {
   const [specs, setSpecs] = useState<Spec[]>([]);
   const [selectedSpec, setSelectedSpec] = useState<string | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<string>('PMS'); // Active tab state
+  const [activeTab, setActiveTab] = useState<string>('PMS');
 
   // Fetch specs data
   useEffect(() => {

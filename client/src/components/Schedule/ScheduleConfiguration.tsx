@@ -4,23 +4,7 @@ import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
 import showToast from '../../utils/toast';
-
-interface Schedule {
-  key: string;
-  sch1_sch2: string;
-  code: string;
-  c_code: string;
-  schDesc: string;
-}
-
-interface ApiError extends Error {
-  response?: {
-    data?: {
-      error?: string;
-    };
-    status?: number;
-  };
-}
+import { ApiError, Schedule } from '../../utils/interface';
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: Schedule;

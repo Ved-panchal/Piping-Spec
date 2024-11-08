@@ -8,25 +8,8 @@ import FormikErrorMessage from '../FormFields/FormikErrorMessage';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import { bouncy } from 'ldrs';
+import { ApiError, LoginFormValues, LoginModalProps } from '../../utils/interface';
 
-interface LoginFormValues {
-    Email: string;
-    password: string;
-}
-
-interface LoginModalProps {
-    isOpen: boolean;
-    closeModal: () => void;
-    onLoginSuccess: (user: { name: string }) => void; // New prop
-}
-interface ApiError extends Error {
-    response?: {
-      data?: {
-        error?:string;
-      };
-      status?: number;
-    };
-  }
 
 const LoginModal = ({ isOpen, closeModal,onLoginSuccess  }: LoginModalProps) => {
     const [showPassword, setShowPassword] = useState(false);
