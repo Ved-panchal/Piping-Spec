@@ -26,7 +26,7 @@ const DimensionalStandardModel= (sequelize:any) => {
     DimensionalStandard.associate = (models: any) => {
         DimensionalStandard.belongsTo(models.Component,{
             foreignkey:"component_id",
-            as:"components",
+            as:"component",
         });
     };
     return DimensionalStandard;

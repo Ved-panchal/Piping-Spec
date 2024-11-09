@@ -125,6 +125,12 @@ export interface Rating {
     c_rating_code?: string;
 }
 
+export interface DimensionalStandard {
+    id: string;
+    component_id: string;
+    dimensional_standard: string;
+}
+
 export interface DropdownOption {
     label: string;
     value: string;

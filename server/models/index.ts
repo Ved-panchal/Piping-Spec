@@ -51,6 +51,7 @@ D_Component.associate({Component});
 Project.associate({ User, Spec });
 Spec.associate({ Project });
 SizeRange.associate({ Size, Schedule, Spec });
+DimensionalStandard.associate({Component});
 
 const db = {
     sequelize,

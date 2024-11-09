@@ -27,7 +27,6 @@ export const getComponentDescByComponentId = async (req: Request, res: Response)
     });
 
     const mergedComponentDescs = Object.values(componentDescMap);
-    console.log(mergedComponentDescs);
     res.json({ success: true, componentDescs: mergedComponentDescs });
   } catch (error: unknown) {
     console.error("Error fetching component descriptions:", error);

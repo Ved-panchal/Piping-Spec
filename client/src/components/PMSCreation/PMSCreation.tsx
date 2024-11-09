@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Button, Form, Select, message } from "antd";
+import { Table, Input, Button, Form, Select, message, Checkbox } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
-import { ApiError, Component, ComponentDesc, DropdownOption, PMSItem, Rating, SizeRange } from "../../utils/interface";
+import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, SizeRange } from "../../utils/interface";
 
 
-
-
-// Component for PMS Creation
 const PMSCreation = ({ specId }: { specId: string }) => {
   const [items, setItems] = useState<PMSItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isAllMaterial,setIsAllMaterial] = useState(false);
   const [dropdownData, setDropdownData] = useState({
     compType: [] as DropdownOption[],
     itemDescription: [] as DropdownOption[],
@@ -56,6 +54,54 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
   
+  const fetchMaterials = async (projectId: string, componentId: string,isAll:boolean) => {
+    try {
+      const payload = {
+        componentId,
+        projectId,
+        isAll,
+      };
+      const response = await api.post(configApi.API_URL.materials.getall, payload );
+      if (response?.data?.success) {
+        const MaterialsOptions = response.data.materials.map((item: MaterialData) => ({
+          label: item.material_description,
+          value: item.code,
+        }));
+        setDropdownData((prevData) => ({
+         ...prevData,
+         material: MaterialsOptions,
+        }));
+      } else {
+        showToast({ message: "Failed to fetch Materials", type: "error" });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching Materials";
+      showToast({ message: errMessage, type: "error" });
+    }
+  }
+
+  const fetchDimensionalStandards = async(componentId:string) => {
+    try {
+      const response = await api.post(configApi.API_URL.dimensionalstandards.bycomponent, {component_id:componentId} );
+      if (response?.data?.success) {
+        const dimensionalStandardsOptions = response.data.dimensionalStandards.map((item: DimensionalStandard) => ({
+          label: item.dimensional_standard,
+          value: item.id,
+        }));
+        setDropdownData((prevData) => ({
+         ...prevData,
+         dimensionalStandard: dimensionalStandardsOptions,
+        }));
+      } else {
+        showToast({ message: "Failed to fetch Dimensional Standards", type: "error" });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching Dimensional Standards";
+      showToast({ message: errMessage, type: "error" });
+    }
+  }
 
   const fetchComponentDesc = async (projectId: string, componentId: string) => {
     try {
@@ -184,6 +230,17 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     const projectId = localStorage.getItem('currentProjectId') || "";
     setNewItem({ ...newItem, compType: value });
     fetchComponentDesc(projectId, value);
+    fetchMaterials(projectId, value, isAllMaterial); 
+    fetchDimensionalStandards(value);
+  };
+
+  const handleAllMaterialChange = (e: CheckboxChangeEvent) => {
+    const projectId = localStorage.getItem('currentProjectId') || "";
+    const componentId = newItem.compType || ""; // Ensure compType is selected first
+    const isAll = e.target.checked;
+  
+    setIsAllMaterial(isAll);
+    fetchMaterials(projectId, componentId, isAll); // Fetch materials based on checkbox state
   };
 
   // Editable Cell Component
@@ -227,6 +284,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             value={newItem.compType}
             onChange={handleCompTypeChange}
             options={dropdownData.compType}
+            style={{width:"10rem"}}
           />
         </Form.Item>
         <Form.Item>
@@ -259,7 +317,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             value={newItem.material}
             onChange={(value) => setNewItem({ ...newItem, material: value })}
             options={dropdownData.material}
+            style={{width:"25rem"}}
           />
+        </Form.Item>
+        <Form.Item>
+          <Checkbox checked={isAllMaterial} onChange={handleAllMaterialChange}>All Material </Checkbox>
         </Form.Item>
         <Form.Item>
           <Select

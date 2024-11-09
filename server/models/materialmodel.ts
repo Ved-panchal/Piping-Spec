@@ -31,7 +31,7 @@ const MaterialModel = (sequelize: any) => {
                 type:DataTypes.STRING,
                 allowNull:false,
             },
-            projectId: {
+            project_id: {
                 type: DataTypes.INTEGER, 
                 references: {
                   model: projectModel(sequelize),

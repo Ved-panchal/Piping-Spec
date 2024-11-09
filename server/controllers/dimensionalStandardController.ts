@@ -75,7 +75,6 @@ export const getDimensionalStandardsByComponentId = async (req: Request, res: Re
         // Fetch all dimensional standards associated with the given component_id
         const dimensionalStandards = await db.DimensionalStandard.findAll({
             where: { component_id },
-            include: [{ model: db.Component, as: "components" }]
         });
 
         res.json({

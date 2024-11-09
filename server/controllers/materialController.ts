@@ -29,7 +29,7 @@ export const getAllMaterials = async (req: Request, res: Response): Promise<void
 
     // Fetch user materials by `projectId`
     const userMaterials = await db.Material.findAll({
-      where: { projectId },
+      where: { project_id:projectId,comp_matching_id:compMatchingId },
     });
 
     // Merge default and user materials, overriding defaults with user materials
