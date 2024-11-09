@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Button, Form, Select, message, Checkbox } from "antd";
+import { Table, Input, Button, Form, Select, message, Checkbox, Row, Col } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
 import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, SizeRange } from "../../utils/interface";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 
 const PMSCreation = ({ specId }: { specId: string }) => {
   const [items, setItems] = useState<PMSItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isAllMaterial,setIsAllMaterial] = useState(false);
   const [dropdownData, setDropdownData] = useState({
     compType: [] as DropdownOption[],
@@ -116,6 +118,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           itemDescription: response.data.componentDescs.map((item: ComponentDesc) => ({
             label: item.itemDescription,
             value: item.code,
+            ratingRequired: item.ratingrequired, // Store rating requirement in item description
           })),
         }));
       } else {
@@ -127,6 +130,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       showToast({ message: errMessage, type: "error" });
     }
   };
+  
+  
 
   const fetchSizeRanges = async () => {
     try {
@@ -181,7 +186,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   // Function to add new item
   const handleAddItem = async () => {
     if (!newItem.compType || !newItem.itemDescription || !newItem.size1) {
-      message.error("Please fill in the required fields");
+      message.error("Please fill All the fields");
       return;
     }
 
@@ -189,7 +194,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       setButtonLoading(true);
       const response = await api.post(configApi.API_URL.pms.addItem, newItem);
       if (response?.data?.success) {
-        setItems([response.data.item, ...items]); // Add new item to list
+        setItems([response.data.item, ...items]);
         setNewItem({}); // Clear form fields
         message.success("Item added successfully");
       } else {
@@ -234,6 +239,18 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     fetchDimensionalStandards(value);
   };
 
+  const handleComponentDescChange = (value: string) => {
+    const selectedItem = dropdownData.itemDescription.find(item => item.value === value);
+    
+    // Update the newItem state with the selected item description
+    setNewItem((prevNewItem) => ({
+      ...prevNewItem,
+      itemDescription: value,
+    }));
+    setShowRatingDropdown(!!selectedItem?.ratingRequired);
+  };
+  
+
   const handleAllMaterialChange = (e: CheckboxChangeEvent) => {
     const projectId = localStorage.getItem('currentProjectId') || "";
     const componentId = newItem.compType || ""; // Ensure compType is selected first
@@ -276,86 +293,116 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>PMS Creation</h2>
-      <Form layout="inline" style={{ marginBottom: "20px" }}>
+  <h2>PMS Creation</h2>
+  <Form layout="vertical" style={{ marginBottom: "20px" }}>
+    <Row gutter={16}>
+      {/* First Row with Comp Type and Item Description */}
+      <Col span={8}>
         <Form.Item>
           <Select
             placeholder="Comp Type"
             value={newItem.compType}
             onChange={handleCompTypeChange}
             options={dropdownData.compType}
-            style={{width:"10rem"}}
+            style={{ width: "100%" }}
           />
         </Form.Item>
+      </Col>
+      <Col span={16}>
+        <Form.Item>
+          <Select
+            placeholder="Item Description"
+            value={newItem.itemDescription}
+            onChange={handleComponentDescChange}
+            options={dropdownData.itemDescription.map(({ label, value }) => ({ label, value }))}
+            style={{ width: "100%" }}
+          />
+        </Form.Item>
+      </Col>
+    </Row>
+
+    {/* Second Row with other inputs */}
+    <Row gutter={16}>
+      <Col span={4}>
         <Form.Item>
           <Select
             placeholder="Size-1"
             value={newItem.size1}
             onChange={(value) => setNewItem({ ...newItem, size1: value })}
             options={dropdownData.size1}
+            style={{ width: "100%" }}
           />
         </Form.Item>
+      </Col>
+      <Col span={4}>
         <Form.Item>
           <Select
             placeholder="Size-2"
             value={newItem.size2}
             onChange={(value) => setNewItem({ ...newItem, size2: value })}
             options={dropdownData.size2}
+            style={{ width: "100%" }}
           />
         </Form.Item>
-        <Form.Item>
-          <Select
-            placeholder="Rating"
-            value={newItem.rating}
-            onChange={(value) => setNewItem({ ...newItem, rating: value })}
-            options={dropdownData.rating}
-          />
-        </Form.Item>
+      </Col>
+      {showRatingDropdown && (
+        <Col span={4}>
+          <Form.Item>
+            <Select
+              placeholder="Rating"
+              value={newItem.rating}
+              onChange={(value) => setNewItem({ ...newItem, rating: value })}
+              options={dropdownData.rating}
+              style={{ width: "100%" }}
+            />
+          </Form.Item>
+        </Col>
+      )}
+      <Col span={6}>
         <Form.Item>
           <Select
             placeholder="Material"
             value={newItem.material}
             onChange={(value) => setNewItem({ ...newItem, material: value })}
             options={dropdownData.material}
-            style={{width:"25rem"}}
+            style={{ width: "100%" }}
           />
         </Form.Item>
+      </Col>
+      <Col span={4}>
         <Form.Item>
-          <Checkbox checked={isAllMaterial} onChange={handleAllMaterialChange}>All Material </Checkbox>
+          <Checkbox checked={isAllMaterial} onChange={handleAllMaterialChange}>
+            All Material
+          </Checkbox>
         </Form.Item>
+      </Col>
+      <Col span={8}>
         <Form.Item>
           <Select
             placeholder="Dimensional Standard"
             value={newItem.dimensionalStandard}
             onChange={(value) => setNewItem({ ...newItem, dimensionalStandard: value })}
             options={dropdownData.dimensionalStandard}
+            style={{ width: "100%" }}
           />
         </Form.Item>
-      </Form>
+      </Col>
+    </Row>
+  </Form>
 
-      {/* Separate Row for Item Description */}
-      <Form.Item style={{ marginTop: '20px' }}>
-        <Select
-          placeholder="Item Description"
-          value={newItem.itemDescription}
-          onChange={(value) => setNewItem({ ...newItem, itemDescription: value })}
-          options={dropdownData.itemDescription}
-          style={{ width: '100%' }} // Ensure it stretches across the available width
-        />
-      </Form.Item>
+  <Button type="primary" onClick={handleAddItem} loading={buttonLoading}>
+    Add Item
+  </Button>
+  <Table
+    style={{ marginTop: "20px" }}
+    columns={columns}
+    dataSource={items}
+    loading={loading}
+    pagination={false}
+    rowClassName="editable-row"
+  />
+</div>
 
-      <Button type="primary" onClick={handleAddItem} loading={buttonLoading}>
-        Add Item
-      </Button>
-      <Table
-        style={{ marginTop: "20px" }}
-        columns={columns}
-        dataSource={items}
-        loading={loading}
-        pagination={false}
-        rowClassName="editable-row"
-      />
-    </div>
   );
 };
 

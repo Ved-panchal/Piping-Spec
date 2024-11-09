@@ -25,8 +25,7 @@ interface EditableCellProps extends TdHTMLAttributes<unknown> {
 
 const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const [sizeRanges, setSizeRanges] = useState<SizeRange[]>([]);
-  const [newSize, setNewSize] = useState<string | undefined>();
-  const [newSchedule, setNewSchedule] = useState<string | undefined>();
+  const [newSize, setNewSize] = useState<string[]>([]); 
   const [loading, setLoading] = useState(false);
   const [btnloading, setBtnLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | number | null>(null);
@@ -55,7 +54,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
 
       if (sizeResponse.data.success && scheduleResponse.data.success) {
         const sizes = sizeResponse.data.sizes.map((size: Size) => ({
-          value: size.code,
+          value: size.size1_size2,
           label: size.size1_size2,
         })).sort((a: { label: string; }, b: { label: string; }) => a.label.localeCompare(b.label));
 
@@ -103,24 +102,34 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   };
 
   const handleAddSizeRange = async () => {
-    if (!newSize || !newSchedule) {
-      message.error('Size and Schedule are required.');
+    if (!newSize || newSize.length === 0) {
+      message.error('Please select at least one size.');
       return;
     }
 
-    const newSizeRange: SizeRange = {
+    const existingSizes = sizeRanges.map((range) => range.sizeValue);
+    const sizesToAdd = newSize.filter((sizeCode) => !existingSizes.includes(sizeCode));
+    const alreadyAddedSizes = newSize.filter((sizeCode) => existingSizes.includes(sizeCode));
+
+    if (alreadyAddedSizes.length > 0) {
+      message.error(`${alreadyAddedSizes.join(', ')} ${alreadyAddedSizes.length > 1 ? 'are' : 'is'} already added.`);
+      return;
+    }
+
+    const newSizeRanges = sizesToAdd.map((sizeCode) => ({
       key: Math.random().toString(36).substring(2),
-      sizeValue: newSize,
-      sizeCode: newSize,
-      scheduleValue: newSchedule,
-      scheduleCode: newSchedule,
-    };
+      sizeValue: sizeCode,
+      sizeCode: sizeCode,
+      scheduleValue: "ST",
+      scheduleCode: "ST",
+    }));
 
     const payload = {
-      sizeCode: newSize,
-      scheduleCode: newSchedule,
+      sizes: sizesToAdd,
+      scheduleCode: "ST",
       specId,
     };
+    console.log(payload);
 
     setBtnLoading(true);
     try {
@@ -129,9 +138,8 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       });
 
       if (response.data.success) {
-        setSizeRanges((prev) => [...prev, newSizeRange]);
-        setNewSize(undefined);
-        setNewSchedule(undefined);
+        setSizeRanges((prev) => [...newSizeRanges,...prev]);
+        setNewSize([]);
         message.success('Size range added successfully');
         fetchSizeRange();
       } else {
@@ -318,26 +326,13 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       <Form layout="inline" style={{ marginBottom: '20px' }}>
         <Form.Item>
           <Select
+            mode='multiple'
             value={newSize}
             onChange={(value) => setNewSize(value)}
             placeholder="Select Size"
-            style={{ width: '180px' }}
+            style={{ minWidth:"12rem",maxWidth:"25rem" }}
           >
             {sizeOptions.map((option) => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item>
-          <Select
-            value={newSchedule}
-            onChange={(value) => setNewSchedule(value)}
-            placeholder="Select Schedule"
-            style={{ width: '180px' }}
-          >
-            {scheduleOptions.map((option) => (
               <Option key={option.value} value={option.value}>
                 {option.label}
               </Option>

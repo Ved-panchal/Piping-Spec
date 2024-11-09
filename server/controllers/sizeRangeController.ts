@@ -12,7 +12,7 @@ interface sizeRange {
 // Create SizeRange
 export const createSizeRange = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { sizeCode, scheduleCode, specId } = req.body;
+        const { sizes, scheduleCode, specId } = req.body;
 
         // Check if specId exists
         const specExists = await db.Spec.findByPk(specId);
@@ -21,14 +21,55 @@ export const createSizeRange = async (req: Request, res: Response): Promise<void
             return;
         }
 
-        // Create SizeRange
-        const newSizeRange = await db.SizeRange.create({ size_code:sizeCode, schedule_code:scheduleCode, specId });
-        res.json({ success: true, message: "SizeRange created successfully.", status: 201, newSizeRange });
+        // Ensure that sizes is an array and check for empty array
+        if (!Array.isArray(sizes) || sizes.length === 0) {
+            res.json({ success: false, error: "No sizes provided.", status: 400 });
+            return;
+        }
+
+        // Loop through the sizes array and create SizeRange entries for each size
+        const createdSizeRanges = [];
+        for (const size of sizes) {
+            let sizeCode = await db.Size.findOne({
+                where: {
+                  size1_size2: size as number,
+                },
+              });
+            
+              if (!sizeCode) {
+                sizeCode = await db.D_Size.findOne({
+                  where: {
+                    size1_size2: size as number,
+                  },
+                });
+              }
+            
+              if (!sizeCode) {
+                res.json({success:false,message:`Size code not found for size: ${size}`});
+                return;
+              }
+            
+            const newSizeRange = await db.SizeRange.create({
+                size_code: sizeCode.code,
+                schedule_code: scheduleCode || "ST",
+                specId,
+            });
+            createdSizeRanges.push(newSizeRange);
+        }
+
+        // Return the created SizeRanges
+        res.json({
+            success: true,
+            message: `${createdSizeRanges.length} SizeRange(s) created successfully.`,
+            status: 201,
+            createdSizeRanges,
+        });
     } catch (error: unknown) {
         console.error("Error creating SizeRange:", error);
         res.json({ success: false, error: "Internal server error", status: 500 });
     }
 };
+
 
 // Update SizeRange
 export const updateSizeRange = async (req: Request, res: Response): Promise<void> => {

@@ -15,6 +15,7 @@ export interface PMSItem {
 export interface ComponentDesc {
     key: string;
     itemDescription: string;
+    ratingrequired: boolean;
     code: string;
     c_code: string;
     g_type: string;
@@ -134,6 +135,7 @@ export interface DimensionalStandard {
 export interface DropdownOption {
     label: string;
     value: string;
+    ratingRequired?: boolean;
 }
 
 export interface Spec {
