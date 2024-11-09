@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { Table, Input, Button, Form, Select, message, Checkbox, Row, Col } from "antd";
+import  { useState, useEffect } from "react";
+import { Table, Button, Form, Select, message, Checkbox, Row, Col } from "antd";
 import { ColumnsType } from "antd/es/table";
-import api from "../../utils/api/apiutils"; // API utility
-import { api as configApi } from "../../utils/api/config"; // API config for URLs
+import api from "../../utils/api/apiutils"; 
+import { api as configApi } from "../../utils/api/config";
 import showToast from "../../utils/toast";
 import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, SizeRange } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 
 const PMSCreation = ({ specId }: { specId: string }) => {
-  const [items, setItems] = useState<PMSItem[]>([]);
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [items,setItems] = useState<PMSItem[]>([]);
+  // const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [loading,] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isAllMaterial,setIsAllMaterial] = useState(false);
   const [dropdownData, setDropdownData] = useState({
@@ -25,7 +25,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     dimensionalStandard: [] as DropdownOption[],
   });
   const [newItem, setNewItem] = useState<Partial<PMSItem>>({});
-  const [buttonLoading, setButtonLoading] = useState(false);
+  const [buttonLoading,setButtonLoading] = useState(false);
 
   useEffect(() => {
     const projectId = localStorage.getItem('currentProjectId');
@@ -209,28 +209,29 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  const handleEditItem = async (key: string, field: keyof PMSItem, value: string) => {
-    const itemToUpdate = items.find((item) => item.key === key);
-    if (!itemToUpdate) return;
+  // const handleEditItem = async (key: string, field: keyof PMSItem, value: string) => {
+  //   const itemToUpdate = items.find((item) => item.key === key);
+  //   if (!itemToUpdate) return;
 
-    try {
-      const updatedItem = { ...itemToUpdate, [field]: value };
-      const response = await api.post(configApi.API_URL.pms.updateItem, updatedItem);
-      if (response?.data?.success) {
-        setItems(items.map((item) => (item.key === key ? updatedItem : item)));
-        setEditingKey(null); // Exit editing mode
-        message.success("Item updated successfully");
-      } else {
-        message.error("Failed to update item");
-      }
-    } catch (error) {
-      const apiError = error as ApiError;
-      const errMessage = apiError.response?.data?.error || "Error updating item";
-      message.error(errMessage);
-    }
-  };
+  //   try {
+  //     const updatedItem = { ...itemToUpdate, [field]: value };
+  //     const response = await api.post(configApi.API_URL.pms.updateItem, updatedItem);
+  //     if (response?.data?.success) {
+  //       setItems(items.map((item) => (item.key === key ? updatedItem : item)));
+  //       setEditingKey(null); // Exit editing mode
+  //       message.success("Item updated successfully");
+  //     } else {
+  //       message.error("Failed to update item");
+  //     }
+  //   } catch (error) {
+  //     const apiError = error as ApiError;
+  //     const errMessage = apiError.response?.data?.error || "Error updating item";
+  //     message.error(errMessage);
+  //   }
+  // };
 
   // Handle component type change to fetch item descriptions
+  
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem('currentProjectId') || "";
     setNewItem({ ...newItem, compType: value });
@@ -261,24 +262,24 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   // Editable Cell Component
-  const EditableCell: React.FC<any> = ({ editable, children, record, field, ...restProps }) => {
-    const [value, setValue] = useState(record[field]);
-    return (
-      <td {...restProps}>
-        {editable ? (
-          <Input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onBlur={() => handleEditItem(record.key, field, value)}
-            onPressEnter={() => handleEditItem(record.key, field, value)}
-            autoFocus
-          />
-        ) : (
-          <div onDoubleClick={() => setEditingKey(record.key)}>{children}</div>
-        )}
-      </td>
-    );
-  };
+  // const EditableCell: React.FC<any> = ({ editable, children, record, field, ...restProps }) => {
+  //   const [value, setValue] = useState(record[field]);
+  //   return (
+  //     <td {...restProps}>
+  //       {editable ? (
+  //         <Input
+  //           value={value}
+  //           onChange={(e) => setValue(e.target.value)}
+  //           onBlur={() => handleEditItem(record.key, field, value)}
+  //           onPressEnter={() => handleEditItem(record.key, field, value)}
+  //           autoFocus
+  //         />
+  //       ) : (
+  //         <div onDoubleClick={() => setEditingKey(record.key)}>{children}</div>
+  //       )}
+  //     </td>
+  //   );
+  // };
 
   const columns: ColumnsType<PMSItem> = [
     { title: "Comp Type", dataIndex: "compType", key: "compType" },

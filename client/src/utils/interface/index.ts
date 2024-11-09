@@ -15,7 +15,7 @@ export interface PMSItem {
 export interface ComponentDesc {
     key: string;
     itemDescription: string;
-    ratingrequired: boolean;
+    ratingrequired?: boolean;
     code: string;
     c_code: string;
     g_type: string;

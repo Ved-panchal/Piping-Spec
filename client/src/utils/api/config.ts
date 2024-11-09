@@ -59,6 +59,10 @@ export const api = {
         getall:"dimensional-standards/getall",
         bycomponent:"dimensional-standards/by-component",
         delete:"/dimensional-standards/delete"
+      },
+      pms:{
+        addItem:"pms/add-item",
+        updateItem:"pms/update-item",
       }
     },
 };
