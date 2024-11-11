@@ -80,7 +80,6 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       setLoading(true);
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
-        console.log(response.data.sizeranges);
         const sizeRangesWithKey = response.data.sizeranges.map((range: SizeRange) => ({
           key: range.id,
           sizeValue: range.sizeValue,

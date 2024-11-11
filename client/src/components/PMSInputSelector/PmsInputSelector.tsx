@@ -5,6 +5,7 @@ import api from '../../utils/api/apiutils';
 import { api as configApi } from '../../utils/api/config';
 import SizeRange from '../SizeRange/SizeRange';
 import PMSCreation from '../PMSCreation/PMSCreation';
+import BranchTable from "../BranchTable/BranchTable";
 import { ApiError, Spec } from '../../utils/interface';
 
 const { Option } = Select;
@@ -12,7 +13,7 @@ const { Option } = Select;
 // Placeholder Components for PMS, SizingRange, and BranchTable
 const PMS = ({ specId }: { specId?: string }) => <div className='text-black'><PMSCreation specId={specId!}/></div>;
 const SizingRange = ({ specId }: { specId?: string }) => <div className='text-black'><SizeRange specId={specId!}/></div>;
-const BranchTable = ({ specId }: { specId?: string }) => <div className='text-black'>Branch Table Component with Spec ID: {specId}</div>;
+const BranchTablecofig = ({ specId }: { specId?: string }) => <div className='text-black'><BranchTable specId={specId!}/> </div>;
 
 const PmsInputSelector = ({ projectId }: { projectId?: string }) => {
   const [specs, setSpecs] = useState<Spec[]>([]);
@@ -108,7 +109,7 @@ const PmsInputSelector = ({ projectId }: { projectId?: string }) => {
       <div className="mt-4 p-4 bg-white rounded-lg shadow-lg">
         {activeTab === 'PMS' && <PMS specId={selectedSpec} />}
         {activeTab === 'Sizing Range' && <SizingRange specId={selectedSpec} />}
-        {activeTab === 'Branch Table' && <BranchTable specId={selectedSpec} />}
+        {activeTab === 'Branch Table' && <BranchTablecofig specId={selectedSpec} />}
       </div>
     </div>
   );
