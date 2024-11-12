@@ -114,6 +114,7 @@ export interface SizeRange {
     id?:number
     key: number | string;
     sizeValue: string;
+    odValue?:string;
     sizeCode: string;
     scheduleValue: string;
     scheduleCode: string;

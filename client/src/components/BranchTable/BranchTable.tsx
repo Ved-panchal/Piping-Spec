@@ -41,15 +41,23 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   setActiveDropdown,
   id 
 }) => {
-  const [selectedValue, setSelectedValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = useState<string>(''); // Holds the selected value label
   const [dropdownPosition, setDropdownPosition] = useState<Position>({ top: 0, left: 0 });
+  const [isAbove, setIsAbove] = useState<boolean>(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref for dropdown menu
 
   const options: Option[] = [
     { value: '', label: 'Select' },
-    { value: '1', label: 'Option 1' },
-    { value: '2', label: 'Option 2' },
-    { value: '3', label: 'Option 3' },
+    { value: 'TEE', label: 'T' },
+    { value: 'WOL', label: 'W' },
+    { value: 'SOL', label: 'S' },
+    { value: 'TOL', label: 'O' },
+    { value: 'P2P', label: 'P' },
+    { value: 'P2R', label: 'R' },
+    { value: 'HFC', label: 'H' },
+    { value: 'SWL', label: 'L' },
+    { value: 'INT', label: 'I' },
   ];
 
   const isOpen = activeDropdown === id;
@@ -57,10 +65,24 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const updateDropdownPosition = () => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX
-      });
+      const viewportHeight = window.innerHeight;
+      const dropdownHeight = 200; // Fixed height for dropdown
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        setDropdownPosition({
+          top: rect.top + window.scrollY - dropdownHeight - 8,
+          left: rect.left + window.scrollX
+        });
+        setIsAbove(true);
+      } else {
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left + window.scrollX
+        });
+        setIsAbove(false);
+      }
     }
   };
 
@@ -70,36 +92,31 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const handleScroll = () => {
-        requestAnimationFrame(updateDropdownPosition);
+      const handleClickOutside = (event: MouseEvent) => {
+        // Check if the click happened outside both button and dropdown
+        if (
+          buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
+          dropdownRef.current && !dropdownRef.current.contains(event.target as Node)
+        ) {
+          setActiveDropdown(null);
+        }
       };
 
-      window.addEventListener('scroll', handleScroll, true);
-      
-      return () => {
-        window.removeEventListener('scroll', handleScroll, true);
-      };
+      document.addEventListener('pointerdown', handleClickOutside); // Use `pointerdown` for finer control
+      return () => document.removeEventListener('pointerdown', handleClickOutside);
     }
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
-        setActiveDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setActiveDropdown]);
+  }, [isOpen, setActiveDropdown]);
 
   const handleSelection = (value: string) => {
-    setSelectedValue(value);
-    setActiveDropdown(null);
+    const selectedOptionLabel = value ? options.find(opt => opt.value === value)?.label ?? 'Select' : 'Select';
+    setSelectedValue(selectedOptionLabel);  // Update selected value
+    setActiveDropdown(null); // Close the dropdown
+
+    // Trigger the onSelectionChange callback
     onSelectionChange({
       runSize,
       branchSize,
-      selectedOption: value ? options.find(opt => opt.value === value)?.label ?? 'Select' : 'Select'
+      selectedOption: selectedOptionLabel
     });
   };
 
@@ -110,7 +127,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={() => setActiveDropdown(isOpen ? null : id)}
         className="relative min-w-20 px-2 py-1 text-left bg-white border rounded-md shadow-sm text-gray-700 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
-        {selectedValue ? options.find(opt => opt.value === selectedValue)?.label : 'Select'}
+        {selectedValue || 'Select'}
         <span className="absolute inset-y-0 right-0 flex items-center pr-1 pointer-events-none">
           <svg className="h-3 w-3 text-gray-400" viewBox="0 0 20 20" fill="none" stroke="currentColor">
             <path d="M7 7l3 3 3-3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -118,12 +135,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         </span>
       </button>
       
-      {isOpen && dropdownPosition.top != 0 && (
+      {isOpen && dropdownPosition.top !== 0 && (
         <div 
-          className="fixed w-20 bg-white rounded-md shadow-lg border" 
+          ref={dropdownRef} // Attach ref to dropdown
+          className="fixed w-20 bg-white rounded-md shadow-lg border overflow-y-auto max-h-52 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" 
           style={{ 
             zIndex: 9999,
-            top: `${dropdownPosition.top + 2}px`,
+            top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`
           }}
         >
@@ -144,6 +162,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   );
 };
 
+
+
+
 const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,7 +181,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     const updateTableWidth = () => {
       if (tableRef.current) {
         const containerWidth = tableRef.current.offsetWidth;
-        const minWidth = Math.min(containerWidth, 1200); // Max width of 1200px
+        const minWidth = Math.min(containerWidth, 1200);
         setTableWidth(`${minWidth}px`);
       }
     };
@@ -175,9 +196,10 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
-        const sizeValues = response.data.sizeranges.map((range:SizeRange) => range.sizeValue);
-        setRunSizes(sizeValues);
-        setBranchSizes(sizeValues);
+        console.log(response.data.sizeranges)
+        const sizeValues : number[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
+        setRunSizes(sizeValues.sort((a, b) => a - b));
+        setBranchSizes(sizeValues.sort((a, b) => a - b));
       } else {
         throw new Error('Failed to fetch Size Ranges.');
       }
@@ -190,13 +212,33 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     }
   };
 
-  const handleSelectionChange = ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
-    console.log({
-      runSize,
-      branchSize,
-      selectedOption
+
+// Adjust `handleSelectionChange` to make the `add-or-update` API call
+const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
+  try {
+    const branchData = {
+      run_size: runSize,
+      branch_size: branchSize,
+      comp_name: selectedOption,
+    };
+    console.log(branchData);
+    const response = await api.post(configApi.API_URL.branch.addOrUpdate, {
+      specId: specId,
+      branchData,
     });
-  };
+
+    if (response.data.success) {
+      showToast({ message: response.data.message, type: 'success' });
+    } else {
+      throw new Error(response.data.message || 'Failed to add or update branch.');
+    }
+  } catch (error) {
+    const apiError = error as ApiError;
+    const errorMessage = apiError.response?.data?.error || 'Failed to add or update branch.';
+    showToast({ message: errorMessage, type: 'error' });
+  }
+};
+
 
   if (loading) {
     return (
@@ -206,9 +248,27 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     );
   }
 
+  const Instructions: React.FC = () => {
+    return (
+      <div className="bg-gray-100 px-4 py-3 text-sm text-gray-500 flex items-center justify-center space-x-4">
+        <span><strong>Component Mapping :</strong></span>
+        <span>TEE: T</span>
+        <span>WOL: W</span>
+        <span>SOL: S</span>
+        <span>TOL: O</span>
+        <span>P2P: P</span>
+        <span>P2R: R</span>
+        <span>HFC: H</span>
+        <span>SWL: L</span>
+        <span>INT: I</span>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full flex justify-center" ref={tableRef}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden" style={{ width: tableWidth }}>
+      <Instructions/>
         <div className="relative overflow-x-auto">
           <table className="w-full border-collapse">
             <tbody>

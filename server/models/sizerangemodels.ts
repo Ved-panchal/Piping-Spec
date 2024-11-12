@@ -1,6 +1,4 @@
 import { DataTypes } from "sequelize";
-import sizeModel from "./sizemodels";
-import scheduleModel from "./schedulemodels";
 import specModel from "./specmodels";
 
 const sizeRangeModel = (sequelize: any) => {

@@ -8,6 +8,7 @@ import projectRoute from "./routes/projectRoutes";
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
 import sizeRangeRoute from "./routes/sizeRangeRoutes";
+import branchRoute from "./routes/branchRoutes";
 import dimensionalStandardRoute from "./routes/dimensionalStandardRoutes";
 import materialRoute from "./routes/materialRoutes";
 import componentDescRoute from "./routes/componentDescRoutes";
@@ -49,5 +50,6 @@ app.use('/components',componentRoute);
 app.use('/componentdescs',componentDescRoute);
 app.use('/materials',materialRoute);
 app.use('/dimensional-standards',dimensionalStandardRoute);
+app.use('/branch_table',branchRoute);
 
 export default app;

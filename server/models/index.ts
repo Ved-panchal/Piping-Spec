@@ -7,6 +7,7 @@ import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
 import specModel from "./specmodels";
 import sizeRangeModel from "./sizerangemodels";
+import branchModel from "./branchmodel";
 import MaterialModel from "./materialmodel";
 import defaultMaterialModel from "./Default/defaultmaterial";
 import componentModel from "./componentmodels";
@@ -34,6 +35,7 @@ const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
 const Spec = specModel(sequelize);
 const SizeRange = sizeRangeModel(sequelize);
+const Branch = branchModel(sequelize);
 const DimensionalStandard = DimensionalStandardModel(sequelize);
 const Material = MaterialModel(sequelize)
 const D_Material = defaultMaterialModel(sequelize);
@@ -61,6 +63,7 @@ const db = {
     Subscription,
     Plan,
     SizeRange,
+    Branch,
     DimensionalStandard,
     Material,
     D_Material,
