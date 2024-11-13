@@ -85,6 +85,10 @@ const MaterialConfiguration: React.FC = () => {
   };
 
   const handleComponentChange = (componentId: number) => {
+    setNewCode('');
+        setNewClientCode('');
+        setNewMaterial('');
+        setNewBaseMaterial('');
     setSelectedComponentId(componentId);
     fetchMaterialData(componentId);
   };
@@ -154,7 +158,7 @@ const MaterialConfiguration: React.FC = () => {
         setNewBaseMaterial('');
         message.success('Material data added successfully');
       } else {
-        throw new Error('Failed to add material data.');
+        message.error(response.data.message);
       }
     } catch (error) {
       handleApiError(error);

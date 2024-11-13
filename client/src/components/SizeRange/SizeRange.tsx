@@ -36,7 +36,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
 
   useEffect(() => {
     if (!specId) {
-      showToast({ message: "Please Select Spec First", type: "error" });
+      showToast({ message: "Please Select Spec ID First", type: "info" });
       return;
     }
     fetchSizeRange();
@@ -128,7 +128,6 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       scheduleCode: "ST",
       specId,
     };
-    console.log(payload);
 
     setBtnLoading(true);
     try {

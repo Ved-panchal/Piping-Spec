@@ -80,8 +80,26 @@ export const addOrUpdateMaterial = async (req: Request, res: Response): Promise<
     for (const material of materials) {
       const { code, c_code, material_description,base_material } = material;
 
+      let isCode = await db.Material.findOne({
+        where:{code}
+      })
+
+      if(isCode){
+        res.json({success: false, message: "Code is already in Use."})
+        return;
+      }
+
+      isCode = await db.D_Material.findOne({
+        where: { code }
+      });
+      
+      if (isCode) {
+        res.json({ success: false, message: "Code is already in use." });
+        return;
+      } 
+
       const existingMaterial = await db.Material.findOne({
-        where: { comp_matching_id:compMatchingId,code, projectId },
+        where: { comp_matching_id:compMatchingId,code, project_id:projectId },
       });
 
       if (existingMaterial) {
@@ -98,7 +116,7 @@ export const addOrUpdateMaterial = async (req: Request, res: Response): Promise<
           material_description,
           base_material,
           comp_matching_id: compMatchingId,
-          projectId,
+          project_id:projectId,
         });
       }
     }

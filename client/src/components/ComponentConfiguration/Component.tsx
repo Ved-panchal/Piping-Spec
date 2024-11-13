@@ -94,6 +94,12 @@ const ComponentConfiguration: React.FC = () => {
   };
 
   const handleComponentChange = (componentId: number) => {
+    setNewDescription('');
+        setNewCode('');
+        setNewClientCode('');
+        setNewGType('G Type');
+        setNewSType('');
+        setNewShortCode('');
     setSelectedComponentId(componentId);
     fetchComponentDesc(componentId);
   };
@@ -171,7 +177,7 @@ const ComponentConfiguration: React.FC = () => {
         setNewShortCode('');
         message.success('Component data added successfully');
       } else {
-        throw new Error('Failed to add component data.');
+        message.error(response.data.message)
       }
     } catch (error) {
       const apiError = error as ApiError;

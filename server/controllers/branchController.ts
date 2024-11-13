@@ -6,8 +6,7 @@ export const getBranchesBySpecId = async (req: Request, res: Response): Promise<
     const { specId } = req.body;
 
     const brancheData = await db.Branch.findAll({
-      where: { specId },
-      include: [{ model: db.Spec, as: "specs" }],
+      where: { specId }
     });
 
     res.json({ success: true, brancheData });

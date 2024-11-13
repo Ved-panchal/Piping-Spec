@@ -28,6 +28,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [buttonLoading,setButtonLoading] = useState(false);
 
   useEffect(() => {
+    if(!specId){
+      showToast({message:"Please Select Spec ID Firt!",type:"info"})
+      return;
+    }
     const projectId = localStorage.getItem('currentProjectId');
     fetchComponents();
     fetchSizeRanges();

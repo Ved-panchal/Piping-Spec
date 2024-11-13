@@ -31,6 +31,7 @@ type CustomSelectProps = {
   activeDropdown: string | null;
   setActiveDropdown: (id: string | null) => void;
   id: string;
+  preselectedValue?: string; // Add preselectedValue as an optional prop
 };
 
 const CustomSelect: React.FC<CustomSelectProps> = ({ 
@@ -39,9 +40,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   onSelectionChange, 
   activeDropdown,
   setActiveDropdown,
-  id 
+  id,
+  preselectedValue
 }) => {
-  const [selectedValue, setSelectedValue] = useState<string>(''); // Holds the selected value label
+  
+  const [selectedValue, setSelectedValue] = useState<string>(preselectedValue || '');
   const [dropdownPosition, setDropdownPosition] = useState<Position>({ top: 0, left: 0 });
   const [isAbove, setIsAbove] = useState<boolean>(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -162,19 +165,22 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   );
 };
 
-
-
-
 const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [runSizes, setRunSizes] = useState<number[]>([]);
   const [branchSizes, setBranchSizes] = useState<number[]>([]);
   const [tableWidth, setTableWidth] = useState("auto");
+  const [branchDataMap, setBranchDataMap] = useState<Record<string, string>>({});
   const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if(!specId){
+      showToast({message:"Select Spec ID First",type:"info"})
+      return;
+    }
     fetchSizeRange();
+    fetchBranchData();
   }, [specId]);
 
   useEffect(() => {
@@ -196,7 +202,6 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
-        console.log(response.data.sizeranges)
         const sizeValues : number[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
         setRunSizes(sizeValues.sort((a, b) => a - b));
         setBranchSizes(sizeValues.sort((a, b) => a - b));
@@ -211,7 +216,30 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       setLoading(false);
     }
   };
-
+  
+  const fetchBranchData = async () => {
+    try {
+      const response = await api.post(configApi.API_URL.branch.getall, { specId });
+      if (response.data.success) {
+        const dataMap: Record<string, string> = {};
+  
+        // Populate dataMap with branch data
+        response.data.brancheData.forEach((item: any) => {
+          const key = `${item.run_size}-${item.branch_size}`;
+          dataMap[key] = item.comp_name;
+        });
+  
+        setBranchDataMap(dataMap);
+      } else {
+        throw new Error('Failed to fetch branch data.');
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.response?.data?.error || 'Failed to fetch branch data.';
+      showToast({ message: errorMessage, type: 'error' });
+    }
+  };
+  
 
 // Adjust `handleSelectionChange` to make the `add-or-update` API call
 const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
@@ -221,7 +249,6 @@ const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: Se
       branch_size: branchSize,
       comp_name: selectedOption,
     };
-    console.log(branchData);
     const response = await api.post(configApi.API_URL.branch.addOrUpdate, {
       specId: specId,
       branchData,
@@ -283,33 +310,32 @@ const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: Se
                   >
                     {branchSize}
                   </td>
-                  {runSizes.map((runSize, colIndex) => (
-                    <td
-                      key={colIndex}
-                      className={`w-24 px-2 py-1.5 relative ${
-                        rowIndex-1 < colIndex 
-                          ? "bg-white" 
-                          : "bg-gray-50/80"
-                      }`}
-                    >
-                      {rowIndex-1 >= colIndex ? (
-                        <div className="flex items-center justify-center">
-                          <span className="text-gray-400">×</span>
-                        </div>
-                      ) : (
-                        <div className="flex justify-center">
-                          <CustomSelect 
-                            id={`select-${rowIndex}-${colIndex}`}
-                            runSize={runSize}
-                            branchSize={branchSize}
-                            onSelectionChange={handleSelectionChange}
-                            activeDropdown={activeDropdown}
-                            setActiveDropdown={setActiveDropdown}
-                          />
-                        </div>
-                      )}
-                    </td>
-                  ))}
+                  {runSizes.map((runSize, colIndex) => {
+                      const key = `${runSize}-${branchSize}`;
+                      const preselectedValue = branchDataMap[key] || ''; // Get the preselected value if it exists
+                      
+                      return (
+                        <td key={colIndex} className={`w-24 px-2 py-1.5 relative ${rowIndex - 1 < colIndex ? "bg-white" : "bg-gray-50/80"}`}>
+                          {rowIndex - 1 >= colIndex ? (
+                            <div className="flex items-center justify-center">
+                              <span className="text-gray-400">×</span>
+                            </div>
+                          ) : (
+                            <div className="flex justify-center">
+                              <CustomSelect 
+                                id={`select-${rowIndex}-${colIndex}`}
+                                runSize={runSize}
+                                branchSize={branchSize}
+                                onSelectionChange={handleSelectionChange}
+                                activeDropdown={activeDropdown}
+                                setActiveDropdown={setActiveDropdown}
+                                preselectedValue={preselectedValue} // Pass preselectedValue here
+                              />
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
                 </tr>
               )).reverse()}
               <tr className="bg-gray-50">

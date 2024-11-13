@@ -46,6 +46,23 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
     for (const desc of componentDescs) {
       const { code, c_code, itemDescription,g_type,s_type,short_code,project_id } = desc;
 
+      let isCode = await db.ComponentDesc.findOne({
+        where: { code }
+      });
+      
+      if (isCode) {
+        res.json({ success: false, message: "Code is already in use." });
+        return;
+      } 
+
+       isCode = await db.D_Component.findOne({
+        where: { code }
+      });
+      
+      if (isCode) {
+        res.json({ success: false, message: "Code is already in use." });
+        return;
+      } 
 
       if(!validProject){
         res.json({ success: false, error: "Invalid project.", status: 403 });
