@@ -46,7 +46,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   
   const [selectedValue, setSelectedValue] = useState<string>(preselectedValue || '');
   const [dropdownPosition, setDropdownPosition] = useState<Position>({ top: 0, left: 0 });
-  const [isAbove, setIsAbove] = useState<boolean>(false);
+  const [, setIsAbove] = useState<boolean>(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref for dropdown menu
 
