@@ -4,7 +4,7 @@ import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; 
 import { api as configApi } from "../../utils/api/config";
 import showToast from "../../utils/toast";
-import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, SizeRange } from "../../utils/interface";
+import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, Size, SizeRange } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 
@@ -17,6 +17,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [dropdownData, setDropdownData] = useState({
     compType: [] as DropdownOption[],
     itemDescription: [] as DropdownOption[],
+    sizeToScheduleMap : [] as DropdownOption[],
     size1: [] as DropdownOption[],
     size2: [] as DropdownOption[],
     schedule: [] as DropdownOption[],
@@ -25,6 +26,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     dimensionalStandard: [] as DropdownOption[],
   });
   const [newItem, setNewItem] = useState<Partial<PMSItem>>({});
+  // const [, setCurrentProjectId] = useState<string>("");
+  const [sizes,setSizes] = useState<Size[]>();
   const [buttonLoading,setButtonLoading] = useState(false);
 
   useEffect(() => {
@@ -32,9 +35,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       showToast({message:"Please Select Spec ID Firt!",type:"info"})
       return;
     }
-    const projectId = localStorage.getItem('currentProjectId');
+    const projectId = localStorage.getItem("currentProjectId");
     fetchComponents();
     fetchSizeRanges();
+    fetchSizes(projectId!);
     fetchRatings(projectId!);
   }, [specId]);
 
@@ -123,6 +127,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             label: item.itemDescription,
             value: item.code,
             ratingRequired: item.ratingrequired, // Store rating requirement in item description
+            g_type: item.g_type, // Extract g_type
+            s_type: item.s_type, // Extract s_type
           })),
         }));
       } else {
@@ -135,25 +141,72 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
   
+  const fetchSizes = async (currentProjectId:string) => {
+    try {
+      if (!currentProjectId) return;
+
+      const payload = { projectId: currentProjectId };
+
+      const response = await api.post(
+        configApi.API_URL.sizes.getall,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (response && response.data && response.data.success) {
+        const sizesWithKeys = response.data.sizes.map((size: Size) => ({
+          ...size,
+          key: size.code,
+          c_code: size.c_code,
+        })).sort((a:{od:number}, b:{od:number}) => a.od - b.od);
+        setSizes(sizesWithKeys);
+      } else {
+        showToast({ message: "Failed to fetch sizes.", type: "error" });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Error fetching sizes.";
+      showToast({ message: errorMessage, type: "error" });
+    }
+  };
   
 
   const fetchSizeRanges = async () => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response?.data?.success) {
-        const sizeRangesOptions = response.data.sizeranges.map((item: SizeRange) => ({
+        const sortedSizeRanges = response.data.sizeranges.sort((a: { odValue: number }, b: { odValue: number }) => a.odValue - b.odValue);
+  
+        const sizeRangesOptions = sortedSizeRanges.map((item: SizeRange) => ({
           label: item.sizeValue,
           value: item.sizeCode,
         }));
-        const ScheduleRangesoptions = response.data.sizeranges.map((item: SizeRange) => ({
+  
+        const scheduleRangesOptions = sortedSizeRanges.map((item: SizeRange) => ({
           label: item.scheduleValue,
           value: item.scheduleCode,
         }));
+  
+        // Create a map of sizeCode to related schedules
+        const sizeToScheduleMap = sortedSizeRanges.reduce((acc: Record<string, any[]>, item: SizeRange) => {
+          if (!acc[item.sizeCode]) {
+            acc[item.sizeCode] = [];
+          }
+          acc[item.sizeCode].push({
+            scheduleValue: item.scheduleValue,
+            scheduleCode: item.scheduleCode,
+          });
+          return acc;
+        }, {});
+  
+        // Save the dropdown options and size-to-schedule map
         setDropdownData((prevData) => ({
           ...prevData,
           size1: sizeRangesOptions,
           size2: sizeRangesOptions,
-          schedule: ScheduleRangesoptions,
+          schedule: scheduleRangesOptions,
+          sizeToScheduleMap, // Add map to state
         }));
       } else {
         showToast({ message: "Failed to fetch sizes data", type: "error" });
@@ -164,6 +217,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       showToast({ message: errMessage, type: "error" });
     }
   };
+  
 
   const fetchRatings = async (projectId: string) => {
     try {
@@ -188,21 +242,110 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   // Function to add new item
+  const handleSizeChange = (field: "size1" | "size2", value: string) => {
+    const selectedSize = sizes?.find((size) => size.code === value);
+  
+    setNewItem((prevNewItem) => ({
+      ...prevNewItem,
+      [field]: value,
+      [`${field}Inch`]: selectedSize?.size_inch || "",
+      [`${field}MM`]: selectedSize?.size_mm || "",
+    }));
+  
+    // Update related schedules for size1 if needed
+    if (field === "size1") {
+      const relatedSchedules = dropdownData.sizeToScheduleMap[value] || [];
+      const firstRelatedSchedule = relatedSchedules.length > 0 ? relatedSchedules[0].scheduleCode : null;
+  
+      setNewItem((prevNewItem) => ({
+        ...prevNewItem,
+        schedule: firstRelatedSchedule || prevNewItem.schedule,
+      }));
+    }
+  };
+  
+  
+  const generateSizeRangeArray = (startSize: string, endSize: string) => {
+    const sizeValues = dropdownData.size1.map((item) => item.value);
+    const startIndex = sizeValues.indexOf(startSize);
+    const endIndex = sizeValues.indexOf(endSize);
+  
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) return [];
+    return sizeValues.slice(startIndex, endIndex + 1).map((value) => ({
+      code: value,
+      label: dropdownData.size1.find((item) => item.value === value)?.label,
+    }));
+  };
+  
   const handleAddItem = async () => {
     if (!newItem.compType || !newItem.itemDescription || !newItem.size1) {
-      message.error("Please fill All the fields");
+      message.error("Please fill all the required fields");
       return;
     }
-
+  
     try {
       setButtonLoading(true);
-      const response = await api.post(configApi.API_URL.pms.addItem, newItem);
-      if (response?.data?.success) {
-        setItems([response.data.item, ...items]);
-        setNewItem({}); // Clear form fields
-        message.success("Item added successfully");
+  
+      const selectedCompType = dropdownData.compType.find(
+        (item) => item.value === newItem.compType
+      );
+      const selectedItemDesc = dropdownData.itemDescription.find(
+        (item) => item.value === newItem.itemDescription
+      );
+      const selectedMaterial = dropdownData.material.find(
+        (item) => item.value === newItem.material
+      );
+      const selectedDimensionalStandard = dropdownData.dimensionalStandard.find(
+        (item) => item.value === newItem.dimensionalStandard
+      );
+      const selectedRating = newItem.rating
+        ? dropdownData.rating.find((item) => item.value === newItem.rating)
+        : null;
+  
+      const sizeRangeArray = generateSizeRangeArray(newItem.size1!, newItem.size2!);
+      const jsonData = sizeRangeArray.map((size) => {
+        const sizeDetails = sizes?.find((item) => item.code === size.code);
+        const relatedSchedules = dropdownData.sizeToScheduleMap[size.code] || [];
+        const schedule1Code = relatedSchedules.length > 0 ? relatedSchedules[0].scheduleCode : null;
+        const schedule1Value = relatedSchedules.length > 0 ? relatedSchedules[0].scheduleValue : null;
+  
+        return {
+          specId,
+          componentCode: selectedCompType?.value,
+          componentName: selectedCompType?.label,
+          itemShortDesc: selectedItemDesc?.label,
+          itemShortDescCode: selectedItemDesc?.value,
+          itemLongDesc: `${selectedItemDesc?.label}, ${schedule1Value}, ${selectedMaterial?.label}`,
+          size1Code: sizeDetails?.code,
+          size1Inch: sizeDetails?.size_inch || "",
+          size1MM: sizeDetails?.size_mm || "",
+          size2Code: null,
+          size2Inch: null,
+          size2MM:  null,
+          sch1: schedule1Code,
+          sch2: null,
+          rating: selectedRating?.label || null,
+          ratingCode:selectedRating?.value || null,
+          material: selectedMaterial?.label || null,
+          materialCode: selectedMaterial?.value || null,
+          dimensionalStandards: selectedDimensionalStandard?.label || null,
+          g_type: newItem.g_type,
+          s_type: newItem.s_type,
+        };
+      });
+  
+      console.log("Prepared JSON Data:", JSON.stringify(jsonData, null, 2));
+  
+      const responsePromises = jsonData.map((data) =>
+        api.post(configApi.API_URL.pms.addItem, data)
+      );
+      const responses = await Promise.all(responsePromises);
+  
+      if (responses.every((res) => res?.data?.success)) {
+        setNewItem({});
+        message.success("Items added successfully");
       } else {
-        message.error("Failed to add item");
+        message.error("Failed to add some items");
       }
     } catch (error) {
       const apiError = error as ApiError;
@@ -212,6 +355,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       setButtonLoading(false);
     }
   };
+  
+  
 
   // const handleEditItem = async (key: string, field: keyof PMSItem, value: string) => {
   //   const itemToUpdate = items.find((item) => item.key === key);
@@ -246,11 +391,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
   const handleComponentDescChange = (value: string) => {
     const selectedItem = dropdownData.itemDescription.find(item => item.value === value);
-    
-    // Update the newItem state with the selected item description
     setNewItem((prevNewItem) => ({
       ...prevNewItem,
       itemDescription: value,
+      g_type: selectedItem?.g_type,
+      s_type: selectedItem?.s_type,
     }));
     setShowRatingDropdown(!!selectedItem?.ratingRequired);
   };
@@ -330,24 +475,24 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     <Row gutter={16}>
       <Col span={4}>
         <Form.Item>
-          <Select
-            placeholder="Size-1"
-            value={newItem.size1}
-            onChange={(value) => setNewItem({ ...newItem, size1: value })}
-            options={dropdownData.size1}
-            style={{ width: "100%" }}
-          />
+        <Select
+          placeholder="Size-1"
+          value={newItem.size1}
+          onChange={(value) => handleSizeChange("size1", value)}
+          options={dropdownData.size1}
+          style={{ width: "100%" }}
+        />
         </Form.Item>
       </Col>
       <Col span={4}>
         <Form.Item>
-          <Select
-            placeholder="Size-2"
-            value={newItem.size2}
-            onChange={(value) => setNewItem({ ...newItem, size2: value })}
-            options={dropdownData.size2}
-            style={{ width: "100%" }}
-          />
+        <Select
+          placeholder="Size-2"
+          value={newItem.size2}
+          onChange={(value) => handleSizeChange("size2", value)}
+          options={dropdownData.size2}
+          style={{ width: "100%" }}
+        />
         </Form.Item>
       </Col>
       {showRatingDropdown && (

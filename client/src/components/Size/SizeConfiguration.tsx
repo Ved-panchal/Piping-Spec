@@ -61,7 +61,7 @@ const SizeConfiguration: React.FC = () => {
           ...size,
           key: size.code,
           c_code: size.c_code,
-        }));
+        })).sort((a:{od:number}, b:{od:number}) => a.od - b.od);
         setSizes(sizesWithKeys);
         setLoading(false);
       } else {

@@ -29,6 +29,10 @@ const defaultScheduleModel = (sequelize: any) => {
         type: DataTypes.STRING,  // Sch Desc field, e.g., 'Sch.10'
         allowNull: false,
       },
+      arrange_od:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+      },
     },
     {
       timestamps: true,  // Adds createdAt, updatedAt fields

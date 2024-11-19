@@ -8,9 +8,6 @@ const scheduleModel = (sequelize: any) => {
       sch1_sch2: {
         type: DataTypes.STRING(10),
         allowNull: false,
-        validate: {
-          is: /^[0-9A-Z]+$/,
-        },
       },
       code: {
         type: DataTypes.STRING(10),
@@ -38,7 +35,11 @@ const scheduleModel = (sequelize: any) => {
         },
         allowNull: false,
         onDelete: "CASCADE",
-      }
+      },
+      arrange_od:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+      },
     },
     {
       timestamps: true,  

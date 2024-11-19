@@ -4,6 +4,8 @@ export interface PMSItem {
     key: string;
     compType: string;
     itemDescription: string;
+    g_type:string;
+    s_type:string;
     size1: string;
     size2: string;
     schedule: string;
@@ -97,6 +99,7 @@ export interface Schedule {
     sch1_sch2: string;
     code: string;
     c_code: string;
+    arrange_od:string;
     schDesc: string;
 }
 
@@ -136,7 +139,10 @@ export interface DimensionalStandard {
 export interface DropdownOption {
     label: string;
     value: string;
+    g_type?: string;
+    s_type?: string;
     ratingRequired?: boolean;
+    sizeToScheduleMap?: Map<string, string>;
 }
 
 export interface Spec {

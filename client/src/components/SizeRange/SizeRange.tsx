@@ -56,7 +56,8 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         const sizes = sizeResponse.data.sizes.map((size: Size) => ({
           value: size.size1_size2,
           label: size.size1_size2,
-        })).sort((a: { label: string; }, b: { label: string; }) => a.label.localeCompare(b.label));
+          od:size.od,
+        })).sort((a:{od:number}, b:{od:number}) => a.od - b.od);
 
         const schedules = scheduleResponse.data.schedules.map((schedule: Schedule) => ({
           value: schedule.code,
@@ -77,28 +78,33 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
 
   const fetchSizeRange = async () => {
     try {
-      setLoading(true);
-      const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
-      if (response.data.success) {
-        const sizeRangesWithKey = response.data.sizeranges.map((range: SizeRange) => ({
-          key: range.id,
-          sizeValue: range.sizeValue,
-          sizeCode: range.sizeCode,
-          scheduleValue: range.scheduleValue,
-          scheduleCode: range.scheduleCode,
-        }));
-        setSizeRanges(sizeRangesWithKey);
-      } else {
-        throw new Error('Failed to fetch Size Ranges.');
-      }
+        setLoading(true);
+        const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
+        if (response.data.success) {
+            const sizeRangesWithKey = response.data.sizeranges
+                .map((range: SizeRange) => ({
+                    key: range.id,
+                    sizeValue: range.sizeValue,
+                    sizeCode: range.sizeCode,
+                    scheduleValue: range.scheduleValue,
+                    scheduleCode: range.scheduleCode,
+                    odValue: range.odValue,
+                }))
+                .sort((a:{sizeValue:number}, b:{sizeValue:number}) => a.sizeValue - b.sizeValue); // Sorting by sizeValue in ascending order
+
+            setSizeRanges(sizeRangesWithKey);
+        } else {
+            throw new Error('Failed to fetch Size Ranges.');
+        }
     } catch (error) {
-      const apiError = error as ApiError;
+        const apiError = error as ApiError;
         const errorMessage = apiError.response?.data?.error || 'Failed to update Size Range.';
-      showToast({ message: errorMessage, type: 'error' });
+        showToast({ message: errorMessage, type: 'error' });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   const handleAddSizeRange = async () => {
     if (!newSize || newSize.length === 0) {
@@ -152,9 +158,10 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
     }
   };
 
-  const handleDeleteSizeRange = async (key: number | string) => {
+  const handleDeleteSizeRange = async (key: number | string,odValue: string) => {
+    console.log(odValue);
     try {
-      await deleteWithBody<DeleteResponse>(`${configApi.API_URL.sizeranges.delete}`, { id: key });
+      await deleteWithBody<DeleteResponse>(`${configApi.API_URL.sizeranges.delete}`, { id: key,size_value:odValue });
       setSizeRanges((prev) => prev.filter((sizeRange) => sizeRange.key !== key));
       setIsModalOpen(false);
       message.success('Size range deleted successfully');
@@ -184,6 +191,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
             )
           );
           message.success('Size range updated successfully');
+          fetchSizeRange();
         } else {
           throw new Error('Failed to update Size Range.');
         }
@@ -203,7 +211,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
     ...restProps
   }) => {
     const [localInputValue, setLocalInputValue] = useState(record ? record[dataIndex] : "");
-    const [initialValue, setInitialValue] = useState(localInputValue); // Store initial value
+    const [initialValue, setInitialValue] = useState(localInputValue);
     const [isEditing, setIsEditing] = useState(false);
   
     // Sync local input value with record on record/dataIndex change
@@ -363,7 +371,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConfirm={() => sizeRangeToDelete && handleDeleteSizeRange(sizeRangeToDelete.key)}
+        onConfirm={() => sizeRangeToDelete && handleDeleteSizeRange(sizeRangeToDelete.key,sizeRangeToDelete.odValue!)}
         title="Confirm Delete"
         message={`Are you sure you want to delete size range: ${sizeRangeToDelete?.sizeValue}?`}
       />

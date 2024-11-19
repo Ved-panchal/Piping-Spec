@@ -53,7 +53,8 @@ const ScheduleConfiguration: React.FC = () => {
           ...schedule,
           key: schedule.code,
           c_code: schedule.c_code,
-        }));
+        })).sort((a:{arrange_od:number}, b:{arrange_od:number}) => a.arrange_od - b.arrange_od);
+        console.log(schedulesWithKeys)
         setSchedules(schedulesWithKeys);
       } else {
         showToast({ message: 'Failed to fetch schedules.', type: 'error' });
@@ -69,69 +70,75 @@ const ScheduleConfiguration: React.FC = () => {
 
   const handleAddSchedule = async () => {
     setFormSubmitted(true);
-
+  
     const duplicateSch = schedules.find(schedule => schedule.sch1_sch2 === newSch);
     const duplicateCode = schedules.find((schedule) => schedule.code === newCode);
     const duplicateCCode = schedules.find((schedule) => schedule.c_code === newCCode);
     const duplicateSchDesc = schedules.find((schedule) => schedule.schDesc === newSchDesc);
-
+  
     if (duplicateSch) {
       message.error('Schedule already exists.');
       return;
     }
-
+  
     if (duplicateCode) {
       message.error('Code already exists.');
       return;
     }
-
+  
     if (duplicateCCode) {
       message.error('Client Code already exists.');
       return;
     }
-
-    if(duplicateSchDesc){
+  
+    if (duplicateSchDesc) {
       message.error('Description already exists.');
       return;
     }
-
+  
     if (!newCode || !newCCode || !newSchDesc || !newSch) {
-      message.error('Schedule, Code and Client Code and Description are required.');
+      message.error('Schedule, Code, Client Code, and Description are required.');
       return;
     }
-
+  
     try {
       if (!currentProjectId) {
         message.error('No current project ID available.');
         return;
       }
       setButtonLoading(true);
+  
+      const maxArrangeOd = Math.max(...schedules.map(schedule => parseInt(schedule.arrange_od) ||0));
+      const nextArrangeOd = maxArrangeOd + 1;
+  
       const newSchedule: Schedule = {
         key: Math.random().toString(36).substring(7),
         sch1_sch2: newSch,
         code: newCode,
         c_code: newCCode,
         schDesc: newSchDesc,
+        arrange_od: nextArrangeOd.toString(),
       };
-
+  
       const payload = {
         projectId: currentProjectId,
         schedules: [
           {
             sch1_sch2: newSchedule.sch1_sch2,
             code: newSchedule.code,
-            c_code:newSchedule.c_code,
+            c_code: newSchedule.c_code,
             schDesc: newSchedule.schDesc,
+            arrange_od: parseInt(newSchedule.arrange_od),
           },
         ],
       };
-
+  
       const response = await api.post(configApi.API_URL.schedules.addorupdate, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (response && response.data.success) {
-        setSchedules([newSchedule,...schedules]);
+        setSchedules([newSchedule, ...schedules]); // Add new schedule to the list
         setNewCode('');
         setNewCCode('');
         setNewSchDesc('');
@@ -149,57 +156,64 @@ const ScheduleConfiguration: React.FC = () => {
       setButtonLoading(false);
     }
   };
+  
 
-  const handleEditSchedule = async (key: string, sch1_sch2: string, c_code:string, schDesc: string) => {
-    
+  const handleEditSchedule = async (key: string, sch1_sch2: string, c_code: string, schDesc: string) => {
     const duplicateCCode = schedules.find((schedule) => schedule.c_code === c_code && schedule.key !== key);
     const duplicateSchDesc = schedules.find((schedule) => schedule.schDesc === schDesc && schedule.key !== key);
-
+  
     if (duplicateCCode) {
       message.error('Client Code already exists.');
       return;
     }
-
+  
     if (duplicateSchDesc) {
       message.error('Description already exists.');
       return;
     }
-    
+  
     if (!c_code || !schDesc) {
       message.error('Client Code and Description cannot be empty.');
       return;
     }
-
+  
     if (!currentProjectId) {
       message.error('No current project ID available.');
       return;
     }
-
+  
     const originalSchedules = [...schedules];
+    const currentSchedule = schedules.find(schedule => schedule.key === key);
+    if (!currentSchedule) {
+      message.error('Schedule not found.');
+      return;
+    }
+  
     const updatedSchedules = schedules.map((schedule) =>
       schedule.key === key ? { ...schedule, c_code, schDesc } : schedule
     );
     setSchedules(updatedSchedules);
     setEditingKey(null);
-    setEditingColumn(null); // Clear the editing column state
-
+    setEditingColumn(null);
+  
     const payload = {
       projectId: currentProjectId,
       schedules: [
         {
           sch1_sch2,
-          code:key,
+          code: key,
           c_code,
           schDesc,
+          arrange_od: currentSchedule.arrange_od,
         },
       ],
     };
-
+  
     try {
       const response = await api.post(`${configApi.API_URL.schedules.addorupdate}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (response && response.data.success) {
         message.success('Schedule updated successfully');
       } else {
@@ -212,6 +226,7 @@ const ScheduleConfiguration: React.FC = () => {
       showToast({ message: errorMessage, type: 'error' });
     }
   };
+  
 
   const EditableCell: React.FC<EditableCellProps> = ({
     editable,

@@ -106,14 +106,27 @@ export const updateSizeRange = async (req: Request, res: Response): Promise<void
 // Delete SizeRange (Soft Delete)
 export const deleteSizeRange = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.body;
+        const { id, size_value } = req.body;
 
         // Attempt to hard delete the SizeRange by ID
         const deletedRowCount = await db.SizeRange.destroy({
             where: { id },
-            force: true  // Ensures the deletion is permanent
+            force: true
         });
-
+        await db.Branch.destroy({
+            where:{
+                branch_size: size_value
+            },
+            force:true
+        })
+        
+        await db.Branch.destroy({
+            where:{
+                run_size: size_value
+            },
+            force:true
+        })
+        
         if (deletedRowCount === 0) {
             res.json({ success: false, error: "SizeRange not found.", status: 404 });
             return;

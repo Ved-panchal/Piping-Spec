@@ -27,7 +27,7 @@ export const getSchedulesByProjectId = async (req: Request, res: Response): Prom
     });
 
     const defaultSchedules = await db.D_Schedule.findAll();
-
+    console.log(defaultSchedules);
     const scheduleMap: Record<string, ScheduleType> = {};
 
     defaultSchedules.forEach((defaultSchedule: ScheduleType) => {
