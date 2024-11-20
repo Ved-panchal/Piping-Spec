@@ -16,6 +16,7 @@ import componentRoute from "./routes/componentRoutes"
 import ratingRoute from "./routes/ratingRoutes"
 import scheduleRoute from "./routes/scheduleRoutes"
 import sizeRoute from "./routes/sizeRoutes";
+import itemOutputRoutes from "./routes/itemOutputRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -51,5 +52,6 @@ app.use('/componentdescs',componentDescRoute);
 app.use('/materials',materialRoute);
 app.use('/dimensional-standards',dimensionalStandardRoute);
 app.use('/branch_table',branchRoute);
+app.use('/items',itemOutputRoutes)
 
 export default app;

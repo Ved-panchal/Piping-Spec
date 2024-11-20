@@ -28,20 +28,56 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [newItem, setNewItem] = useState<Partial<PMSItem>>({});
   const [sizes,setSizes] = useState<Size[]>();
   const [schedules,setSchedules] = useState<Schedule[]>([]);
+  const [tableLoading,setTableLoading] = useState(false);
   const [buttonLoading,setButtonLoading] = useState(false);
 
   useEffect(() => {
-    if(!specId){
-      showToast({message:"Please Select Spec ID Firt!",type:"info"})
+    if (!specId) {
+      showToast({ message: "Please Select Spec ID First!", type: "info" });
       return;
     }
+    
     const projectId = localStorage.getItem("currentProjectId");
-    fetchComponents();
-    fetchSizeRanges();
-    fetchSizes(projectId!);
-    fetchSchedules(projectId!);
-    fetchRatings(projectId!);
+    
+      fetchSizeRanges(),
+      fetchComponents(),
+      fetchSizes(projectId!),
+      fetchSchedules(projectId!),
+      fetchRatings(projectId!)
+      fetchPMSItems(specId);
   }, [specId]);
+  
+  const fetchPMSItems = async (specId: string) => {
+    setTableLoading(true);
+    try {
+      const response = await api.post(configApi.API_URL.pms.getallItem, { specId });
+      
+      if (response?.data?.success) {
+  
+        const mappedItems = response.data.items.map((item: any) => ({
+          key: item.id,
+          compType: item.component_value,
+          itemDescription: item.component_desc_value,
+          size1: item.size1_value,
+          size2: item.size2_value || 'X',
+          schedule: item.schedule1_value,
+          rating: item.rating_value || 'X',
+          material: item.material_value,
+          dimensionalStandard: item.dimensional_standards
+        }));
+        
+        setItems(mappedItems);
+      } else {
+        showToast({ message: "Failed to fetch PMS items", type: "error" });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errMessage = apiError.response?.data?.error || "Error fetching PMS items";
+      showToast({ message: errMessage, type: "error" });
+    } finally {
+      setTableLoading(false);
+    }
+  };
 
   const fetchComponents = async () => {
     try {
@@ -354,14 +390,18 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             CCode:selectedItemDesc?.c_code,
             Value: selectedItemDesc?.label,
           },
+          itemCCode:`${selectedItemDesc?.c_code}${sizeDetails?.c_code}X${scheduleDetails?.c_code}XX${selectedRating?.c_code || 'X'}${selectedMaterial?.c_code}`,
+          itemCode:`${selectedItemDesc?.value}${sizeDetails?.code}X${schedule1Code}XX${selectedRating?.value || 'X'}${selectedMaterial?.value}`,
           itemLongDesc: `${selectedItemDesc?.label}, ${schedule1Value}, ${selectedMaterial?.label}`,
           size1:{
+            Value: sizeDetails?.size1_size2,
             Code:sizeDetails?.code,
             CCode:sizeDetails?.c_code,
             Inch:sizeDetails?.size_inch || "",
             MM:sizeDetails?.size_mm || "",
           },
           size2:{
+            Value:null,
             Code:null,
             CCode:null,
             Inch:null,
@@ -394,16 +434,16 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         };
       });
   
-      console.log("Prepared JSON Data:", JSON.stringify(jsonData, null, 2));
+      // console.log("Prepared JSON Data:", JSON.stringify(jsonData, null, 2));
   
-      const responsePromises = jsonData.map((data) =>
-        api.post(configApi.API_URL.pms.addItem, data)
-      );
-      const responses = await Promise.all(responsePromises);
+       const response = await api.post(configApi.API_URL.pms.addItem, {items: jsonData})
+      console.log(response);
+      // const responses = await Promise.all(responsePromises);
   
-      if (responses.every((res) => res?.data?.success)) {
+      if ((await response).data.success) {
         setNewItem({});
         message.success("Items added successfully");
+        fetchPMSItems(specId);
       } else {
         message.error("Failed to add some items");
       }
@@ -443,9 +483,32 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem('currentProjectId') || "";
-    setNewItem({ ...newItem, compType: value });
+    
+    setNewItem({
+      compType: value,
+      itemDescription: undefined,
+      size1: undefined,
+      size2: undefined,
+      schedule: undefined,
+      rating: undefined,
+      material: undefined,
+      dimensionalStandard: undefined,
+    });
+  
+    setDropdownData(prevData => ({
+      ...prevData,
+      itemDescription: [],
+      material: [],
+      dimensionalStandard: [],
+    }));
+  
+    // Reset other related states
+    setShowRatingDropdown(false);
+    setIsAllMaterial(false);
+  
+    // Fetch new data for the selected component
     fetchComponentDesc(projectId, value);
-    fetchMaterials(projectId, value, isAllMaterial); 
+    fetchMaterials(projectId, value, false); 
     fetchDimensionalStandards(value);
   };
 
@@ -608,7 +671,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     style={{ marginTop: "20px" }}
     columns={columns}
     dataSource={items}
-    loading={loading}
+    loading={tableLoading}
     pagination={false}
     rowClassName="editable-row"
   />

@@ -1,5 +1,5 @@
-export const API_URL = 'http://localhost:5500/';
-// export const API_URL = 'https://piping-spec.onrender.com/'
+// export const API_URL = 'http://localhost:5500/';
+export const API_URL = 'https://piping-spec.onrender.com/'
 
 export const api = {
     API_URL: {
@@ -61,8 +61,9 @@ export const api = {
         delete:"/dimensional-standards/delete"
       },
       pms:{
-        addItem:"pms/add-item",
-        updateItem:"pms/update-item",
+        addItem:"items/create",
+        getallItem:"items/getbySpecId",
+        updateItem:"items/update",
       },
       branch:{
         addOrUpdate:"branch_table/add-or-update",

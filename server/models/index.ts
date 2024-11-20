@@ -20,6 +20,7 @@ import defaultScheduleModel from "./Default/defaultscheulemodel";
 import sizeModel from "./sizemodels";
 import defaultSizeModel from "./Default/defaultsizemodel";
 import DimensionalStandardModel from "./dimensionalmodel";
+import itemModel from "./itemoutputmodel";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ const Schedule = scheduleModel(sequelize);
 const D_Schedule = defaultScheduleModel(sequelize);
 const Size = sizeModel(sequelize);
 const D_Size = defaultSizeModel(sequelize);
+const Item = itemModel(sequelize);
 
 D_Component.associate({Component});
 Project.associate({ User, Spec });
@@ -76,6 +78,7 @@ const db = {
     D_Schedule,
     Size,
     D_Size,
+    Item
 };
 
 const syncDatabase = async () => {

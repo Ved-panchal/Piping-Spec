@@ -14,7 +14,6 @@ const Navbar = ({ openModal, setUsername,username  }: { openModal: () => void, s
   useEffect(() => {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user')!);
-    console.log(user);
     if (!token) {
       handleLogout(false);
     }

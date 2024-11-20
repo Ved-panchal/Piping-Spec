@@ -144,7 +144,7 @@ export interface DropdownOption {
     c_code?:string;
     shortCode?:string;
     ratingRequired?: boolean;
-    sizeToScheduleMap?: Map<string, string>;
+    sizeToScheduleMap?: Record<string, { scheduleCode: string }[]>;
 }
 
 export interface Spec {

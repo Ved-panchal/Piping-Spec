@@ -159,7 +159,6 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   };
 
   const handleDeleteSizeRange = async (key: number | string,odValue: string) => {
-    console.log(odValue);
     try {
       await deleteWithBody<DeleteResponse>(`${configApi.API_URL.sizeranges.delete}`, { id: key,size_value:odValue });
       setSizeRanges((prev) => prev.filter((sizeRange) => sizeRange.key !== key));
