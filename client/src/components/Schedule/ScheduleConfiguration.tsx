@@ -54,7 +54,6 @@ const ScheduleConfiguration: React.FC = () => {
           key: schedule.code,
           c_code: schedule.c_code,
         })).sort((a:{arrange_od:number}, b:{arrange_od:number}) => a.arrange_od - b.arrange_od);
-        console.log(schedulesWithKeys)
         setSchedules(schedulesWithKeys);
       } else {
         showToast({ message: 'Failed to fetch schedules.', type: 'error' });

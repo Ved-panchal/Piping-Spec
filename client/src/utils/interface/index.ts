@@ -141,6 +141,8 @@ export interface DropdownOption {
     value: string;
     g_type?: string;
     s_type?: string;
+    c_code?:string;
+    shortCode?:string;
     ratingRequired?: boolean;
     sizeToScheduleMap?: Map<string, string>;
 }

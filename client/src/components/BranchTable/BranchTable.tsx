@@ -69,7 +69,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const dropdownHeight = 200; // Fixed height for dropdown
+      const dropdownHeight = 200;
       const spaceBelow = viewportHeight - rect.bottom;
       const spaceAbove = rect.top;
 
@@ -90,7 +90,32 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   };
 
   useEffect(() => {
-    updateDropdownPosition();
+    if (isOpen) {
+      updateDropdownPosition();
+      const handleScroll = () => {
+        updateDropdownPosition();
+      };
+
+      let element = buttonRef.current?.parentElement;
+      while (element) {
+        element.addEventListener('scroll', handleScroll, true);
+        element = element.parentElement;
+      }
+
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleScroll);
+
+      return () => {
+        // Clean up scroll listener
+        let element = buttonRef.current?.parentElement;
+        while (element) {
+          element.removeEventListener('scroll', handleScroll, true);
+          element = element.parentElement;
+        }
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleScroll);
+      };
+    }
   }, [isOpen]);
 
   useEffect(() => {
@@ -112,10 +137,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   const handleSelection = (value: string) => {
     const selectedOptionLabel = value ? options.find(opt => opt.value === value)?.label ?? 'Select' : 'Select';
-    setSelectedValue(selectedOptionLabel);  // Update selected value
-    setActiveDropdown(null); // Close the dropdown
+    setSelectedValue(selectedOptionLabel);
+    setActiveDropdown(null); 
 
-    // Trigger the onSelectionChange callback
     onSelectionChange({
       runSize,
       branchSize,
@@ -224,7 +248,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
         const dataMap: Record<string, string> = {};
   
         // Populate dataMap with branch data
-        response.data.brancheData.forEach((item: any) => {
+        response.data.brancheData.forEach((item: {run_size:number,branch_size:number,comp_name:string}) => {
           const key = `${item.run_size}-${item.branch_size}`;
           dataMap[key] = item.comp_name;
         });

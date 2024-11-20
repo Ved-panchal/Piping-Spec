@@ -1,16 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import  { useState, useEffect } from "react";
 import { Table, Button, Form, Select, message, Checkbox, Row, Col } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; 
 import { api as configApi } from "../../utils/api/config";
 import showToast from "../../utils/toast";
-import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, Size, SizeRange } from "../../utils/interface";
+import { ApiError, Component, ComponentDesc, DimensionalStandard, DropdownOption, MaterialData, PMSItem, Rating, Schedule, Size, SizeRange } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 
 const PMSCreation = ({ specId }: { specId: string }) => {
   const [items,setItems] = useState<PMSItem[]>([]);
-  // const [editingKey, setEditingKey] = useState<string | null>(null);
   const [loading,] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isAllMaterial,setIsAllMaterial] = useState(false);
@@ -26,8 +26,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     dimensionalStandard: [] as DropdownOption[],
   });
   const [newItem, setNewItem] = useState<Partial<PMSItem>>({});
-  // const [, setCurrentProjectId] = useState<string>("");
   const [sizes,setSizes] = useState<Size[]>();
+  const [schedules,setSchedules] = useState<Schedule[]>([]);
   const [buttonLoading,setButtonLoading] = useState(false);
 
   useEffect(() => {
@@ -39,6 +39,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     fetchComponents();
     fetchSizeRanges();
     fetchSizes(projectId!);
+    fetchSchedules(projectId!);
     fetchRatings(projectId!);
   }, [specId]);
 
@@ -76,6 +77,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         const MaterialsOptions = response.data.materials.map((item: MaterialData) => ({
           label: item.material_description,
           value: item.code,
+          c_code:item.c_code,
         }));
         setDropdownData((prevData) => ({
          ...prevData,
@@ -126,9 +128,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           itemDescription: response.data.componentDescs.map((item: ComponentDesc) => ({
             label: item.itemDescription,
             value: item.code,
-            ratingRequired: item.ratingrequired, // Store rating requirement in item description
-            g_type: item.g_type, // Extract g_type
-            s_type: item.s_type, // Extract s_type
+            ratingRequired: item.ratingrequired,
+            shortCode: item.short_code,
+            g_type: item.g_type, 
+            s_type: item.s_type,
+            c_code: item.c_code,
           })),
         }));
       } else {
@@ -171,6 +175,34 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
   
+  const fetchSchedules = async (currentProjectId:string) => {
+    try {
+      if (!currentProjectId) return;
+
+      const payload = {
+        projectId: currentProjectId,
+      };
+
+      const response = await api.post(configApi.API_URL.schedules.getall, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response && response.data && response.data.success) {
+        const schedulesWithKeys = response.data.schedules.map((schedule: Schedule) => ({
+          ...schedule,
+          key: schedule.code,
+          c_code: schedule.c_code,
+        })).sort((a:{arrange_od:number}, b:{arrange_od:number}) => a.arrange_od - b.arrange_od);
+        setSchedules(schedulesWithKeys);
+      } else {
+        showToast({ message: 'Failed to fetch schedules.', type: 'error' });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.response?.data?.error || 'Error fetching schedules.';
+      showToast({ message: errorMessage, type: 'error' });
+    }
+  };
 
   const fetchSizeRanges = async () => {
     try {
@@ -229,6 +261,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           rating: response.data.ratings.map((item: Rating) => ({
             label: item.ratingValue,
             value: item.ratingCode,
+            c_code:item.c_rating_code,
           })),
         }));
       } else {
@@ -307,28 +340,55 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         const sizeDetails = sizes?.find((item) => item.code === size.code);
         const relatedSchedules = dropdownData.sizeToScheduleMap[size.code] || [];
         const schedule1Code = relatedSchedules.length > 0 ? relatedSchedules[0].scheduleCode : null;
+        const scheduleDetails = schedules?.find((item) => item.code === schedule1Code)
         const schedule1Value = relatedSchedules.length > 0 ? relatedSchedules[0].scheduleValue : null;
   
         return {
           specId,
-          componentCode: selectedCompType?.value,
-          componentName: selectedCompType?.label,
-          itemShortDesc: selectedItemDesc?.label,
-          itemShortDescCode: selectedItemDesc?.value,
+          component:{
+            Code:selectedCompType?.value,
+            Value:selectedCompType?.label
+          },
+          componentDesc:{
+            Code:selectedItemDesc?.value,
+            CCode:selectedItemDesc?.c_code,
+            Value: selectedItemDesc?.label,
+          },
           itemLongDesc: `${selectedItemDesc?.label}, ${schedule1Value}, ${selectedMaterial?.label}`,
-          size1Code: sizeDetails?.code,
-          size1Inch: sizeDetails?.size_inch || "",
-          size1MM: sizeDetails?.size_mm || "",
-          size2Code: null,
-          size2Inch: null,
-          size2MM:  null,
-          sch1: schedule1Code,
-          sch2: null,
-          rating: selectedRating?.label || null,
-          ratingCode:selectedRating?.value || null,
-          material: selectedMaterial?.label || null,
-          materialCode: selectedMaterial?.value || null,
+          size1:{
+            Code:sizeDetails?.code,
+            CCode:sizeDetails?.c_code,
+            Inch:sizeDetails?.size_inch || "",
+            MM:sizeDetails?.size_mm || "",
+          },
+          size2:{
+            Code:null,
+            CCode:null,
+            Inch:null,
+            MM:null,
+          },
+          sch1:{
+            Code:schedule1Code,
+            CCode:scheduleDetails?.c_code,
+            Value:schedule1Value,
+          },
+          sch2:{
+            Code:null,
+            CCode:null,
+            Value:null,
+          },
+          rating:{
+            Code:selectedRating?.value || null,
+            Value:selectedRating?.label || null,
+            CCode:selectedRating?.c_code || null, 
+          },
+          material:{
+            Code: selectedMaterial?.value,
+            CCode: selectedMaterial?.c_code,
+            Value: selectedMaterial?.label,
+          },
           dimensionalStandards: selectedDimensionalStandard?.label || null,
+          shortCode:selectedItemDesc?.shortCode,
           g_type: newItem.g_type,
           s_type: newItem.s_type,
         };
@@ -394,6 +454,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     setNewItem((prevNewItem) => ({
       ...prevNewItem,
       itemDescription: value,
+      c_code:selectedItem?.c_code,
       g_type: selectedItem?.g_type,
       s_type: selectedItem?.s_type,
     }));
