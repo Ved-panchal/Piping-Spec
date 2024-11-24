@@ -27,9 +27,21 @@ import {
   Schedule,
   Size,
   SizeRange,
+  SizeToScheduleMap,
 } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import {Trash2 } from "lucide-react";
+
+interface DropdownDataState {
+  compType: DropdownOption[];
+  itemDescription: DropdownOption[];
+  size1: DropdownOption[];
+  size2: DropdownOption[];
+  rating: DropdownOption[];
+  material: DropdownOption[];
+  dimensionalStandard: DropdownOption[];
+  sizeToScheduleMap: SizeToScheduleMap;
+}
 
 const PMSCreation = ({ specId }: { specId: string }) => {
   const [items, setItems] = useState<PMSItem[]>([]);
@@ -39,17 +51,16 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [tableLoading, setTableLoading] = useState(false);
   const [sizes, setSizes] = useState<Size[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  // const [editingKey, setEditingKey] = useState<string | null>(null);
 
-  const [dropdownData, setDropdownData] = useState({
-    compType: [] as DropdownOption[],
-    itemDescription: [] as DropdownOption[],
-    size1: [] as DropdownOption[],
-    size2: [] as DropdownOption[],
-    rating: [] as DropdownOption[],
-    material: [] as DropdownOption[],
-    dimensionalStandard: [] as DropdownOption[],
-    sizeToScheduleMap: [] as any[],
+  const [dropdownData, setDropdownData] = useState<DropdownDataState>({
+    compType: [],
+    itemDescription:[],
+    size1: [] ,
+    size2: [] ,
+    rating: [] ,
+    material: [] ,
+    dimensionalStandard: [],
+    sizeToScheduleMap:{},
   });
 
   const [editingCell, setEditingCell] = useState<{
@@ -460,13 +471,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
   const validateScheduleConsistency = (sizeRange: string[]) => {
     if (sizeRange.length === 0) return null;
+    console.log(dropdownData.sizeToScheduleMap);  
 
     const firstSizeSchedules = dropdownData.sizeToScheduleMap[sizeRange[0]];
     if (!firstSizeSchedules || firstSizeSchedules.length === 0) return null;
 
     const referenceSchedule = firstSizeSchedules[0];
 
-    for (const sizeCode of sizeRange as (keyof typeof sizeRange)[]) {
+    for (const sizeCode of sizeRange) {
       const currentSizeSchedules = dropdownData.sizeToScheduleMap[sizeCode];
       if (!currentSizeSchedules || currentSizeSchedules.length === 0) {
         return null;

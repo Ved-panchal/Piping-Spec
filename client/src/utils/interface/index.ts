@@ -138,7 +138,15 @@ export interface DimensionalStandard {
     dimensional_standard: string;
 }
 
-export type SizeCode = string;
+interface SchedulForMap {
+    scheduleValue: string;
+    scheduleCode: string;
+    c_code: string;
+  }
+  
+export type SizeToScheduleMap = {
+    [key: string]: SchedulForMap[];
+  }
 export interface DropdownOption {
     label: string;
     value: string;
@@ -147,7 +155,7 @@ export interface DropdownOption {
     c_code?:string;
     shortCode?:string;
     ratingRequired?: boolean;
-    sizeToScheduleMap?: Record<SizeCode, Array<{ scheduleCode: string }>>;
+    sizeToScheduleMap?: SizeToScheduleMap;
 }
 
 export interface Spec {
