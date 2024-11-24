@@ -17,6 +17,7 @@ import ratingRoute from "./routes/ratingRoutes"
 import scheduleRoute from "./routes/scheduleRoutes"
 import sizeRoute from "./routes/sizeRoutes";
 import itemOutputRoutes from "./routes/itemOutputRoutes";
+import pmsCreationRoutes from "./routes/pmsCreationRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -53,5 +54,6 @@ app.use('/materials',materialRoute);
 app.use('/dimensional-standards',dimensionalStandardRoute);
 app.use('/branch_table',branchRoute);
 app.use('/items',itemOutputRoutes)
+app.use('/pmsc',pmsCreationRoutes)
 
 export default app;

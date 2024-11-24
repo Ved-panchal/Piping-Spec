@@ -3,7 +3,9 @@ import { RefObject } from "react";
 export interface PMSItem {
     key: string;
     compType: string;
+    compCode:string;
     itemDescription: string;
+    c_code?:string;
     g_type:string;
     s_type:string;
     size1: string;
@@ -136,6 +138,7 @@ export interface DimensionalStandard {
     dimensional_standard: string;
 }
 
+export type SizeCode = string;
 export interface DropdownOption {
     label: string;
     value: string;
@@ -144,7 +147,7 @@ export interface DropdownOption {
     c_code?:string;
     shortCode?:string;
     ratingRequired?: boolean;
-    sizeToScheduleMap?: Record<string, { scheduleCode: string }[]>;
+    sizeToScheduleMap?: Record<SizeCode, Array<{ scheduleCode: string }>>;
 }
 
 export interface Spec {
