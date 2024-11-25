@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
 import {
@@ -94,10 +95,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     const projectId = localStorage.getItem("currentProjectId");
 
     fetchSizeRanges(),
-      fetchComponents(),
-      fetchSizes(projectId!),
-      fetchSchedules(projectId!),
-      fetchRatings(projectId!);
+    fetchComponents(),
+    fetchSizes(projectId!),
+    fetchSchedules(projectId!),
+    fetchRatings(projectId!);
     fetchPMSItems(specId);
   }, [specId]);
 
@@ -418,11 +419,18 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       if (response?.data?.success) {
         setDropdownData((prevData) => ({
           ...prevData,
-          rating: response.data.ratings.map((item: Rating) => ({
-            label: item.ratingValue,
-            value: item.ratingCode,
-            c_code: item.c_rating_code,
-          })),
+          rating: [
+            {
+              label: 'X',
+              value: 'X',
+              c_code: 'X'
+            },
+            ...response.data.ratings.map((item: Rating) => ({
+              label: item.ratingValue,
+              value: item.ratingCode,
+              c_code: item.c_rating_code,
+            })),
+          ],
         }));
       } else {
         showToast({ message: "Failed to fetch ratings data", type: "error" });
@@ -496,6 +504,37 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     return referenceSchedule;
   };
 
+  const isDuplicateItem = (newItemData: Partial<PMSItem>) => {
+    return items.some(item => {
+      // Check for matching component type and description
+      const componentMatch = item.compType === dropdownData.compType.find(c => c.value === newItemData.compType)?.label;
+      const descMatch = item.itemDescription === dropdownData.itemDescription.find(d => d.value === newItemData.itemDescription)?.label;
+      
+      // Find selected sizes
+      const selectedSize1 = sizes.find(s => s.code === newItemData.size1)?.size1_size2;
+      const selectedSize2 = sizes.find(s => s.code === newItemData.size2)?.size1_size2;
+      
+      // Check for matching sizes
+      const sizesMatch = item.size1 === selectedSize1 && item.size2 === selectedSize2;
+      
+      // Find selected material
+      const materialMatch = item.material === dropdownData.material.find(m => m.value === newItemData.material)?.label;
+      
+      // Find selected rating
+      const selectedRating = newItemData.rating 
+        ? dropdownData.rating.find(r => r.value === newItemData.rating)?.label 
+        : 'X';
+      const ratingMatch = item.rating === selectedRating;
+      
+      // Find selected dimensional standard
+      const dimensionalStandardMatch = item.dimensionalStandard === dropdownData.dimensionalStandard.find(
+        d => d.value === newItemData.dimensionalStandard
+      )?.label;
+
+      return componentMatch && descMatch && sizesMatch && materialMatch && ratingMatch && dimensionalStandardMatch;
+    });
+  };
+
   const handleAddItem = async () => {
     if (
       !newItem.compType ||
@@ -504,6 +543,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       !newItem.size2
     ) {
       message.error("Please fill all required fields");
+      return;
+    }
+
+    if (isDuplicateItem(newItem)) {
+      message.error("This item already exists in the table");
       return;
     }
 
