@@ -5,7 +5,6 @@ import db from "../models";
 export const createItem = async (req: Request, res: Response): Promise<void> => {
     try {
         const {items} = req.body;
-        console.log(items);
         if (!Array.isArray(items) || items.length === 0) {
             res.json({ success: false, error: "Invalid input: Expected non-empty array of items", status: 400 });
             return;

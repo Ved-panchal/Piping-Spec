@@ -32,6 +32,7 @@ import {
 } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import {Trash2 } from "lucide-react";
+import ReviewOutputModal from "../ReviewOutputModal/ReviewOutputModal";
 
 interface DropdownDataState {
   compType: DropdownOption[];
@@ -52,6 +53,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [tableLoading, setTableLoading] = useState(false);
   const [sizes, setSizes] = useState<Size[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [dropdownData, setDropdownData] = useState<DropdownDataState>({
     compType: [],
@@ -903,8 +905,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         return;
       }
 
-      console.log('Update Payload:', payload);
-
       const response = await api.post(configApi.API_URL.pms.update, payload);
       if (response?.data?.success) {
         message.success("Item updated successfully");
@@ -932,6 +932,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     } else if (e.key === "Escape") {
       handleCellEditCancel();
     }
+  };
+
+  const handleGenerateReviewOutput = () => {
+    setIsModalOpen(true);
   };
 
   const columns: ColumnsType<PMSItem> = [
@@ -1278,9 +1282,22 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         </Row>
       </Form>
 
-      <Button type="primary" onClick={handleAddItem} loading={buttonLoading}>
-        Add Item
-      </Button>
+      <div className="flex justify-between items-center mt-4">
+        <Button 
+          type="primary" 
+          onClick={handleAddItem} 
+          loading={buttonLoading}
+        >
+          Add Item
+        </Button>
+        
+        <Button 
+          className="bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+          onClick={() => handleGenerateReviewOutput()} // Replace with actual spec ID
+        >
+          Generate Review Output
+        </Button>
+      </div>
       <Table
         style={{ marginTop: "20px" }}
         columns={columns}
@@ -1288,6 +1305,12 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         loading={tableLoading}
         pagination={false}
         rowClassName="editable-row"
+      />
+      <ReviewOutputModal 
+        specId={specId}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        data={[]}
       />
     </div>
   );
