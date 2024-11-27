@@ -53,7 +53,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [sizes, setSizes] = useState<Size[]>([]);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [, setSchedules] = useState<Schedule[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviewData,setReviewData] = useState([]);
 
@@ -1425,7 +1425,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         rowClassName="editable-row"
       />
       <ReviewOutputModal 
-        specId={specId}
+        // specId={specId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         data={transformData(reviewData)}

@@ -5,7 +5,7 @@ import { ColumnsType } from 'antd/es/table';
 
 // Type definitions
 interface ReviewOutputModalProps {
-  specId: string | null;
+  // specId: string | null;
   onClose: () => void;
   isOpen: boolean;
   data: any[];
@@ -31,8 +31,7 @@ interface TableDataType {
   catRef: string;
 }
 
-const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({ 
-  specId, 
+const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({  
   onClose, 
   isOpen,
   data 
