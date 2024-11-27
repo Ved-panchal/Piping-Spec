@@ -220,8 +220,9 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           size="small"
           bordered
           tableLayout="fixed"
-          className="w-full"
+          className="w-full mt-2"
           rowKey={(record) => record.itemCode}
+          pagination={false}
         />
       </div>
     </div>
