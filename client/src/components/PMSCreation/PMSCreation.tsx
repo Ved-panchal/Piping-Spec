@@ -735,6 +735,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
+
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem("currentProjectId") || "";
 
