@@ -69,6 +69,10 @@ export const api = {
         update:"pmsc/update",
         delete:"pmsc/delete"
       },
+      output:{
+        getAll:"output/generateReviewOutput",
+        add:"items/create"
+      },
       branch:{
         addOrUpdate:"branch_table/add-or-update",
         getall:"branch_table/getall",

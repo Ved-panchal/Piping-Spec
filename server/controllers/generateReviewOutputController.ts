@@ -54,6 +54,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             const item = pmsItem.dataValues; 
             // Extract and process codes (e.g., component_code, schedule_code)
             const {
+                spec_id,
+                component_code,
                 component_desc_code,
                 schedule_code,
                 rating_code,
@@ -62,9 +64,15 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                 size2_code,
                 dimensional_standard_id,
             } = item;
-        
+            
+            // console.log('item',item);
+
+            const spec = spec_id ? await db.Spec.findOne({where:{ id: spec_id}}) : null
+
+            const component = component_code ? await db.Component.findOne({where:{id:component_code}}) : null;
+
             // Resolve data from DB or default DB
-            const component = component_desc_code
+            const component_desc = component_desc_code
                 ? await db.ComponentDesc.findOne({ where: { code: component_desc_code } }) ||
                   await db.D_Component.findOne({ where: { code: component_desc_code } })
                 : null;
@@ -92,48 +100,51 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             await db.D_Size.findOne({ where: { code: size1_code }});
             const size2 = await db.Size.findOne({ where: { code: size2_code}}) || await db.D_Size.findOne({where: { code: size2_code }});
 
-            console.log('size1',size1);
-            console.log('size2',size2);
-
-            if (size1_code && size2_code) {
-                const sizesInRange = await db.Size.findAll({
+            if (size1.code && size2.code) {
+                // console.log('size1',size1.size1_size2);
+                let sizesInRange = await db.Size.findAll({
+                    attributes: ['id', 'size1_size2', 'code', 'size_inch', 'od', 'size_mm', 'created_at', 'updated_at', 'c_code'],
                     where: {
-                        code: {
-                            [Op.between]: [size1_code, size2_code],
-                        },
+                        size1_size2: {
+                            [Op.between]: [size1.size1_size2,size2.size1_size2]
+                        }
                     },
                     order: [['od', 'ASC']],
-                }) || await db.D_Size.findAll({
-                    where:{
-                        code:{
-                            [Op.between]: [size1_code, size2_code],
-                        },
-                    },
-                    order:[['od','ASC']],
-                });
+                }); 
 
-                console.log('sizeInRange',sizesInRange);
-        
+                if(sizesInRange.length == 0){
+                    sizesInRange = await db.D_Size.findAll({
+                        attributes: ['id', 'size1_size2', 'code', 'size_inch', 'od', 'size_mm', 'created_at', 'updated_at', 'c_code'],
+                        where: {
+                            size1_size2: {
+                                [Op.between]: [size1.size1_size2,size2.size1_size2]
+                            }
+                        },
+                        order: [['od', 'ASC']],
+                    }); 
+                }
+
                 for (const size of sizesInRange) {
-                    const sizeData = size.dataValues; // Access size data
+                    const sizeData = size.dataValues;
         
                     const processedItem = {
-                        CompType:item.component_value,
-                        ShortCode:component.short_code,
-                        ItemCode:`${component.code}${sizeData.code}${'X'}${schedule.code}${'X'}${rating ? rating.ratingCode : 'X'}${material.code}`,
-                        ItemLongDesc:`${component.itemDescription}${schedule.sch1_sch2}${rating ? rating.ratingValue : ''}${material.material_description}${dimensionalStandard.dimensional_standard}`,
-                        ItemShortDesc:`${component.itemDescription}`,
+                        spec:spec.specName,
+                        CompType:component.componentname,
+                        ShortCode:component_desc.short_code,
+                        ItemCode:`${component_desc.code}${sizeData.code}${'X'}${schedule.code}${'X'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                        ItemLongDesc:`${component_desc.itemDescription},${schedule.sch1_sch2}${rating ?','+rating.ratingValue+',':','}${material.material_description},${dimensionalStandard.dimensional_standard}`,
+                        ItemShortDesc:`${component_desc.itemDescription}`,
                         Size1Inch:`${sizeData.size_inch}`,
                         Size2Inch:`${'X'}`,
                         Size1MM:`${sizeData.size_mm}`,
                         Size2MM:`${'X'}`,
                         Sch1:`${schedule.sch1_sch2}`,
                         Sch2:`${'X'}`,
-                        Rating:`${rating.ratingValue}`,
-                        GType:`${component.g_type}`,
-                        SType:`${component.s_type}`,
+                        Rating:`${rating ? rating.ratingValue : 'X'}`,
+                        GType:`${component_desc.g_type}`,
+                        SType:`${component_desc.s_type}`,
                     }
-                    console.log(processedItem);
+                    // console.log('processedItem',processedItem);
                     processedItems.push(processedItem);
                 }
             } else {
@@ -141,6 +152,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                 const processedItem = {
                     item,
                     component,
+                    component_desc,
                     schedule,
                     rating,
                     material,
@@ -153,7 +165,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
         }
 
         // Respond with the processed items
-        res.status(200).json({ message: "Data processed successfully", data: processedItems });
+        res.status(200).json({ success:true, message: "Data processed successfully", data: processedItems });
     } catch (error:unknown) {
         console.error("Error processing data:", error);
         res.status(500).json({sucess:false, error: "An error occurred while processing data",status:500 });

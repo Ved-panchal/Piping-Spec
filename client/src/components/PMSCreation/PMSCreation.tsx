@@ -50,10 +50,12 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isAllMaterial, setIsAllMaterial] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [sizes, setSizes] = useState<Size[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reviewData,setReviewData] = useState([]);
 
   const [dropdownData, setDropdownData] = useState<DropdownDataState>({
     compType: [],
@@ -445,7 +447,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  // Function to add new item
   const handleSizeChange = (field: "size1" | "size2", value: string) => {
     const selectedSize = sizes?.find((size) => size.code === value);
 
@@ -537,6 +538,125 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     });
   };
 
+  // const handleAddItem = async () => {
+  //   if (
+  //     !newItem.compType ||
+  //     !newItem.itemDescription ||
+  //     !newItem.size1 ||
+  //     !newItem.size2
+  //   ) {
+  //     message.error("Please fill all required fields");
+  //     return;
+  //   }
+
+  //   if (isDuplicateItem(newItem)) {
+  //     message.error("This item already exists in the table");
+  //     return;
+  //   }
+
+  //   try {
+  //     setButtonLoading(true);
+
+  //     const selectedComponent = dropdownData.compType.find(
+  //       (item) => item.value === newItem.compType
+  //     );
+
+  //     const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
+  //     const scheduleInfo = validateScheduleConsistency(sizeRange);
+
+  //     if (!scheduleInfo) {
+  //       message.error(
+  //         "Selected size range does not have consistent schedule values"
+  //       );
+  //       return;
+  //     }
+
+  //     const selectedItemDesc = dropdownData.itemDescription.find(
+  //       (item) => item.value === newItem.itemDescription
+  //     );
+
+  //     const selectedMaterial = dropdownData.material.find(
+  //       (item) => item.value === newItem.material
+  //     );
+
+  //     const selectedSchedule = schedules.find(
+  //       (schedule) => schedule.code === scheduleInfo.scheduleCode
+  //     );
+
+  //     const selectedSize1 = sizes.find((size) => size.code === newItem.size1);
+  //     const selectedSize2 = sizes.find((size) => size.code === newItem.size2);
+
+  //     const selectedRating = newItem.rating
+  //       ? dropdownData.rating.find((item) => item.value === newItem.rating)
+  //       : null;
+
+  //     const selectedDimensionalStandard = dropdownData.dimensionalStandard.find(
+  //       (item) => item.value === newItem.dimensionalStandard
+  //     );
+
+  //     const payload = {
+  //       specId,
+  //       component: {
+  //         Value: selectedComponent?.label,
+  //         Code: selectedComponent?.value,
+  //       },
+  //       componentDesc: {
+  //         value: selectedItemDesc?.label,
+  //         code: newItem.itemDescription,
+  //         clientCode: selectedItemDesc?.c_code,
+  //         gType: selectedItemDesc?.g_type,
+  //         sType: selectedItemDesc?.s_type,
+  //       },
+  //       size1: {
+  //         value: selectedSize1?.size1_size2,
+  //         code: selectedSize1?.code,
+  //         clientCode: selectedSize1?.c_code,
+  //       },
+  //       size2: {
+  //         value: selectedSize2?.size1_size2,
+  //         code: selectedSize2?.code,
+  //         clientCode: selectedSize2?.c_code,
+  //       },
+  //       schedule: {
+  //         value: selectedSchedule?.sch1_sch2,
+  //         code: selectedSchedule?.code,
+  //         clientCode: selectedSchedule?.c_code,
+  //       },
+  //       rating: {
+  //         value: selectedRating?.label || null,
+  //         code: selectedRating?.value || "X",
+  //         clientCode: selectedRating?.c_code || "X",
+  //       },
+  //       material: {
+  //         value: selectedMaterial?.label,
+  //         code: selectedMaterial?.value,
+  //         clientCode: selectedMaterial?.c_code,
+  //       },
+  //       dimensionalStandard: {
+  //         Value: selectedDimensionalStandard?.label,
+  //         id: selectedDimensionalStandard?.value,
+  //       },
+  //     };
+
+  //     const response = await api.post(configApi.API_URL.pms.create, {
+  //       ...payload,
+  //     });
+
+  //     if (response.data.success) {
+  //       message.success("Items added successfully");
+  //       setNewItem({});
+  //       fetchPMSItems(specId);
+  //     } else {
+  //       message.error("Failed to add items");
+  //     }
+  //   } catch (error) {
+  //     const apiError = error as ApiError;
+  //     message.error(apiError.response?.data?.error || "Error adding items");
+  //   } finally {
+  //     setButtonLoading(false);
+  //   }
+  // };
+
   const handleAddItem = async () => {
     if (
       !newItem.compType ||
@@ -570,78 +690,35 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         return;
       }
 
-      const selectedItemDesc = dropdownData.itemDescription.find(
-        (item) => item.value === newItem.itemDescription
-      );
-
-      const selectedMaterial = dropdownData.material.find(
-        (item) => item.value === newItem.material
-      );
-
-      const selectedSchedule = schedules.find(
-        (schedule) => schedule.code === scheduleInfo.scheduleCode
-      );
-
-      const selectedSize1 = sizes.find((size) => size.code === newItem.size1);
-      const selectedSize2 = sizes.find((size) => size.code === newItem.size2);
-
-      const selectedRating = newItem.rating
-        ? dropdownData.rating.find((item) => item.value === newItem.rating)
-        : null;
-
-      const selectedDimensionalStandard = dropdownData.dimensionalStandard.find(
-        (item) => item.value === newItem.dimensionalStandard
-      );
-
       const payload = {
         specId,
         component: {
-          Value: selectedComponent?.label,
           Code: selectedComponent?.value,
         },
         componentDesc: {
-          value: selectedItemDesc?.label,
           code: newItem.itemDescription,
-          clientCode: selectedItemDesc?.c_code,
-          gType: selectedItemDesc?.g_type,
-          sType: selectedItemDesc?.s_type,
         },
         size1: {
-          value: selectedSize1?.size1_size2,
-          code: selectedSize1?.code,
-          clientCode: selectedSize1?.c_code,
+          code: newItem.size1,
         },
         size2: {
-          value: selectedSize2?.size1_size2,
-          code: selectedSize2?.code,
-          clientCode: selectedSize2?.c_code,
+          code: newItem.size2,
         },
         schedule: {
-          value: selectedSchedule?.sch1_sch2,
-          code: selectedSchedule?.code,
-          clientCode: selectedSchedule?.c_code,
+          code: scheduleInfo.scheduleCode,
         },
         rating: {
-          value: selectedRating?.label || null,
-          code: selectedRating?.value || "X",
-          clientCode: selectedRating?.c_code || "X",
+          code: newItem.rating || "X",
         },
         material: {
-          value: selectedMaterial?.label,
-          code: selectedMaterial?.value,
-          clientCode: selectedMaterial?.c_code,
+          code: newItem.material,
         },
         dimensionalStandard: {
-          Value: selectedDimensionalStandard?.label,
-          id: selectedDimensionalStandard?.value,
+          id: newItem.dimensionalStandard,
         },
       };
 
-      console.log(payload);
-
-      const response = await api.post(configApi.API_URL.pms.create, {
-        ...payload,
-      });
+      const response = await api.post(configApi.API_URL.pms.create, payload);
 
       if (response.data.success) {
         message.success("Items added successfully");
@@ -657,6 +734,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       setButtonLoading(false);
     }
   };
+
 
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem("currentProjectId") || "";
@@ -934,8 +1012,47 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  const handleGenerateReviewOutput = () => {
-    setIsModalOpen(true);
+  const handleGenerateReviewOutput = async() => {
+    try {
+      setReviewLoading(true);
+      const response = await api.post(configApi.API_URL.output.getAll, {
+        specId,
+      });
+      if (response?.data?.success) {
+        message.success("Review output generated successfully");
+        setReviewData(response.data?.data);
+      } else {
+        message.error("Failed to generate review output");
+      } 
+    } catch (error) {
+      const apiError = error as ApiError;
+      message.error(apiError.response?.data?.error || "Error adding items");
+    } finally {
+      setReviewLoading(false);
+      setIsModalOpen(true);
+    }
+  };
+
+  const transformData = (data: any[]) => {
+    return data.map(item => ({
+      spec: item.spec,
+      compType: item.CompType,
+      shortCode: item.ShortCode,
+      itemCode: item.ItemCode,
+      itemLongDesc: item.ItemLongDesc,
+      itemShortDesc: item.ItemShortDesc,
+      size1Inch: parseFloat(item.Size1Inch.replace(/"/g, '')),
+      size2Inch: item.Size2Inch === 'X' ? 0 : parseFloat(item.Size2Inch.replace(/"/g, '')),
+      size1MM: parseFloat(item.Size1MM),
+      size2MM: item.Size2MM === 'X' ? 0 : parseFloat(item.Size2MM),
+      sch1: item.Sch1,
+      sch2: item.Sch2,
+      rating: item.Rating,
+      unitWt: 0, // You'll need to add this if it's required
+      gType: item.GType,
+      sType: item.SType,
+      catRef: '' // You might want to add this if it's missing
+    }));
   };
 
   const columns: ColumnsType<PMSItem> = [
@@ -1293,7 +1410,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         
         <Button 
           className="bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-          onClick={() => handleGenerateReviewOutput()} // Replace with actual spec ID
+          onClick={() => handleGenerateReviewOutput()}
+          loading={reviewLoading}
         >
           Generate Review Output
         </Button>
@@ -1310,7 +1428,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         specId={specId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        data={[]}
+        data={transformData(reviewData)}
       />
     </div>
   );
