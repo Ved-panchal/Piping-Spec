@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   Popconfirm,
+  Tooltip,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils";
@@ -311,7 +312,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             key: size.code,
             c_code: size.c_code,
           }))
-          .sort((a: { od: number }, b: { od: number }) => a.od - b.od);
+          .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
         setSizes(sizesWithKeys);
       }
     } catch (error) {
@@ -480,9 +481,15 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     return sizeValues.slice(startIndex, endIndex + 1);
   };
 
-  const validateScheduleConsistency = (sizeRange: string[]) => {
+  const validateScheduleConsistency = (sizeRange: string[], componentType: string) => {
+    // If component is not PIPE, return the first schedule directly
+    if (componentType !== "PIPE") {
+        const firstSizeSchedules = dropdownData.sizeToScheduleMap[sizeRange[0]];
+        return firstSizeSchedules?.[0] || null;
+    }
+
+    // For PIPE components, perform the existing consistency check
     if (sizeRange.length === 0) return null;
-    console.log(dropdownData.sizeToScheduleMap);  
 
     const firstSizeSchedules = dropdownData.sizeToScheduleMap[sizeRange[0]];
     if (!firstSizeSchedules || firstSizeSchedules.length === 0) return null;
@@ -681,7 +688,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       );
 
       const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
-      const scheduleInfo = validateScheduleConsistency(sizeRange);
+
+      const scheduleInfo = validateScheduleConsistency(sizeRange, selectedComponent ? selectedComponent.label : "");
 
       if (!scheduleInfo) {
         message.error(
@@ -1176,6 +1184,17 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       dataIndex: "schedule",
       key: "schedule",
       width: "7%",
+      render: (text, record) => {
+        if (record.compType === 'PIPE') {
+          return text;
+        }
+        
+        return (
+          <Tooltip title="Same as Pipe">
+            <span>M</span>
+          </Tooltip>
+        );
+      }
     },
     {
       title: "Rating",

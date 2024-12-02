@@ -56,8 +56,8 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         const sizes = sizeResponse.data.sizes.map((size: Size) => ({
           value: size.size1_size2,
           label: size.size1_size2,
-          od:size.od,
-        })).sort((a:{od:number}, b:{od:number}) => a.od - b.od);
+          size_mm:size.size_mm,
+        })).sort((a:{size_mm:number}, b:{size_mm:number}) => a.size_mm - b.size_mm);
 
         const schedules = scheduleResponse.data.schedules.map((schedule: Schedule) => ({
           value: schedule.code,
