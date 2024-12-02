@@ -61,7 +61,7 @@ const SizeConfiguration: React.FC = () => {
           ...size,
           key: size.code,
           c_code: size.c_code,
-        })).sort((a:{od:number}, b:{od:number}) => a.od - b.od);
+        })).sort((a:{size_mm:number}, b:{size_mm:number}) => a.size_mm - b.size_mm);
         setSizes(sizesWithKeys);
         setLoading(false);
       } else {
@@ -97,7 +97,7 @@ const SizeConfiguration: React.FC = () => {
           existingFields.push("Size (inch)");
         }
 
-        if (sizes.some((size) => size.size_mm === parseInt(newSizeMm))) {
+        if (sizes.some((size) => size.size_mm === newSizeMm)) {
           existingFields.push("Size (mm)");
         }
 
@@ -160,7 +160,7 @@ const SizeConfiguration: React.FC = () => {
           code: newSizeCode,
           c_code:newSizeCCode,
           size_inch: newSizeInch,
-          size_mm: parseInt(newSizeMm),
+          size_mm: newSizeMm,
           od: newSizeOd,
         };
         

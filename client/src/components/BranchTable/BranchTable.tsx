@@ -253,8 +253,9 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
             ...size,
             key: size.code,
             c_code: size.c_code,
+            size_mm:size.size_mm
           }))
-          .sort((a: { od: number }, b: { od: number }) => a.od - b.od);
+          .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
           console.log(sizesWithKeys);
           fetchSizeRange(sizesWithKeys);
         setSizes(sizesWithKeys);
@@ -284,12 +285,22 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
-        const sizeValues : number[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
-        console.log(sizesWithKeys.filter(size => sizeValues.includes(parseFloat(size.od))));
-        setMatchingSizes(sizesWithKeys.filter(size => sizeValues.includes(parseFloat(size.od))))
+        const sizeValues : string[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
+        setMatchingSizes(sizesWithKeys.filter(size => sizeValues.includes(size.size_mm)))
 
-        setRunSizes(sizeValues.sort((a, b) => a - b));
-        setBranchSizes(sizeValues.sort((a, b) => a - b));
+        setRunSizes(
+          sizeValues
+            .map(value => parseFloat(value))
+            .filter(value => !isNaN(value))
+            .sort((a, b) => a - b)
+        );
+        
+        setBranchSizes(
+          sizeValues
+            .map(value => parseFloat(value))
+            .filter(value => !isNaN(value))
+            .sort((a, b) => a - b)
+        );
       } else {
         throw new Error('Failed to fetch Size Ranges.');
       }
@@ -307,7 +318,6 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       const response = await api.post(configApi.API_URL.branch.getall, { specId });
       if (response.data.success) {
         const dataMap: Record<string, string> = {};
-  
         response.data.brancheData.forEach((item: {run_size:number,branch_size:number,comp_name:string}) => {
           const key = `${item.run_size}-${item.branch_size}`;
           dataMap[key] = item.comp_name;
@@ -335,7 +345,7 @@ const handleSizeToggle = () => {
     setBranchSizes(inchSizes);
   } else {
     // Switch back to OD
-    const odSizes = matchingSizes.map(size => parseFloat(size.od)).sort((a, b) => a - b);
+    const odSizes = matchingSizes.map(size => parseFloat(size.size_mm)).sort((a, b) => a - b);
     setRunSizes(odSizes);
     setBranchSizes(odSizes);
   }
@@ -370,11 +380,11 @@ const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: Se
   try {
     // Find the OD value from matchingSizes based on the current size
     const runSizeOD = isSizeInInches 
-      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === runSize)?.od 
+      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === runSize)?.size_mm 
       : runSize;
     
     const branchSizeOD = isSizeInInches 
-      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === branchSize)?.od 
+      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === branchSize)?.size_mm 
       : branchSize;
 
     const branchData = {
@@ -433,7 +443,7 @@ const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: Se
     return (
       <div className="flex justify-end mb-2 mr-1  items-center">
         <span className="mr-2 text-sm text-gray-600">
-          {isSizeInInches ? 'Inches' : 'OD'}
+          {isSizeInInches ? 'Inches' : 'MM'}
         </span>
         <label className="inline-flex relative items-center cursor-pointer">
           <input
