@@ -422,6 +422,15 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                 ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
 
                 for (const sizeData of sizesInRange) {
+
+                    const existsInSizeRange = sizeRanges.some(
+                        (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
+                    );
+
+                    if (!existsInSizeRange) {
+                        continue;
+                    }
+
                     if (component.componentname === "TEE") {
                         const branchValues = branches.filter(
                             (b: Branch) => b.run_size === sizeData.size_mm && 
@@ -476,7 +485,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             Size2Inch: 'X',
                             Size1MM: sizeData.size_mm,
                             Size2MM: 'X',
-                            Sch1: schedule.sch1_sch2,
+                            Sch1: schedule? schedule.sch1_sch2 : "XX",
                             Sch2: 'XX',
                             Rating: rating ? rating.ratingValue : 'X',
                             GType: componentDesc.g_type,
