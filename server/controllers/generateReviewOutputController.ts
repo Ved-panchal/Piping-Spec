@@ -248,6 +248,7 @@ interface ProcessedItem {
     CompType: string;
     ShortCode: string;
     ItemCode: string;
+    CItemCode: string;
     ItemLongDesc: string;
     ItemShortDesc: string;
     Size1Inch: string;
@@ -453,10 +454,11 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 CompType: component.componentname,
                                 ShortCode: componentDesc.short_code,
                                 ItemCode: `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                                CItemCode: `${componentDesc.c_code}${branchRunSize.c_code}${branchSize.c_code}${schedule1 ? schedule1.c_code : 'XX'}${schedule2 ? schedule2.c_code : 'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
                                 ItemLongDesc: `${componentDesc.itemDescription}${!schedule1 && !schedule2 && !rating ? ', ' : (schedule1 ? ', ' + schedule1.sch1_sch2 + ', ' : '') + (schedule2 ? schedule2.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dimensional_standard}`,
                                 ItemShortDesc: componentDesc.itemDescription,
-                                Size1Inch: branchRunSize.size_inch,
-                                Size2Inch: branchSize.size_inch,
+                                Size1Inch: branchRunSize.size1_size2,
+                                Size2Inch: branchSize.size1_size2,
                                 Size1MM: branchRunSize.size_mm,
                                 Size2MM: branchSize.size_mm,
                                 Sch1: schedule1 ? schedule1.sch1_sch2 : 'XX',
@@ -466,7 +468,44 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 SType: componentDesc.s_type,
                             });
                         }
-                    } else {
+                    } else if(component.componentname === "OLET"){
+                        const branchValues = branches.filter(
+                            (b: Branch) => b.run_size === sizeData.size_mm && 
+                                  b.branch_size >= sizesInRange[0].size_mm && 
+                                  b.comp_name === "T"
+                        );
+
+                        for (const branch of branchValues) {
+                            const branchRunSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.run_size);
+                            const branchSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.branch_size);
+                            
+                            const sch1Code = sizeRanges.find((sr: SizeRange) => sr.size_code == branchRunSize.code && sr.specId == specId);
+                            const sch2Code = sizeRanges.find((sr: SizeRange) => sr.size_code == branchSize.code && sr.specId == specId);
+
+                            const schedule1 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch1Code?.schedule_code);
+                            const schedule2 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch2Code?.schedule_code);
+
+                            processedItems.push({
+                                spec: spec.specName,
+                                CompType: component.componentname,
+                                ShortCode: componentDesc.short_code,
+                                ItemCode: `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                                CItemCode: `${componentDesc.c_code}${branchRunSize.c_code}${branchSize.c_code}${schedule1 ? schedule1.c_code : 'XX'}${schedule2 ? schedule2.c_code : 'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
+                                ItemLongDesc: `${componentDesc.itemDescription}${!schedule1 && !schedule2 && !rating ? ', ' : (schedule1 ? ', ' + schedule1.sch1_sch2 + ', ' : '') + (schedule2 ? schedule2.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dimensional_standard}`,
+                                ItemShortDesc: componentDesc.itemDescription,
+                                Size1Inch: branchRunSize.size1_size2,
+                                Size2Inch: branchSize.size1_size2,
+                                Size1MM: branchRunSize.size_mm,
+                                Size2MM: branchSize.size_mm,
+                                Sch1: schedule1 ? schedule1.sch1_sch2 : 'XX',
+                                Sch2: schedule2 ? schedule2.sch1_sch2 : 'XX',
+                                Rating: rating ? rating.ratingValue : 'X',
+                                GType: componentDesc.g_type,
+                                SType: componentDesc.s_type,
+                            });
+                    } 
+                }
+                    else {
                         const scheduleCode = sizeRanges.find(
                             (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
                         );
@@ -479,9 +518,10 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             CompType: component.componentname,
                             ShortCode: componentDesc.short_code,
                             ItemCode: `${componentDesc.code}${sizeData.code}${'X'}${schedule ? scheduleCode.schedule_code : 'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                            CItemCode: `${componentDesc.c_code}${sizeData.c_code}${'X'}${schedule ? schedule.c_code : 'XX'}${'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
                             ItemLongDesc: `${componentDesc.itemDescription}${!schedule && !rating ? ', ' : (schedule ? ', ' + schedule.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},    ${dimensionalStandard.dimensional_standard}`,
                             ItemShortDesc: componentDesc.itemDescription,
-                            Size1Inch: sizeData.size_inch,
+                            Size1Inch: sizeData.size1_size2,
                             Size2Inch: 'X',
                             Size1MM: sizeData.size_mm,
                             Size2MM: 'X',
