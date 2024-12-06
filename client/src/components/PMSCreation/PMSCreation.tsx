@@ -1047,6 +1047,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       compType: item.CompType,
       shortCode: item.ShortCode,
       itemCode: item.ItemCode,
+      cItemCode:item.CItemCode,
       itemLongDesc: item.ItemLongDesc,
       itemShortDesc: item.ItemShortDesc,
       size1Inch: parseFloat(item.Size1Inch.replace(/"/g, '')),

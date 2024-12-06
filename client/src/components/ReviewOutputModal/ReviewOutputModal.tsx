@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/es/table';
+import * as XLSX from 'xlsx';
 
 // Type definitions
 interface ReviewOutputModalProps {
@@ -16,6 +17,7 @@ interface TableDataType {
   compType: string;
   shortCode: string;
   itemCode: string;
+  cItemCode:string;
   itemLongDesc: string;
   itemShortDesc: string;
   size1Inch: number;
@@ -54,6 +56,13 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
     };
   }, [isOpen, onClose]);
 
+  const handleExportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Review Output");
+    XLSX.writeFile(workbook, "review_output.xlsx");
+  };
+
   const columns: ColumnsType<TableDataType> = [
     {
       title: 'Spec',
@@ -84,6 +93,14 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       title: 'Item Code',
       dataIndex: 'itemCode',
       key: 'itemCode',
+      width: 120,
+      ellipsis: true,
+      className: 'font-semibold text-xs'
+    },
+    {
+      title: 'Client Item Code',
+      dataIndex: 'cItemCode',
+      key: 'cItemCode',
       width: 120,
       ellipsis: true,
       className: 'font-semibold text-xs'
@@ -205,21 +222,33 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         className="relative bg-white rounded-lg shadow-xl w-[98vw] max-w-[100vw] max-h-[90vh] overflow-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          className="absolute top-1 right-1 text-gray-600 hover:text-gray-900 transition-colors z-10"
-          onClick={onClose}
-        >
-          <X size={24} />
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Review Output</h2>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleExportToExcel}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              <Download className="mr-2" size={20} />
+              Export to Excel
+            </button>
+            <button
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+              onClick={onClose}
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
 
         <Table
           columns={columns}
           dataSource={data}
-          scroll={{ x: 'max-content', y: 'calc(90vh - 100px)' }}
+          scroll={{ x: 'max-content', y: 'calc(90vh - 150px)' }}
           size="small"
           bordered
           tableLayout="fixed"
-          className="w-full mt-2"
+          className="w-full"
           rowKey={(record) => record.itemCode}
           pagination={false}
         />
