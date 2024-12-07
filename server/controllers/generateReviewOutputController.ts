@@ -418,20 +418,22 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
 
             if (size1?.code && size2?.code) {
                 const sizesInRange = [...sizes, ...dSizes].filter(
-                    (size: Size | D_Size) => size.size1_size2 >= size1.size1_size2 && 
-                            size.size1_size2 <= size2.size1_size2
+                    (size: Size | D_Size) => size.size_mm >= size1.size_mm && 
+                            size.size_mm <= size2.size_mm
                 ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
 
-                for (const sizeData of sizesInRange) {
+                // console.log(component, sizesInRange)
 
+                for (const sizeData of sizesInRange) {
+                    
                     const existsInSizeRange = sizeRanges.some(
                         (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
                     );
+                    // console.log("existsInSizeRange",existsInSizeRange);
 
                     if (!existsInSizeRange) {
                         continue;
                     }
-
                     if (component.componentname === "TEE") {
                         const branchValues = branches.filter(
                             (b: Branch) => b.run_size === sizeData.size_mm && 
@@ -469,11 +471,14 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             });
                         }
                     } else if(component.componentname === "OLET"){
+                        console.log(sizeData.size_mm,"+", sizesInRange[0].size_mm)
                         const branchValues = branches.filter(
-                            (b: Branch) => b.run_size === sizeData.size_mm && 
-                                  b.branch_size >= sizesInRange[0].size_mm && 
-                                  b.comp_name === "T"
+                            (b: Branch) => b.branch_size === sizeData.size_mm && 
+                                        //    b.branch_size >= sizesInRange[0].size_mm && 
+                                        ["W", "H", "O", "S", "L"].includes(b.comp_name)
                         );
+
+                        // console.log(branchValues);
 
                         for (const branch of branchValues) {
                             const branchRunSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.run_size);
