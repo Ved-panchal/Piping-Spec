@@ -545,125 +545,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     });
   };
 
-  // const handleAddItem = async () => {
-  //   if (
-  //     !newItem.compType ||
-  //     !newItem.itemDescription ||
-  //     !newItem.size1 ||
-  //     !newItem.size2
-  //   ) {
-  //     message.error("Please fill all required fields");
-  //     return;
-  //   }
-
-  //   if (isDuplicateItem(newItem)) {
-  //     message.error("This item already exists in the table");
-  //     return;
-  //   }
-
-  //   try {
-  //     setButtonLoading(true);
-
-  //     const selectedComponent = dropdownData.compType.find(
-  //       (item) => item.value === newItem.compType
-  //     );
-
-  //     const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
-  //     const scheduleInfo = validateScheduleConsistency(sizeRange);
-
-  //     if (!scheduleInfo) {
-  //       message.error(
-  //         "Selected size range does not have consistent schedule values"
-  //       );
-  //       return;
-  //     }
-
-  //     const selectedItemDesc = dropdownData.itemDescription.find(
-  //       (item) => item.value === newItem.itemDescription
-  //     );
-
-  //     const selectedMaterial = dropdownData.material.find(
-  //       (item) => item.value === newItem.material
-  //     );
-
-  //     const selectedSchedule = schedules.find(
-  //       (schedule) => schedule.code === scheduleInfo.scheduleCode
-  //     );
-
-  //     const selectedSize1 = sizes.find((size) => size.code === newItem.size1);
-  //     const selectedSize2 = sizes.find((size) => size.code === newItem.size2);
-
-  //     const selectedRating = newItem.rating
-  //       ? dropdownData.rating.find((item) => item.value === newItem.rating)
-  //       : null;
-
-  //     const selectedDimensionalStandard = dropdownData.dimensionalStandard.find(
-  //       (item) => item.value === newItem.dimensionalStandard
-  //     );
-
-  //     const payload = {
-  //       specId,
-  //       component: {
-  //         Value: selectedComponent?.label,
-  //         Code: selectedComponent?.value,
-  //       },
-  //       componentDesc: {
-  //         value: selectedItemDesc?.label,
-  //         code: newItem.itemDescription,
-  //         clientCode: selectedItemDesc?.c_code,
-  //         gType: selectedItemDesc?.g_type,
-  //         sType: selectedItemDesc?.s_type,
-  //       },
-  //       size1: {
-  //         value: selectedSize1?.size1_size2,
-  //         code: selectedSize1?.code,
-  //         clientCode: selectedSize1?.c_code,
-  //       },
-  //       size2: {
-  //         value: selectedSize2?.size1_size2,
-  //         code: selectedSize2?.code,
-  //         clientCode: selectedSize2?.c_code,
-  //       },
-  //       schedule: {
-  //         value: selectedSchedule?.sch1_sch2,
-  //         code: selectedSchedule?.code,
-  //         clientCode: selectedSchedule?.c_code,
-  //       },
-  //       rating: {
-  //         value: selectedRating?.label || null,
-  //         code: selectedRating?.value || "X",
-  //         clientCode: selectedRating?.c_code || "X",
-  //       },
-  //       material: {
-  //         value: selectedMaterial?.label,
-  //         code: selectedMaterial?.value,
-  //         clientCode: selectedMaterial?.c_code,
-  //       },
-  //       dimensionalStandard: {
-  //         Value: selectedDimensionalStandard?.label,
-  //         id: selectedDimensionalStandard?.value,
-  //       },
-  //     };
-
-  //     const response = await api.post(configApi.API_URL.pms.create, {
-  //       ...payload,
-  //     });
-
-  //     if (response.data.success) {
-  //       message.success("Items added successfully");
-  //       setNewItem({});
-  //       fetchPMSItems(specId);
-  //     } else {
-  //       message.error("Failed to add items");
-  //     }
-  //   } catch (error) {
-  //     const apiError = error as ApiError;
-  //     message.error(apiError.response?.data?.error || "Error adding items");
-  //   } finally {
-  //     setButtonLoading(false);
-  //   }
-  // };
-
   const handleAddItem = async () => {
     if (
       !newItem.compType ||
@@ -730,7 +611,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
       if (response.data.success) {
         message.success("Items added successfully");
-        setNewItem({});
         fetchPMSItems(specId);
       } else {
         message.error("Failed to add items");
@@ -765,7 +645,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       dimensionalStandard: [],
     }));
 
-    // Reset other related states
     setShowRatingDropdown(false);
     setIsAllMaterial(false);
 
@@ -791,11 +670,11 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
   const handleAllMaterialChange = (e: CheckboxChangeEvent) => {
     const projectId = localStorage.getItem("currentProjectId") || "";
-    const componentId = newItem.compType || ""; // Ensure compType is selected first
+    const componentId = newItem.compType || "";
     const isAll = e.target.checked;
 
     setIsAllMaterial(isAll);
-    fetchMaterials(projectId, componentId, isAll); // Fetch materials based on checkbox state
+    fetchMaterials(projectId, componentId, isAll);
   };
   const handleDelete = async (id: string) => {
     try {
@@ -817,7 +696,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       key: record.key,
       dataIndex,
       value: record[dataIndex],
-      originalRecord: record // Store the full record for reference
+      originalRecord: record
     });
 
     // Fetch necessary data for dropdowns
