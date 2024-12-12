@@ -645,7 +645,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
       if (response.data.success) {
         message.success("Items added successfully");
-        setNewItem({});
+        // setNewItem({});
         fetchPMSItems(specId);
       } else {
         message.error("Failed to add items");

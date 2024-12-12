@@ -22,6 +22,8 @@ import defaultSizeModel from "./Default/defaultsizemodel";
 import DimensionalStandardModel from "./dimensionalmodel";
 import itemModel from "./itemoutputmodel";
 import pmsCreationModel from "./pmscreationmodel";
+import DefaultCatRefModel from "./Default/defaultcatref";
+import CatRefModel from "./catrefmodel";
 
 dotenv.config();
 
@@ -50,6 +52,8 @@ const Schedule = scheduleModel(sequelize);
 const D_Schedule = defaultScheduleModel(sequelize);
 const Size = sizeModel(sequelize);
 const D_Size = defaultSizeModel(sequelize);
+const D_Catref = DefaultCatRefModel(sequelize);
+const Catref = CatRefModel(sequelize);
 const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
 
@@ -80,6 +84,8 @@ const db = {
     D_Schedule,
     Size,
     D_Size,
+    Catref,
+    D_Catref,
     Item,
     PmsCreation
 };
