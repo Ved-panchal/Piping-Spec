@@ -23,7 +23,7 @@ api.interceptors.response.use(
     response => response,
     error => {
         // Handle 401 Unauthorized errors
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === '401') {
             if (error.response.data['detail'] === "Invalid credentials") {
                 localStorage.setItem('Failed', 'true');
                 window.location.href = '/';

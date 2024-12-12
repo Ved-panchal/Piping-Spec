@@ -166,7 +166,7 @@ export const getSizeRangesBySpecId = async (req: Request, res: Response): Promis
             const size = await db.Size.findOne({ where: { code: sizeCode } });
             if (size) {
                 sizeValue = size.size1_size2; // Get size1_size2 from the Size table
-                odValue = size.od;
+                odValue = size.size_mm;
             }
 
             // If not found, check in D_Size table
@@ -174,7 +174,7 @@ export const getSizeRangesBySpecId = async (req: Request, res: Response): Promis
                 const dSize = await db.D_Size.findOne({ where: { code: sizeCode } });
                 if (dSize) {
                     sizeValue = dSize.size1_size2;
-                    odValue = dSize.od
+                    odValue = dSize.size_mm
                 }
             }
 

@@ -111,7 +111,7 @@ export interface Size {
     code: string;
     c_code:string;
     size_inch: string;
-    size_mm: number;
+    size_mm: string;
     od: string;
 }
 

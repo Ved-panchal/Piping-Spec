@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { grid } from 'ldrs'
-import { ApiError, SizeRange } from '../../utils/interface';
+import { ApiError, Size, SizeRange } from '../../utils/interface';
 import showToast from '../../utils/toast';
 import api from '../../utils/api/apiutils';
 import {api as configApi} from "../../utils/api/config"
@@ -33,6 +33,19 @@ type CustomSelectProps = {
   id: string;
   preselectedValue?: string; // Add preselectedValue as an optional prop
 };
+
+// interface Size {
+//   id: number;
+//   size1_size2: string;
+//   code: string;
+//   c_code: string;
+//   size_inch: string;
+//   size_mm: string;
+//   od: number;
+//   createdAt: string;
+//   updatedAt: string;
+//   key: string;
+// }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({ 
   runSize, 
@@ -192,10 +205,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [,setSizes] = useState<Size[]>([]);
+  const [matchingSizes,setMatchingSizes] = useState<Size[]>([]);
   const [runSizes, setRunSizes] = useState<number[]>([]);
   const [branchSizes, setBranchSizes] = useState<number[]>([]);
   const [tableWidth, setTableWidth] = useState("auto");
   const [branchDataMap, setBranchDataMap] = useState<Record<string, string>>({});
+  const [isSizeInInches, setIsSizeInInches] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -203,7 +219,9 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       showToast({message:"Select Spec ID First",type:"info"})
       return;
     }
-    fetchSizeRange();
+    const projectId = localStorage.getItem("currentProjectId");
+    fetchSizes(projectId!);
+    // fetchSizeRange();
     fetchBranchData();
   }, [specId]);
 
@@ -221,14 +239,68 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     return () => window.removeEventListener('resize', updateTableWidth);
   }, [runSizes]);
 
-  const fetchSizeRange = async () => {
+
+  const fetchSizes = async (projectId: string) => {
     setLoading(true);
+    try {
+      const response = await api.post(configApi.API_URL.sizes.getall, {
+        projectId,
+      });
+
+      if (response?.data?.success) {
+        const sizesWithKeys = response.data.sizes
+          .map((size: Size) => ({
+            ...size,
+            key: size.code,
+            c_code: size.c_code,
+            size_mm:size.size_mm
+          }))
+          .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
+          console.log(sizesWithKeys);
+          fetchSizeRange(sizesWithKeys);
+        setSizes(sizesWithKeys);
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      showToast({
+        message: apiError.response?.data?.error || "Error fetching sizes.",
+        type: "error",
+      });
+    }
+  };
+
+  const parseInchSize = (sizeInch:string) => {
+    // Handle whole numbers and fractions
+    if (sizeInch.includes('/')) {
+      const [whole, frac] = sizeInch.split(' ');
+      const [numerator, denominator] = frac ? frac.split('/') : whole.split('/');
+      return whole && frac 
+        ? parseInt(whole) + parseInt(numerator) / parseInt(denominator)
+        : parseInt(numerator) / parseInt(denominator);
+    }
+    return parseFloat(sizeInch);
+  };
+
+  const fetchSizeRange = async (sizesWithKeys:Size[]) => {
     try {
       const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
       if (response.data.success) {
-        const sizeValues : number[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
-        setRunSizes(sizeValues.sort((a, b) => a - b));
-        setBranchSizes(sizeValues.sort((a, b) => a - b));
+        const sizeValues : string[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
+        setMatchingSizes(sizesWithKeys.filter(size => sizeValues.includes(size.size_mm)))
+
+        setRunSizes(
+          sizeValues
+            .map(value => parseFloat(value))
+            .filter(value => !isNaN(value))
+            .sort((a, b) => a - b)
+        );
+        
+        setBranchSizes(
+          sizeValues
+            .map(value => parseFloat(value))
+            .filter(value => !isNaN(value))
+            .sort((a, b) => a - b)
+        );
       } else {
         throw new Error('Failed to fetch Size Ranges.');
       }
@@ -246,8 +318,6 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       const response = await api.post(configApi.API_URL.branch.getall, { specId });
       if (response.data.success) {
         const dataMap: Record<string, string> = {};
-  
-        // Populate dataMap with branch data
         response.data.brancheData.forEach((item: {run_size:number,branch_size:number,comp_name:string}) => {
           const key = `${item.run_size}-${item.branch_size}`;
           dataMap[key] = item.comp_name;
@@ -264,15 +334,65 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
     }
   };
   
+// Toggle switch handler
+const handleSizeToggle = () => {
+  setIsSizeInInches(!isSizeInInches);
+ 
+  if (!isSizeInInches) {
+    // Switch to Inches
+    const inchSizes = matchingSizes.map(size => parseInchSize(size.size_inch.replace('"', ''))).sort((a, b) => a - b);
+    setRunSizes(inchSizes);
+    setBranchSizes(inchSizes);
+  } else {
+    // Switch back to OD
+    const odSizes = matchingSizes.map(size => parseFloat(size.size_mm)).sort((a, b) => a - b);
+    setRunSizes(odSizes);
+    setBranchSizes(odSizes);
+  }
+ }; 
 
 // Adjust `handleSelectionChange` to make the `add-or-update` API call
+// const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
+//   try {
+//     const branchData = {
+//       run_size: runSize,
+//       branch_size: branchSize,
+//       comp_name: selectedOption,
+//     };
+//     const response = await api.post(configApi.API_URL.branch.addOrUpdate, {
+//       specId: specId,
+//       branchData,
+//     });
+
+//     if (response.data.success) {
+//       showToast({ message: response.data.message, type: 'success' });
+//     } else {
+//       throw new Error(response.data.message || 'Failed to add or update branch.');
+//     }
+//   } catch (error) {
+//     const apiError = error as ApiError;
+//     const errorMessage = apiError.response?.data?.error || 'Failed to add or update branch.';
+//     showToast({ message: errorMessage, type: 'error' });
+//   }
+// };
+
 const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
   try {
+    // Find the OD value from matchingSizes based on the current size
+    const runSizeOD = isSizeInInches 
+      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === runSize)?.size_mm 
+      : runSize;
+    
+    const branchSizeOD = isSizeInInches 
+      ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === branchSize)?.size_mm 
+      : branchSize;
+
     const branchData = {
-      run_size: runSize,
-      branch_size: branchSize,
+      run_size: runSizeOD,
+      branch_size: branchSizeOD,
       comp_name: selectedOption,
     };
+
     const response = await api.post(configApi.API_URL.branch.addOrUpdate, {
       specId: specId,
       branchData,
@@ -316,9 +436,32 @@ const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: Se
     );
   };
 
+  
+
+  // Size Toggle Component
+  const SizeToggle: React.FC = () => {
+    return (
+      <div className="flex justify-end mb-2 mr-1  items-center">
+        <span className="mr-2 text-sm text-gray-600">
+          {isSizeInInches ? 'Inches' : 'MM'}
+        </span>
+        <label className="inline-flex relative items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isSizeInInches}
+            onChange={handleSizeToggle}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full flex justify-center" ref={tableRef}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden" style={{ width: tableWidth }}>
+        <SizeToggle/>
       <Instructions/>
         <div className="relative overflow-x-auto">
           <table className="w-full border-collapse">
