@@ -7,6 +7,7 @@ import SpecsCreation from '../SpecsCreation/SpecsCreation';
 import PmsInputSelector from '../PMSInputSelector/PmsInputSelector';
 import ComponentConfiguration from '../ComponentConfiguration/Component';
 import MaterialConfiguration from '../MaterialConfiguration/MaterialConfiguration';
+import CatRefConfiguration from '../CatrefConfiguration/Catref';
 
 interface SpecsProps {
     projectId?: string;
@@ -34,14 +35,14 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
     };
 
     return (
-        <div className="flex h-[90vh] bg-[#304D6D] p-6 rounded-lg shadow-lg relative">
+        <div className="flex h-[90vh] bg-[#304D6D] p-3 rounded-lg shadow-lg relative">
             {/* Left Panel - Navigation */}
-            <div className="w-56 bg-gray-800 p-4 flex flex-col justify-between min-h-[40vh] h-[78vh] rounded-lg m-2">
-                {['PMS Input Selector','Spec Configuration', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration'].map((label, index) => (
+            <div className="w-56 bg-gray-800 p-1 flex flex-col justify-between min-h-[50vh] h-[85vh] rounded-lg m-2">
+                {['PMS Input Selector','Spec Configuration', 'Component Configuration', 'Size Configuration', 'Schedule Configuration', 'Rating Configuration', 'Material Configuration', 'Catref Configuration'].map((label, index) => (
                     <div
                         key={index}
                         onClick={() => handleNavClick(index)}
-                        className={`cursor-pointer p-3 rounded-lg text-left font-medium select-none
+                        className={`cursor-pointer px-3 py-2.5 mx-3 my-1 rounded-lg text-left font-medium select-none
                             ${activeComponent === index ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-800 text-gray-300'}
                             hover:bg-gray-700 hover:text-white transition-colors duration-300 ease-in-out transform hover:scale-105`}
                     >
@@ -59,6 +60,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
                 {activeComponent === 4 && <div className="text-lg text-white"><ScheduleConfiguration/></div>}
                 {activeComponent === 5 && <div className="text-lg text-white"><RatingConfiguration/></div>}
                 {activeComponent === 6 && <div className="text-lg text-white"><MaterialConfiguration/></div>}
+                {activeComponent === 7 && <div className="text-lg text-white"><CatRefConfiguration/></div>}
             </div>
 
         </div>

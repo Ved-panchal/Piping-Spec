@@ -53,6 +53,10 @@ export const api = {
         getall:'materials/getall',
         addorupdate:'materials/add-or-update',
       },
+      catrefs:{
+        getall:'catref/getall',
+        addorupdate:"catref/add-or-update"
+      },
       dimensionalstandards:{
         create:"dimensional-standards/create",
         update:"dimensional-standards/update",

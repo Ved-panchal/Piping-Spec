@@ -900,10 +900,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const handleGenerateReviewOutput = async() => {
+
+    const projectId = localStorage.getItem("currentProjectId") || "";
     try {
       setReviewLoading(true);
       const response = await api.post(configApi.API_URL.output.getAll, {
         specId,
+        projectId,
       });
       if (response?.data?.success) {
         message.success("Review output generated successfully");
@@ -939,7 +942,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       unitWt: 0, // You'll need to add this if it's required
       gType: item.GType,
       sType: item.SType,
-      catRef: '' // You might want to add this if it's missing
+      catRef: item.Catref 
     }));
   };
 
@@ -1219,6 +1222,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             </Form.Item>
           </Col>
         </Row>
+
 
         {/* Second Row with other inputs */}
         <Row gutter={16}>

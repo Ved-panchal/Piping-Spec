@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import db from "../models";
-import { Op } from "sequelize";
 
     // "items": [
     //     {
@@ -260,7 +259,10 @@ interface ProcessedItem {
     Rating: string;
     GType: string;
     SType: string;
+    Catref:string;
 }
+
+
 
 // Define interfaces for database models
 export interface PmsCreation {
@@ -343,10 +345,9 @@ export interface D_Rating extends Rating {}
 export interface D_Material extends Material {}
 
 export const generateReviewOutput = async (req: Request, res: Response): Promise<void> => {
-    const { specId } = req.body;
+    const { specId,projectId } = req.body;
 
     try {
-        // Bulk fetch all required data in parallel
         const [
             pmsItems, 
             spec, 
@@ -359,20 +360,24 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             dSizes,
             schedules,
             dSchedules,
+            dcatref,
+            catref,
             sizeRanges,
             branches
         ] = await Promise.all([
             db.PmsCreation.findAll({ where: { spec_id: specId } }),
             db.Spec.findByPk(specId),
             db.Component.findAll({raw:true}),
-            db.ComponentDesc.findAll(),
-            db.Rating.findAll(),
-            db.Material.findAll(),
+            db.ComponentDesc.findAll({where: {project_id:projectId}}),
+            db.Rating.findAll({where: {project_id:projectId}}),
+            db.Material.findAll({where: {project_id:projectId}}),
             db.DimensionalStandard.findAll(),
-            db.Size.findAll({raw:true}),
+            db.Size.findAll({where:{project_id:projectId},raw:true}),
             db.D_Size.findAll({raw:true}),
-            db.Schedule.findAll({raw:true}),
+            db.Schedule.findAll({where:{project_id:projectId},raw:true}),
             db.D_Schedule.findAll({raw:true}),
+            db.D_Catref.findAll({raw:true}),
+            db.Catref.findAll({where:{project_id:projectId},raw:true}),
             db.SizeRange.findAll({ where: { spec_id: specId } ,raw:true}),
             db.Branch.findAll({ where: { spec_id: specId } })
         ]);
@@ -422,7 +427,6 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             size.size_mm <= size2.size_mm
                 ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
 
-                // console.log(component, sizesInRange)
 
                 for (const sizeData of sizesInRange) {
                     
@@ -451,6 +455,15 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             const schedule1 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch1Code?.schedule_code);
                             const schedule2 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch2Code?.schedule_code);
 
+                            const catalogRef = [
+                                ...dcatref, 
+                                ...catref
+                            ].find((cat: any) => 
+                                cat.item_short_desc === componentDesc.itemDescription && 
+                                cat.rating === (rating ? rating.ratingValue : null)
+                            );
+                            
+
                             processedItems.push({
                                 spec: spec.specName,
                                 CompType: component.componentname,
@@ -468,15 +481,17 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,
                                 SType: componentDesc.s_type,
+                                Catref: catalogRef ?catalogRef.catalog : "",
                             });
                         }
                     } else if(component.componentname === "OLET"){
-                        console.log(sizeData.size_mm,"+", sizesInRange[0].size_mm)
+                        // console.log(sizeData.size_mm,"+", sizesInRange[0].size_mm)
                         const branchValues = branches.filter(
                             (b: Branch) => b.branch_size === sizeData.size_mm && 
                                         //    b.branch_size >= sizesInRange[0].size_mm && 
                                         ["W", "H", "O", "S", "L"].includes(b.comp_name)
                         );
+
 
                         // console.log(branchValues);
 
@@ -490,6 +505,14 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             const schedule1 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch1Code?.schedule_code);
                             const schedule2 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch2Code?.schedule_code);
 
+                            const catalogRef = [
+                                ...dcatref, 
+                                ...catref
+                            ].find((cat: any) => 
+                                cat.item_short_desc === componentDesc.itemDescription && 
+                                cat.rating === (rating ? rating.ratingValue : null)
+                            );
+
                             processedItems.push({
                                 spec: spec.specName,
                                 CompType: component.componentname,
@@ -507,6 +530,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,
                                 SType: componentDesc.s_type,
+                                Catref: catalogRef ?catalogRef.catalog : "",
                             });
                     } 
                 }
@@ -517,6 +541,15 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                         const schedule = [...schedules, ...dSchedules].find(
                             (s: Schedule | D_Schedule) => s.code === scheduleCode?.schedule_code
                         );
+
+                        const catalogRef = [
+                            ...dcatref, 
+                            ...catref
+                        ].find((cat: any) => 
+                            cat.item_short_desc === componentDesc.itemDescription && 
+                            cat.rating === (rating ? rating.ratingValue : null)
+                        );
+                        console.log(catalogRef)
 
                         processedItems.push({
                             spec: spec.specName,
@@ -535,6 +568,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             Rating: rating ? rating.ratingValue : 'X',
                             GType: componentDesc.g_type,
                             SType: componentDesc.s_type,
+                            Catref: catalogRef ?catalogRef.catalog : "",
                         });
                     }
                 }
