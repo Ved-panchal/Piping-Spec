@@ -284,7 +284,7 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
                 }
                 break;
 
-            case '"itemDescription"':
+            case 'itemDescription':
                 updateObject = {
                     component_desc_value: updateData.componentDesc?.value,
                     component_desc_code: updateData.componentDesc?.code,

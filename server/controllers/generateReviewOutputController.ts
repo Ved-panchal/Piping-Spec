@@ -191,7 +191,6 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                     const existsInSizeRange = sizeRanges.some(
                         (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
                     );
-                    // console.log("existsInSizeRange",existsInSizeRange);
 
                     if (!existsInSizeRange) {
                         continue;
@@ -242,6 +241,62 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Catref: catalogRef ?catalogRef.catalog+"-"+branchRunSize.size_mm+"x"+branchSize.size_mm : "",
                             });
                         }
+                    } else if (component.componentname === "COUPLING" || (component.componentname === "FLANGE" && componentDesc.itemDescription.toLowerCase().includes("reducing"))) {
+                            // Get 4 sizes that are lower than the current size
+                            const lowerSizes = sizesInRange
+                                .filter(s => s.size_mm < sizeData.size_mm)
+                                .sort((a, b) => b.size_mm - a.size_mm) // Sort in descending order
+                                .slice(0, 4); // Take up to 4 sizes
+                    
+                            // If no lower sizes available, skip this iteration
+                            if (lowerSizes.length === 0) {
+                                continue;
+                            }
+                    
+                            // For each lower size, create a coupling item
+                            for (const size2Data of lowerSizes) {
+                                const scheduleCode1 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
+                                );
+                                const scheduleCode2 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === size2Data.code && sr.specId === specId
+                                );
+                    
+                                const schedule1 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode1?.schedule_code
+                                );
+                                const schedule2 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode2?.schedule_code
+                                );
+                    
+                                const catalogRef = [
+                                    ...dcatref, 
+                                    ...catref
+                                ].find((cat: any) => 
+                                    cat.item_short_desc === componentDesc.itemDescription && 
+                                    cat.rating === (rating ? rating.ratingValue : null)
+                                );
+                    
+                                processedItems.push({
+                                    spec: spec.specName,
+                                    CompType: component.componentname,
+                                    ShortCode: componentDesc.short_code,
+                                    ItemCode: `${componentDesc.code}${sizeData.code}${size2Data.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                                    CItemCode: `${componentDesc.c_code}${sizeData.c_code}${size2Data.c_code}${schedule1 ? schedule1.c_code : 'XX'}${schedule2 ? schedule2.c_code : 'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
+                                    ItemLongDesc: `${componentDesc.itemDescription}${!schedule1 && !schedule2 && !rating ? ', ' : (schedule1 ? ', ' + schedule1.sch1_sch2 + ', ' : '') + (schedule2 ? schedule2.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dimensional_standard}`,
+                                    ItemShortDesc: componentDesc.itemDescription,
+                                    Size1Inch: sizeData.size1_size2,
+                                    Size2Inch: size2Data.size1_size2,
+                                    Size1MM: sizeData.size_mm,
+                                    Size2MM: size2Data.size_mm,
+                                    Sch1: schedule1 ? schedule1.sch1_sch2 : 'XX',
+                                    Sch2: schedule2 ? schedule2.sch1_sch2 : 'XX',
+                                    Rating: rating ? rating.ratingValue : 'X',
+                                    GType: componentDesc.g_type,
+                                    SType: componentDesc.s_type,
+                                    Catref: catalogRef ? catalogRef.catalog+"-"+sizeData.size_mm+"x"+size2Data.size_mm : "",
+                                });
+                            }
                     } else if(component.componentname === "OLET"){
                         // console.log(sizeData.size_mm,"+", sizesInRange[0].size_mm)
                         const branchValues = branches.filter(
@@ -307,7 +362,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             cat.item_short_desc === componentDesc.itemDescription && 
                             cat.rating === (rating ? rating.ratingValue : null)
                         );
-                        console.log(catalogRef)
+                        // console.log(catalogRef)
 
                         processedItems.push({
                             spec: spec.specName,
