@@ -3,68 +3,113 @@ import db from "../models";
 
 // Create Spec
 export const createSpec = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { specName, rating, baseMaterial, projectId } = req.body;
+  try {
+      const { specName, rating, baseMaterial, projectId, existing_specId } = req.body;
       const userId = (req as any).user.id;
-  
+
       // Check for active subscription
       const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
       
       if (subscription && subscription.NoofSpecs !== null && subscription.NoofSpecs <= 0) {
-        res.json({ success: false, error: "Spec limit reached. Cannot create more specs.", status: 400 });
-        return;
+          res.json({ success: false, error: "Spec limit reached. Cannot create more specs.", status: 400 });
+          return;
       }
-  
+
       // Find the project the spec should belong to
       const project = await db.Project.findOne({ where: { id: projectId, userId, isDeleted: false } });
       
       if (!project) {
-        res.json({ success: false, error: "Project not found or access denied.", status: 404 });
-        return;
+          res.json({ success: false, error: "Project not found or access denied.", status: 404 });
+          return;
       }
-  
+
       // Check if a spec with the same details already exists
       const existingSpec = await db.Spec.findOne({
-        where: { specName, rating, baseMaterial, isDeleted: false } // Check only non-deleted specs
+          where: { specName, rating, baseMaterial, isDeleted: false }
       });
-  
+
       if (existingSpec) {
-        // If the spec exists and is not deleted, throw an error
-        res.json({ success: false, error: "Spec already exists", status: 400 });
-        return;
+          res.json({ success: false, error: "Spec already exists", status: 400 });
+          return;
       }
-  
+
       // Check for a soft-deleted spec
       const softDeletedSpec = await db.Spec.findOne({
-        where: { specName, rating, baseMaterial, isDeleted: true }
+          where: { specName, rating, baseMaterial, isDeleted: true }
       });
-  
+
       if (softDeletedSpec) {
-        // If a soft-deleted spec is found, update it to restore
-        await softDeletedSpec.update({ isDeleted: false });
-        res.json({ success: true, message: "Spec Created successfully.", status: 200, softDeletedSpec });
-        return;
+          await softDeletedSpec.update({ isDeleted: false });
+          res.json({ success: true, message: "Spec Created successfully.", status: 200, softDeletedSpec });
+          return;
       }
-  
-      // Create the new spec if no existing spec was found
+
+      // Create the new spec
       const newSpec = await db.Spec.create({
-        specName,
-        rating,
-        baseMaterial,
-        projectId,
+          specName,
+          rating,
+          baseMaterial,
+          projectId,
       });
-  
+
+      // If existing_specId is provided, copy related data
+      if (existing_specId) {
+          // Get data from existing spec
+          const [branches, pmsCreations, sizeRanges] = await Promise.all([
+              db.Branch.findAll({ where: { spec_id: existing_specId } }),
+              db.PmsCreation.findAll({ where: { spec_id: existing_specId } }),
+              db.SizeRange.findAll({ where: { spec_id: existing_specId } })
+          ]);
+
+          // Copy branches
+          const branchPromises = branches.map((branch:any) => {
+              const branchData = branch.get({ plain: true });
+              delete branchData.id; // Remove the original ID
+              return db.Branch.create({
+                  ...branchData,
+                  spec_id: newSpec.id // Set the new spec ID
+              });
+          });
+
+          // Copy PMS Creations
+          const pmsPromises = pmsCreations.map((pms:any) => {
+              const pmsData = pms.get({ plain: true });
+              delete pmsData.id;
+              return db.PmsCreation.create({
+                  ...pmsData,
+                  spec_id: newSpec.id
+              });
+          });
+
+          // Copy Size Ranges
+          const sizeRangePromises = sizeRanges.map((size:any) => {
+              const sizeData = size.get({ plain: true });
+              delete sizeData.id;
+              return db.SizeRange.create({
+                  ...sizeData,
+                  spec_id: newSpec.id
+              });
+          });
+
+          // Wait for all copies to complete
+          await Promise.all([
+              ...branchPromises,
+              ...pmsPromises,
+              ...sizeRangePromises
+          ]);
+      }
+
       // Decrease NoofSpecs if it's not null
       if (subscription && subscription.NoofSpecs !== null) {
-        await subscription.update({ NoofSpecs: subscription.NoofSpecs - 1 });
+          await subscription.update({ NoofSpecs: subscription.NoofSpecs - 1 });
       }
-  
+
       res.json({ success: true, message: "Spec created successfully.", status: 201, newSpec });
-    } catch (error: unknown) {
+  } catch (error: unknown) {
       console.error("Error creating spec:", error);
       res.json({ success: false, error: "Internal server error", status: 500 });
-    }
-  };
+  }
+};
   
 
 // Update Spec

@@ -287,7 +287,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       if (response.data.success) {
         const sizeValues : string[] = response.data.sizeranges.map((range:SizeRange) => range.odValue);
         setMatchingSizes(sizesWithKeys.filter(size => sizeValues.includes(size.size_mm)))
-
+        // console.log(sizeValues)
         setRunSizes(
           sizeValues
             .map(value => parseFloat(value))
