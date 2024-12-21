@@ -255,6 +255,14 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                     
                             // For each lower size, create a coupling item
                             for (const size2Data of lowerSizes) {
+
+                                const existsInSizeRange = sizeRanges.some(
+                                    (sr: SizeRange) => sr.size_code === size2Data.code && sr.specId === specId
+                                );
+
+                                if (!existsInSizeRange) {
+                                    continue;
+                                }
                                 const scheduleCode1 = sizeRanges.find(
                                     (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
                                 );

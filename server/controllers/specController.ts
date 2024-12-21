@@ -6,7 +6,7 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
   try {
       const { specName, rating, baseMaterial, projectId, existing_specId } = req.body;
       const userId = (req as any).user.id;
-
+      console.log(req.body);
       // Check for active subscription
       const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
       
@@ -37,7 +37,7 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
       const softDeletedSpec = await db.Spec.findOne({
           where: { specName, rating, baseMaterial, isDeleted: true }
       });
-
+      console.log(softDeletedSpec);
       if (softDeletedSpec) {
           await softDeletedSpec.update({ isDeleted: false });
           res.json({ success: true, message: "Spec Created successfully.", status: 200, softDeletedSpec });
@@ -51,7 +51,6 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
           baseMaterial,
           projectId,
       });
-
       // If existing_specId is provided, copy related data
       if (existing_specId) {
           // Get data from existing spec
@@ -60,14 +59,13 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
               db.PmsCreation.findAll({ where: { spec_id: existing_specId } }),
               db.SizeRange.findAll({ where: { spec_id: existing_specId } })
           ]);
-
           // Copy branches
           const branchPromises = branches.map((branch:any) => {
               const branchData = branch.get({ plain: true });
               delete branchData.id; // Remove the original ID
               return db.Branch.create({
                   ...branchData,
-                  spec_id: newSpec.id // Set the new spec ID
+                  specId: newSpec.id // Set the new spec ID
               });
           });
 
@@ -87,7 +85,7 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
               delete sizeData.id;
               return db.SizeRange.create({
                   ...sizeData,
-                  spec_id: newSpec.id
+                  specId: newSpec.id
               });
           });
 
