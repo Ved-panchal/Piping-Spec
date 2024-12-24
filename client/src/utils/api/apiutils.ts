@@ -23,6 +23,7 @@ api.interceptors.response.use(
     response => response,
     error => {
         // Handle 401 Unauthorized errors
+        console.log(error);
         if (error.response && error.response.status === '401') {
             console.log(error.response)
             if (error.response.data['detail'] === "Invalid credentials") {

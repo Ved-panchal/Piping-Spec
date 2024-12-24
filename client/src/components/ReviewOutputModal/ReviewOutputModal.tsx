@@ -127,7 +127,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       key: 'size1Inch',
       width: 100,
       className: 'font-semibold text-xs',
-      render: (value) => value.toFixed(2)
+      render: (value) => value
     },
     {
       title: 'Size 2 (Inch)',
@@ -135,7 +135,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       key: 'size2Inch',
       width: 100,
       className: 'font-semibold text-xs',
-      render: (value) => value.toFixed(2)
+      render: (value) => value
     },
     {
       title: 'Size 1 (MM)',
@@ -143,7 +143,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       key: 'size1MM',
       width: 100,
       className: 'font-semibold text-xs',
-      render: (value) => value.toFixed(2)
+      render: (value) => value
     },
     {
       title: 'Size 2 (MM)',
@@ -151,7 +151,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       key: 'size2MM',
       width: 100,
       className: 'font-semibold text-xs',
-      render: (value) => value.toFixed(2)
+      render: (value) => value
     },
     {
       title: 'SCH 1',

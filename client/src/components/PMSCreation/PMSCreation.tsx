@@ -125,29 +125,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           rating: item.rating_value || "X",
           material: item.material_value,
           dimensionalStandard: item.dimensional_standard_value,
-        }));
+        })).reverse();
   
-        const compareSize = (a: string, b: string) => {
-          const sizeA = parseFloat(a) || 0;
-          const sizeB = parseFloat(b) || 0;
-          return sizeA - sizeB;
-        };
-  
-        // Sort the items
-        const sortedItems = mappedItems.sort((a:{compType:string,size1:string}, b:{compType:string,size1:string}) => {
-          // First, sort by compType alphabetically
-          const compTypeComparison = a.compType.localeCompare(b.compType);
-          
-          // If compTypes are different, return the comparison result
-          if (compTypeComparison !== 0) {
-            return compTypeComparison;
-          }
-          
-          // If compTypes are the same, sort by size1
-          return compareSize(a.size1, b.size1);
-        });
-  
-        setItems(sortedItems);
+        setItems(mappedItems);
       } else {
         showToast({ message: "Failed to fetch PMS items", type: "error" });
       }
@@ -929,13 +909,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       compType: item.CompType,
       shortCode: item.ShortCode,
       itemCode: item.ItemCode,
-      cItemCode:item.CItemCode,
+      cItemCode: item.CItemCode,
       itemLongDesc: item.ItemLongDesc,
       itemShortDesc: item.ItemShortDesc,
-      size1Inch: parseFloat(item.Size1Inch.replace(/"/g, '')),
-      size2Inch: item.Size2Inch === 'X' ? 0 : parseFloat(item.Size2Inch.replace(/"/g, '')),
-      size1MM: parseFloat(item.Size1MM),
-      size2MM: item.Size2MM === 'X' ? 0 : parseFloat(item.Size2MM),
+      size1Inch: formatSize(item.Size1Inch),
+      size2Inch: item.Size2Inch === 'X' ? 0 : formatSize(item.Size2Inch),
+      size1MM: item.Size1MM,
+      size2MM: item.Size2MM === 'X' ? 0 :item.Size2MM,
       sch1: item.Sch1,
       sch2: item.Sch2,
       rating: item.Rating,
@@ -945,6 +925,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       catRef: item.Catref 
     }));
   };
+  
+  // Helper function to format sizes
+  const formatSize = (size: string | number): number => {
+    const parsedSize = typeof size === 'string' ? parseFloat(size.replace(/"/g, '')) : size;
+    
+    return parsedSize % 1 === 0 ? Math.trunc(parsedSize) : parseFloat(parsedSize.toFixed(2));
+  };
+  
 
   const columns: ColumnsType<PMSItem> = [
     {

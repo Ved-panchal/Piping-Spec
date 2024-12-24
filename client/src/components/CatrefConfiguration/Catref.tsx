@@ -195,7 +195,7 @@ const CatRefConfiguration: React.FC = () => {
     const isDuplicateEntry = catRefData.some(
       (item) => 
         item.item_short_desc === newItemShortDesc && 
-        item.rating === (newRating || "null") && 
+        item.rating === (newRating || "-") && 
         item.catalog === newCatalog
     );
 
@@ -212,7 +212,7 @@ const CatRefConfiguration: React.FC = () => {
         component_id: selectedComponentId!,
         project_id: currentProjectId,
         item_short_desc: newItemShortDesc,
-        rating: newRating || "null",
+        rating: newRating || "-",
         concatenate: newConcatenate,
         catalog: newCatalog,
       };

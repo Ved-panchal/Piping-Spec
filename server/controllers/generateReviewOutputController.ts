@@ -121,7 +121,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             dcatref,
             catref,
             sizeRanges,
-            branches
+            branches,
+            reducer,
         ] = await Promise.all([
             db.PmsCreation.findAll({ where: { spec_id: specId } }),
             db.Spec.findByPk(specId),
@@ -137,7 +138,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.D_Catref.findAll({raw:true}),
             db.Catref.findAll({where:{project_id:projectId},raw:true}),
             db.SizeRange.findAll({ where: { spec_id: specId } ,raw:true}),
-            db.Branch.findAll({ where: { spec_id: specId } })
+            db.Branch.findAll({ where: { spec_id: specId } }),
+            db.Reducer.findAll({raw:true}),
         ]);
 
         if (!pmsItems || pmsItems.length === 0) {
@@ -240,6 +242,142 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 SType: componentDesc.s_type,
                                 Catref: catalogRef ?catalogRef.catalog+"-"+branchRunSize.size_mm+"x"+branchSize.size_mm : "",
                             });
+                        }
+                    } else if(component.componentname === "REDUCER" ){
+                        if(componentDesc.itemDescription.toLowerCase().includes('swage')){
+                            // Handle REDUCER SWAGE type
+                            const reducerSizes = reducer.filter(
+                                (r: any) => r.type === 'REDUCER SWAGE' &&
+                                r.big_size >= size1.size1_size2 && r.big_size <= size2.size1_size2 && r.big_size == sizeData.size1_size2 &&
+                                r.small_size <= size2.size1_size2 && r.small_size >= size1.size1_size2
+                            );
+                    
+                            for (const reducerSize of reducerSizes) {
+                                const bigSizeData = [...sizes, ...dSizes].find(
+                                    (s: Size | D_Size) => s.size1_size2 == reducerSize.big_size
+                                );
+                                const smallSizeData = [...sizes, ...dSizes].find(
+                                    (s: Size | D_Size) => s.size1_size2 == reducerSize.small_size
+                                );
+                    
+                                const existsInSizeRange2 = sizeRanges.some(
+                                    (sr: SizeRange) => sr.size_code === smallSizeData?.code && sr.specId === specId
+                                );
+                                if ( !existsInSizeRange2 || !bigSizeData || !smallSizeData) {
+                                    continue;
+                                }
+                                
+                                const scheduleCode1 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === bigSizeData.code && sr.specId === specId
+                                );
+                                const scheduleCode2 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === smallSizeData.code && sr.specId === specId
+                                );
+                    
+                                const schedule1 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode1?.schedule_code
+                                );
+                                const schedule2 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode2?.schedule_code
+                                );
+                    
+                                const catalogRef = [
+                                    ...dcatref, 
+                                    ...catref
+                                ].find((cat: any) => 
+                                    cat.item_short_desc === componentDesc.itemDescription && 
+                                    cat.rating === (rating ? rating.ratingValue : null)
+                                );
+                    
+                                processedItems.push({
+                                    spec: spec.specName,
+                                    CompType: component.componentname,
+                                    ShortCode: componentDesc.short_code,
+                                    ItemCode: `${componentDesc.code}${bigSizeData.code}${smallSizeData.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                                    CItemCode: `${componentDesc.c_code}${bigSizeData.c_code}${smallSizeData.c_code}${schedule1 ? schedule1.c_code : 'XX'}${schedule2 ? schedule2.c_code : 'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
+                                    ItemLongDesc: `${componentDesc.itemDescription}${!schedule1 && !schedule2 && !rating ? ', ' : (schedule1 ? ', ' + schedule1.sch1_sch2 + ', ' : '') + (schedule2 ? schedule2.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dimensional_standard}`,
+                                    ItemShortDesc: componentDesc.itemDescription,
+                                    Size1Inch: bigSizeData.size1_size2,
+                                    Size2Inch: smallSizeData.size1_size2,
+                                    Size1MM: bigSizeData.size_mm,
+                                    Size2MM: smallSizeData.size_mm,
+                                    Sch1: schedule1 ? schedule1.sch1_sch2 : 'XX',
+                                    Sch2: schedule2 ? schedule2.sch1_sch2 : 'XX',
+                                    Rating: rating ? rating.ratingValue : 'X',
+                                    GType: componentDesc.g_type,
+                                    SType: componentDesc.s_type,
+                                    Catref: catalogRef ? catalogRef.catalog+"-"+bigSizeData.size_mm+"x"+smallSizeData.size_mm : "",
+                                });
+                            }
+                        } else {
+                            // Handle regular REDUCER type
+                            const reducerSizes = reducer.filter(
+                                (r: any) => r.type === 'REDUCER' &&
+                                r.big_size >= size1.size1_size2 && r.big_size <= size2.size1_size2 && r.big_size == sizeData.size1_size2 &&
+                                r.small_size <= size2.size1_size2 && r.small_size >= size1.size1_size2
+                            );
+
+                    
+                            for (const reducerSize of reducerSizes) {
+                                const bigSizeData = [...sizes, ...dSizes].find(
+                                    (s: Size | D_Size) => s.size1_size2 == reducerSize.big_size
+                                );
+                                const smallSizeData = [...sizes, ...dSizes].find(
+                                    (s: Size | D_Size) => s.size1_size2 == reducerSize.small_size
+                                );
+                    
+                                const existsInSizeRange2 = sizeRanges.some(
+                                    (sr: SizeRange) => sr.size_code === smallSizeData?.code && sr.specId === specId
+                                );
+                    
+                                if ( !existsInSizeRange2 || !bigSizeData || !smallSizeData) {
+                                    continue;
+                                }
+                                // console.log("existsInSizeRange2 in REUDUCER Only",existsInSizeRange2);
+
+                    
+                                const scheduleCode1 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === bigSizeData.code && sr.specId === specId
+                                );
+                                const scheduleCode2 = sizeRanges.find(
+                                    (sr: SizeRange) => sr.size_code === smallSizeData.code && sr.specId === specId
+                                );
+                    
+                                const schedule1 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode1?.schedule_code
+                                );
+                                const schedule2 = [...schedules, ...dSchedules].find(
+                                    (s: Schedule | D_Schedule) => s.code === scheduleCode2?.schedule_code
+                                );
+                    
+                                const catalogRef = [
+                                    ...dcatref, 
+                                    ...catref
+                                ].find((cat: any) => 
+                                    cat.item_short_desc === componentDesc.itemDescription && 
+                                    cat.rating === (rating ? rating.ratingValue : null)
+                                );
+                    
+                                processedItems.push({
+                                    spec: spec.specName,
+                                    CompType: component.componentname,
+                                    ShortCode: componentDesc.short_code,
+                                    ItemCode: `${componentDesc.code}${bigSizeData.code}${smallSizeData.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                                    CItemCode: `${componentDesc.c_code}${bigSizeData.c_code}${smallSizeData.c_code}${schedule1 ? schedule1.c_code : 'XX'}${schedule2 ? schedule2.c_code : 'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
+                                    ItemLongDesc: `${componentDesc.itemDescription}${!schedule1 && !schedule2 && !rating ? ', ' : (schedule1 ? ', ' + schedule1.sch1_sch2 + ', ' : '') + (schedule2 ? schedule2.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dimensional_standard}`,
+                                    ItemShortDesc: componentDesc.itemDescription,
+                                    Size1Inch: bigSizeData.size1_size2,
+                                    Size2Inch: smallSizeData.size1_size2,
+                                    Size1MM: bigSizeData.size_mm,
+                                    Size2MM: smallSizeData.size_mm,
+                                    Sch1: schedule1 ? schedule1.sch1_sch2 : 'XX',
+                                    Sch2: schedule2 ? schedule2.sch1_sch2 : 'XX',
+                                    Rating: rating ? rating.ratingValue : 'X',
+                                    GType: componentDesc.g_type,
+                                    SType: componentDesc.s_type,
+                                    Catref: catalogRef ? catalogRef.catalog+"-"+bigSizeData.size_mm+"x"+smallSizeData.size_mm : "",
+                                });
+                            }
                         }
                     } else if (component.componentname === "COUPLING" || (component.componentname === "FLANGE" && componentDesc.itemDescription.toLowerCase().includes("reducing"))) {
                             // Get 4 sizes that are lower than the current size

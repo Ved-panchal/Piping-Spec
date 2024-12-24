@@ -24,6 +24,7 @@ import itemModel from "./itemoutputmodel";
 import pmsCreationModel from "./pmscreationmodel";
 import DefaultCatRefModel from "./Default/defaultcatref";
 import CatRefModel from "./catrefmodel";
+import reducer from "./Default/reducermodel";
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ const D_Catref = DefaultCatRefModel(sequelize);
 const Catref = CatRefModel(sequelize);
 const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
+const Reducer = reducer(sequelize);
 
 D_Component.associate({Component});
 Project.associate({ User, Spec });
@@ -87,7 +89,8 @@ const db = {
     Catref,
     D_Catref,
     Item,
-    PmsCreation
+    PmsCreation,
+    Reducer
 };
 
 const syncDatabase = async () => {
@@ -101,3 +104,5 @@ const syncDatabase = async () => {
 
 export { syncDatabase };
 export default db;
+
+

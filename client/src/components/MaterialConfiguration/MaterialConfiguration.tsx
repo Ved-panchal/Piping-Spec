@@ -102,7 +102,6 @@ const MaterialConfiguration: React.FC = () => {
     const codeExists = materialData.some((item) => item.code === newCode);
     const clientCodeExists = materialData.some((item) => item.c_code === newClientCode);
     const descriptionExists = materialData.some((item) => item.material_description === newMaterial);
-    const baseMaterialExists = materialData.some((item) => item.base_material === newBaseMaterial);
   
     if (codeExists) {
       message.error('This code is already in use.');
@@ -116,11 +115,6 @@ const MaterialConfiguration: React.FC = () => {
   
     if (descriptionExists) {
       message.error('This material description is already in use.');
-      return;
-    }
-  
-    if (baseMaterialExists) {
-      message.error('This base material is already in use.');
       return;
     }
   

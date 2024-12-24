@@ -37,7 +37,6 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
       const softDeletedSpec = await db.Spec.findOne({
           where: { specName, rating, baseMaterial, isDeleted: true }
       });
-      console.log(softDeletedSpec);
       if (softDeletedSpec) {
           await softDeletedSpec.update({ isDeleted: false });
           res.json({ success: true, message: "Spec Created successfully.", status: 200, softDeletedSpec });
@@ -62,7 +61,7 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
           // Copy branches
           const branchPromises = branches.map((branch:any) => {
               const branchData = branch.get({ plain: true });
-              delete branchData.id; // Remove the original ID
+              delete branchData.id;
               return db.Branch.create({
                   ...branchData,
                   specId: newSpec.id // Set the new spec ID
@@ -224,7 +223,7 @@ export const deleteSpec = async (req: Request, res: Response): Promise<void> => 
     }
 
     // Soft delete the spec
-    await spec.update({ isDeleted: true });
+    await spec.destroy();
 
     res.json({ success: true, message: "Spec deleted successfully.", status: 200 });
   } catch (error: unknown) {
