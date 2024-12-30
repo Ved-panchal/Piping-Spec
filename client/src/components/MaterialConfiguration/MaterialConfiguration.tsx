@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, Select, message, Spin, Col, Row } from 'antd';
+import { Table, Input, Button, Form, Select, message, Spin } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import showToast from '../../utils/toast';
 import api from '../../utils/api/apiutils';
