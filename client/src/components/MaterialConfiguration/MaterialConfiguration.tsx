@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, Select, message, Spin } from 'antd';
+import { Table, Input, Button, Form, Select, message, Spin, Col, Row } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import showToast from '../../utils/toast';
 import api from '../../utils/api/apiutils';
@@ -264,7 +264,7 @@ const MaterialConfiguration: React.FC = () => {
       if (response && response.data.success) {
         message.success('Material data updated successfully');
       } else {
-        setMaterialData(originalData);  // Revert to original data if update fails
+        setMaterialData(originalData);
         throw new Error('Failed to update material data.');
       }
     } catch (error) {
@@ -318,61 +318,102 @@ const MaterialConfiguration: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Material Configuration</h1>
-      <Form layout="inline" style={{ marginBottom: '20px', marginTop: '10px' }}>
-        <Form.Item>
-          <Select
-            placeholder="Select a component"
-            style={{ width: '10rem', marginBottom: '1rem' }}
-            onChange={handleComponentChange}
-            options={componentsList.map((component) => ({
-              value: component.id,
-              label: component.componentname,
-            }))}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Input
-            placeholder="Code"
-            value={newCode}
-            onChange={(e) => setNewCode(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Input
-            placeholder="Material"
-            value={newMaterial}
-            onChange={(e) => setNewMaterial(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Input
-            placeholder="Client Code"
-            value={newClientCode}
-            onChange={(e) => setNewClientCode(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Input
-            placeholder="Base Material"
-            value={newBaseMaterial}
-            onChange={(e) => setNewBaseMaterial(e.target.value)}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            onClick={handleAddMaterialData}
-            loading={buttonLoading}
+    <div className="p-6  text-white min-h-screen">
+      <h1 className="text-2xl font-semibold mb-6 text-center">
+        Material Configuration
+      </h1>
+      <Form layout="vertical" className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Component<span className="text-red-500"> *</span>
+              </span>
+            }
           >
-            Add Material
-          </Button>
-        </Form.Item>
+            <Select
+              placeholder="Select a component"
+              className="w-full"
+              onChange={handleComponentChange}
+              options={componentsList.map((component) => ({
+                value: component.id,
+                label: component.componentname,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Code<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Input
+              placeholder="Code"
+              value={newCode}
+              onChange={(e) => setNewCode(e.target.value)}
+              className="w-full"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Material<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Input
+              placeholder="Material"
+              value={newMaterial}
+              onChange={(e) => setNewMaterial(e.target.value)}
+              className="w-full"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Client Code<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Input
+              placeholder="Client Code"
+              value={newClientCode}
+              onChange={(e) => setNewClientCode(e.target.value)}
+              className="w-full"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Base Material<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Input
+              placeholder="Base Material"
+              value={newBaseMaterial}
+              onChange={(e) => setNewBaseMaterial(e.target.value)}
+              className="w-full"
+            />
+          </Form.Item>
+          <div className="flex items-center mt-1 ml-3">
+            <Button
+              type="primary"
+              onClick={handleAddMaterialData}
+              loading={buttonLoading}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+            >
+              Add Material
+            </Button>
+          </div>
+        </div>
       </Form>
 
       {loading ? (
-        <Spin size="large" />
+        <div className="flex justify-center items-center">
+          <Spin size="large" />
+        </div>
       ) : (
         <Table
           columns={columns}
@@ -383,6 +424,7 @@ const MaterialConfiguration: React.FC = () => {
               cell: EditableCell,
             },
           }}
+          className="bg-gray-700 text-white rounded-lg"
         />
       )}
     </div>

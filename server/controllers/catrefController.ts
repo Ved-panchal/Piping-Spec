@@ -38,8 +38,8 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
   try {
     const { componentId, catRefs } = req.body;
     const userId = (req as any).user.id;
-
-    const { project_id } = catRefs[0];
+    console.log(componentId, catRefs);
+    const { project_id } = catRefs[0]
     const validProject = await validateProjectAndUser(project_id, userId);
 
     if (!validProject) {

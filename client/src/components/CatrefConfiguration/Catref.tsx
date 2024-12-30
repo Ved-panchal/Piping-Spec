@@ -56,8 +56,8 @@ const CatRefConfiguration: React.FC = () => {
     itemShortDesc: string,
     rating: string
   ): string => {
-    const formattedRating = rating || "null";
-    return `${itemShortDesc}-${formattedRating}`;
+    const formattedRating = rating || "";
+    return `${itemShortDesc}${rating? '-' : ''}${formattedRating}`;
   };
 
   // Fetch Component Description function
@@ -337,6 +337,7 @@ const CatRefConfiguration: React.FC = () => {
     field: keyof CatRefData,
     value: string
   ) => {
+    const project_id = localStorage.getItem('currentProjectId');
     const originalData = [...catRefData];
     const updatedData = catRefData.map((item) =>
       item.key === key ? { ...item, [field]: value } : item
@@ -370,11 +371,11 @@ const CatRefConfiguration: React.FC = () => {
       componentId: selectedComponentId,
       catRefs: [
         {
+          project_id: project_id,
           item_short_desc: catRefToUpdate.item_short_desc,
           rating: catRefToUpdate.rating || "null",
           concatenate: catRefToUpdate.concatenate,
           catalog: catRefToUpdate.catalog,
-          project_id: catRefToUpdate.project_id,
         },
       ],
     };

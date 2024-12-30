@@ -251,11 +251,9 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
             )
           );
           message.success("Size range updated successfully");
-          fetchSizeRange();
-        } else {
-          throw new Error("Failed to update Size Range.");
         }
       } catch (error) {
+        fetchSizeRange();
         const apiError = error as ApiError;
         const errorMessage =
           apiError.response?.data?.error || "Failed to update Size Range.";

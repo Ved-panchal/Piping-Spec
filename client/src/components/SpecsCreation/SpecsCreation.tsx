@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from "react";
-import { Table, Input, Button, Form, message, Select } from "antd";
+import { Table, Input, Button, Form, message, Select, Checkbox } from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
@@ -55,7 +55,10 @@ const SpecsCreation: React.FC = () => {
   const [ratingOptions, setRatingOptions] = useState<string[]>([]); // State for rating options
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [specToDelete, setSpecToDelete] = useState<Spec | null>(null);
-  const [selectedSpecToCopy, setSelectedSpecToCopy] = useState<string | null>(null);
+  const [selectedSpecToCopy, setSelectedSpecToCopy] = useState<string | null>(
+    null
+  );
+  const [isCopyMode, setIsCopyMode] = useState(false);
 
   // Fetch project ID from local storage
   useEffect(() => {
@@ -135,13 +138,13 @@ const SpecsCreation: React.FC = () => {
     setFormSubmitted(true);
 
     if (!newspecName || !newRating || !newBaseMaterial) {
-      message.error('Spec Code, Rating, and Base Material are required.');
+      message.error("Spec Code, Rating, and Base Material are required.");
       return;
     }
 
     try {
       if (!currentProjectId) {
-        message.error('No current project ID available.');
+        message.error("No current project ID available.");
         return;
       }
 
@@ -157,29 +160,30 @@ const SpecsCreation: React.FC = () => {
         rating: newSpec.rating,
         baseMaterial: newSpec.baseMaterial,
         projectId: currentProjectId,
-        existing_specId: selectedSpecToCopy
+        existing_specId: selectedSpecToCopy,
       };
 
       const response = await api.post(configApi.API_URL.specs.create, payload, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
 
       if (response && response.data.success) {
         setSpecs([...specs, newSpec]);
-        setNewspecName('');
-        setNewRating('Rating');
-        setNewBaseMaterial('BaseMaterial');
+        setNewspecName("");
+        setNewRating("Rating");
+        setNewBaseMaterial("BaseMaterial");
         setSelectedSpecToCopy(null); // Reset selected spec after successful creation
         setFormSubmitted(false);
-        message.success('Spec added successfully');
+        message.success("Spec added successfully");
         await fetchSpecs();
       } else {
-        throw new Error('Failed to add spec.');
+        throw new Error("Failed to add spec.");
       }
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage = apiError.response?.data?.error || 'Failed to add spec.';
-      showToast({ message: errorMessage, type: 'error' });
+      const errorMessage =
+        apiError.response?.data?.error || "Failed to add spec.";
+      showToast({ message: errorMessage, type: "error" });
     }
   };
 
@@ -474,7 +478,7 @@ const SpecsCreation: React.FC = () => {
   // Handler for spec selection
   const handleSpecSelect = (specId: string) => {
     setSelectedSpecToCopy(specId);
-    const selectedSpec = specs.find(spec => spec.key === specId);
+    const selectedSpec = specs.find((spec) => spec.key === specId);
     if (selectedSpec) {
       setNewRating(selectedSpec.rating);
       setNewBaseMaterial(selectedSpec.baseMaterial);
@@ -484,51 +488,8 @@ const SpecsCreation: React.FC = () => {
   return (
     <div>
       <h1>Specs Creation</h1>
-      {/* Note about spec copying */}
-      <div style={{ 
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '8px',
-        padding: '12px', // iOS blue border with low opacity
-      }}>
-        <InfoIcon 
-          size={16} 
-          style={{ 
-            color: '#007AFF', // iOS blue
-            marginTop: '2px',
-            flexShrink: 0
-          }} 
-        />
-        <span style={{ 
-          color: '#007AFF', // iOS blue
-          fontSize: '13px',
-          fontWeight: '600',
-          lineHeight: '1.4',
-          opacity: 0.8,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-        }}>
-          To copy an existing spec's details, select it from the dropdown below. Leave unselected if you want to create a new spec from scratch.
-        </span>
-      </div>
 
-      {/* Form section */}
       <Form layout="inline" style={{ marginBottom: "20px", marginTop: "10px" }}>
-        <Form.Item style={{ marginRight: "10px", width: "200px" }}>
-          <Select
-            value={selectedSpecToCopy}
-            onChange={handleSpecSelect}
-            placeholder="Select spec to copy from"
-            allowClear
-            style={{ width: "100%" }}
-          >
-            {specs.map((spec) => (
-              <Option key={spec.key} value={spec.key}>
-                {spec.specName}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
         <Form.Item style={{ marginRight: "10px" }}>
           <Input
             value={newspecName}
@@ -591,14 +552,40 @@ const SpecsCreation: React.FC = () => {
           </Select>
         </Form.Item>
 
+        {isCopyMode && (
+          <Form.Item style={{ marginRight: "10px", width: "200px" }}>
+            <Select
+              value={selectedSpecToCopy}
+              onChange={handleSpecSelect}
+              placeholder="Select spec to copy from"
+              style={{ width: "100%" }}
+            >
+              {specs.map((spec) => (
+                <Option key={spec.key} value={spec.key}>
+                  {spec.specName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        )}
+
+        <Form.Item style={{ marginRight: "10px" }}>
+          <Checkbox
+            className="text-white font-semibold"
+            checked={isCopyMode}
+            onChange={(e) => setIsCopyMode(e.target.checked)}
+          >
+            Copy Existing Spec
+          </Checkbox>
+        </Form.Item>
+
         <Form.Item>
           <Button type="primary" onClick={handleAddSpec}>
-            Add Spec
+            {isCopyMode ? "Copy Existing Spec" : "Add Spec"}
           </Button>
         </Form.Item>
       </Form>
 
-      {/* Table section */}
       <Table
         dataSource={specs}
         columns={columns}
