@@ -5,7 +5,7 @@ import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
-import { InfoIcon, Trash2 } from "lucide-react";
+import {  Trash2 } from "lucide-react";
 import deleteWithBody from "../../utils/api/DeleteAxios";
 import ConfirmationModal from "../ConfirmationDeleteModal/CornfirmationModal";
 import { Rating } from "../../utils/interface";
