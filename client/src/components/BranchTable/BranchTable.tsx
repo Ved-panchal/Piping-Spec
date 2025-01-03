@@ -34,18 +34,6 @@ type CustomSelectProps = {
   preselectedValue?: string; // Add preselectedValue as an optional prop
 };
 
-// interface Size {
-//   id: number;
-//   size1_size2: string;
-//   code: string;
-//   c_code: string;
-//   size_inch: string;
-//   size_mm: string;
-//   od: number;
-//   createdAt: string;
-//   updatedAt: string;
-//   key: string;
-// }
 
 const CustomSelect: React.FC<CustomSelectProps> = ({ 
   runSize, 
@@ -60,21 +48,27 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const [selectedValue, setSelectedValue] = useState<string>(preselectedValue || '');
   const [dropdownPosition, setDropdownPosition] = useState<Position>({ top: 0, left: 0 });
   const [, setIsAbove] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null); // Ref for dropdown menu
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const options: Option[] = [
-    { value: '', label: 'Select' },
-    { value: 'TEE', label: 'T' },
-    { value: 'WOL', label: 'W' },
-    { value: 'SOL', label: 'S' },
-    { value: 'TOL', label: 'O' },
-    { value: 'P2P', label: 'P' },
-    { value: 'P2R', label: 'R' },
-    { value: 'HFC', label: 'H' },
-    { value: 'SWL', label: 'L' },
-    { value: 'INT', label: 'I' },
+    { value: 'T', label: 'T' },
+    { value: 'W', label: 'W' },
+    { value: 'S', label: 'S' },
+    { value: 'O', label: 'O' },
+    { value: 'P', label: 'P' },
+    { value: 'R', label: 'R' },
+    { value: 'H', label: 'H' },
+    { value: 'L', label: 'L' },
+    { value: 'I', label: 'I' },
   ];
+
+  const filteredOptions = options.filter(option => 
+    option.value.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const isOpen = activeDropdown === id;
 
@@ -104,6 +98,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      searchInputRef.current?.focus();
       updateDropdownPosition();
       const handleScroll = () => {
         updateDropdownPosition();
@@ -118,8 +113,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       window.addEventListener('scroll', handleScroll, true);
       window.addEventListener('resize', handleScroll);
 
+      // Focus search input when dropdown opens
+
       return () => {
-        // Clean up scroll listener
         let element = buttonRef.current?.parentElement;
         while (element) {
           element.removeEventListener('scroll', handleScroll, true);
@@ -128,13 +124,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         window.removeEventListener('scroll', handleScroll, true);
         window.removeEventListener('resize', handleScroll);
       };
+    } else {
+      setSearchTerm(''); // Clear search when dropdown closes
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
       const handleClickOutside = (event: MouseEvent) => {
-        // Check if the click happened outside both button and dropdown
         if (
           buttonRef.current && !buttonRef.current.contains(event.target as Node) &&
           dropdownRef.current && !dropdownRef.current.contains(event.target as Node)
@@ -143,15 +140,28 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         }
       };
 
-      document.addEventListener('pointerdown', handleClickOutside); // Use `pointerdown` for finer control
+      document.addEventListener('pointerdown', handleClickOutside);
       return () => document.removeEventListener('pointerdown', handleClickOutside);
     }
   }, [isOpen, setActiveDropdown]);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setActiveDropdown(null);
+    } else if (e.key === 'Enter') {
+      if (filteredOptions.length > 0) {
+        handleSelection(filteredOptions[0].value);
+      } else if (searchTerm.trim() !== '') {
+        handleSelection(searchTerm.trim());
+      }
+    }
+  };
+
   const handleSelection = (value: string) => {
-    const selectedOptionLabel = value ? options.find(opt => opt.value === value)?.label ?? 'Select' : 'Select';
+    const selectedOptionLabel = value ? options.find(opt => opt.value === value)?.label ?? value : 'Select';
     setSelectedValue(selectedOptionLabel);
-    setActiveDropdown(null); 
+    setActiveDropdown(null);
+    setSearchTerm('');
 
     onSelectionChange({
       runSize,
@@ -177,16 +187,28 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       
       {isOpen && dropdownPosition.top !== 0 && (
         <div 
-          ref={dropdownRef} // Attach ref to dropdown
-          className="fixed w-20 bg-white rounded-md shadow-lg border overflow-y-auto max-h-52 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" 
+          ref={dropdownRef}
+          className="fixed w-20 bg-white rounded-md shadow-lg border overflow-hidden"
           style={{ 
             zIndex: 9999,
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`
           }}
         >
-          <div className="py-1">
-            {options.map((option) => (
+          <div className="p-1 border-b">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleKeyDown} // Add keydown listener
+              className="w-full px-1 py-0.5 text-sm border rounded focus:outline-none focus:border-blue-500"
+              placeholder="Search..."
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="overflow-y-auto max-h-40 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => handleSelection(option.value)}
@@ -195,12 +217,18 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                 {option.label}
               </button>
             ))}
+            {filteredOptions.length === 0 && (
+              <div className="px-2 py-1 text-sm text-gray-500">
+                No matches
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 };
+
 
 const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -256,7 +284,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
             size_mm:size.size_mm
           }))
           .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
-          console.log(sizesWithKeys);
+          // console.log(sizesWithKeys);
           fetchSizeRange(sizesWithKeys);
         setSizes(sizesWithKeys);
       }
@@ -351,33 +379,13 @@ const handleSizeToggle = () => {
   }
  }; 
 
-// Adjust `handleSelectionChange` to make the `add-or-update` API call
-// const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
-//   try {
-//     const branchData = {
-//       run_size: runSize,
-//       branch_size: branchSize,
-//       comp_name: selectedOption,
-//     };
-//     const response = await api.post(configApi.API_URL.branch.addOrUpdate, {
-//       specId: specId,
-//       branchData,
-//     });
-
-//     if (response.data.success) {
-//       showToast({ message: response.data.message, type: 'success' });
-//     } else {
-//       throw new Error(response.data.message || 'Failed to add or update branch.');
-//     }
-//   } catch (error) {
-//     const apiError = error as ApiError;
-//     const errorMessage = apiError.response?.data?.error || 'Failed to add or update branch.';
-//     showToast({ message: errorMessage, type: 'error' });
-//   }
-// };
 
 const handleSelectionChange = async ({ runSize, branchSize, selectedOption }: SelectionChangeData) => {
   try {
+
+    if(selectedOption === "Select"){
+      return;
+    }
     // Find the OD value from matchingSizes based on the current size
     const runSizeOD = isSizeInInches 
       ? matchingSizes.find(size => parseInchSize(size.size_inch.replace('"', '')) === runSize)?.size_mm 
