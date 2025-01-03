@@ -125,7 +125,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           rating: item.rating_value || "X",
           material: item.material_value,
           dimensionalStandard: item.dimensional_standard_value,
-        })).reverse();
+        }))
   
         setItems(mappedItems);
       } else {
