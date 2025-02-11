@@ -53,54 +53,6 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
     }
   }, [specId]);
 
-  const fetchSizeAndScheduleOptions = async (projectId: string) => {
-    try {
-      const payload = { projectId };
-      const sizeResponse = await api.post(
-        configApi.API_URL.sizes.getall,
-        payload
-      );
-      const scheduleResponse = await api.post(
-        configApi.API_URL.schedules.getall,
-        payload
-      );
-
-      if (sizeResponse.data.success && scheduleResponse.data.success) {
-        const sizes = sizeResponse.data.sizes
-          .map((size: Size) => ({
-            value: size.size1_size2,
-            label: size.size1_size2,
-            size_mm: size.size_mm,
-          }))
-          .sort(
-            (a: { size_mm: number }, b: { size_mm: number }) =>
-              a.size_mm - b.size_mm
-          );
-
-        const schedules = scheduleResponse.data.schedules
-          .map((schedule: Schedule) => ({
-            value: schedule.code,
-            label: schedule.sch1_sch2,
-            arrange_od: schedule.arrange_od,
-          }))
-          .sort(
-            (a: { arrange_od: number }, b: { arrange_od: number }) =>
-              a.arrange_od - b.arrange_od
-          );
-
-        setSizeOptions(sizes);
-        setScheduleOptions(schedules);
-      } else {
-        throw new Error("Failed to fetch options");
-      }
-    } catch (error) {
-      const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to fetch dropdown options.";
-      showToast({ message: errorMessage, type: "error" });
-    }
-  };
-
   const fetchSizeRange = async () => {
     try {
       setLoading(true);
@@ -133,6 +85,55 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       showToast({ message: errorMessage, type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSizeAndScheduleOptions = async (projectId: string) => {
+    try {
+      const payload = { projectId };
+      const sizeResponse = await api.post(
+        configApi.API_URL.sizes.getall,
+        payload
+      );
+      const scheduleResponse = await api.post(
+        configApi.API_URL.schedules.getall,
+        payload
+      );
+
+      if (sizeResponse.data.success && scheduleResponse.data.success) {
+        const existingSizeValues = sizeRanges.map((range) => range.sizeValue);
+      const sizes = sizeResponse.data.sizes
+      .filter((size:Size) => !existingSizeValues.includes(size.size1_size2))
+        .map((size: Size) => ({
+          value: size.size1_size2,
+          label: size.size1_size2,
+          size_mm: size.size_mm,
+        }))
+        .sort(
+          (a: { size_mm: number }, b: { size_mm: number }) =>
+            a.size_mm - b.size_mm
+        );
+
+        const schedules = scheduleResponse.data.schedules
+          .map((schedule: Schedule) => ({
+            value: schedule.code,
+            label: schedule.sch1_sch2,
+            arrange_od: schedule.arrange_od,
+          }))
+          .sort(
+            (a: { arrange_od: number }, b: { arrange_od: number }) =>
+              a.arrange_od - b.arrange_od
+          );
+        setSizeOptions(sizes);
+        setScheduleOptions(schedules);
+      } else {
+        throw new Error("Failed to fetch options");
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Failed to fetch dropdown options.";
+      showToast({ message: errorMessage, type: "error" });
     }
   };
 
@@ -226,31 +227,46 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const handleEdit = async (
     key: number | string,
     dataIndex: keyof SizeRange,
-    value: string
+    value: string | number
   ) => {
+    
+    const isDuplicate =
+    dataIndex === "sizeValue" &&
+    sizeRanges.some(
+      (range) => range.sizeValue === value && range.key !== key
+    );
+
+  if (isDuplicate) {
+    message.error("This size already exists in the table.");
+    return; // Exit the function early if a duplicate is found
+  }
+
     const updatedSizeRange = sizeRanges.find((range) => range.key === key);
-    const schedule = scheduleOptions.find((schedule) => schedule.label === value);
+    const schedule = scheduleOptions.find(
+      (schedule) => schedule.label === value
+    );
     if (updatedSizeRange) {
       const payload = {
         id: key,
         sizeCode: dataIndex === "sizeValue" ? value : updatedSizeRange.sizeCode,
-        scheduleCode:
-          dataIndex === "scheduleValue" && schedule?.value,
+        scheduleCode: dataIndex === "scheduleValue" && schedule?.value,
         specId,
       };
-
+      setSizeRanges((prev) =>
+        prev.map((range) =>
+          range.key === key ? { ...range, [dataIndex]: value } : range
+        )
+      );
       try {
         const response = await api.put(
           configApi.API_URL.sizeranges.update,
           payload
         );
         if (response.data.success) {
-          setSizeRanges((prev) =>
-            prev.map((range) =>
-              range.key === key ? { ...range, [dataIndex]: value } : range
-            )
-          );
           message.success("Size range updated successfully");
+        } else {
+          fetchSizeRange();
+          message.error("Error updating size range");
         }
       } catch (error) {
         fetchSizeRange();
@@ -272,7 +288,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       record ? record[dataIndex] : ""
     );
     const [initialValue, setInitialValue] = useState(localInputValue);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(dataIndex === "scheduleValue");
 
     useEffect(() => {
       if (record && record[dataIndex] !== localInputValue) {
@@ -280,11 +296,11 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       }
     }, [record, dataIndex]);
 
-    const handleBlur = async () => {
-      if (record && record.key && localInputValue !== initialValue) {
+    const handleBlur = async (value: string | number) => {
+      if (record && record.key && value !== initialValue) {
         try {
-          await handleEdit(record.key, dataIndex, localInputValue as string);
-          setInitialValue(localInputValue);
+          await handleEdit(record.key, dataIndex, value);
+          setInitialValue(value);
         } catch (error) {
           const apiError = error as ApiError;
           const errorMessage =
@@ -293,24 +309,30 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
           showToast({ message: errorMessage, type: "error" });
         }
       }
-      setIsEditing(false);
+      if (dataIndex !== "scheduleValue") {
+        setIsEditing(false);
+      }
     };
+    
 
     const handleDoubleClick = () => {
-      setEditingKey(record?.key);
-      setIsEditing(true);
-      setInitialValue(localInputValue);
+      if (dataIndex !== "scheduleValue") {
+        setEditingKey(record?.key);
+        setIsEditing(true);
+        setInitialValue(localInputValue);
+      }
     };
 
     return (
       <td {...restProps}>
-        {isEditing ? (
+        {isEditing || dataIndex === "scheduleValue" ? (
           dataIndex === "sizeValue" || dataIndex === "scheduleValue" ? (
             <Select
               value={localInputValue}
-              onChange={(value) => setLocalInputValue(value)}
-              onBlur={handleBlur}
-              autoFocus
+              onChange={(value) => {
+                setLocalInputValue(value);
+                handleBlur(value); // Pass the value to the handleBlur logic.
+              }}
               style={{ width: "100%" }}
               showSearch
             >
@@ -325,9 +347,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
           ) : (
             <Input
               value={localInputValue}
-              onChange={(e) => setLocalInputValue(e.target.value)}
-              onBlur={handleBlur}
-              autoFocus
+              onChange={(e) => {setLocalInputValue(e.target.value); handleBlur(e.target.value)}}
               style={{ width: "100%" }}
             />
           )

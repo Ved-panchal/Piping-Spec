@@ -57,7 +57,7 @@ const CatRefConfiguration: React.FC = () => {
     rating: string
   ): string => {
     const formattedRating = rating || "";
-    return `${itemShortDesc}${rating? '-' : ''}${formattedRating}`;
+    return `${itemShortDesc}+'-'+${rating ? '-' : ''}${formattedRating}`;
   };
 
   // Fetch Component Description function

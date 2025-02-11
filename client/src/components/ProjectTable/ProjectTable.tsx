@@ -16,7 +16,7 @@ interface ProjectTableProps {
   setIsModalOpen: (isOpen: boolean) => void;
   setSelectedProject: (project: ProjectFormValues | null) => void;
   setProjectList: (projectlist: Project[]) => void;
-  onProjectClick: (projectId: string) => void;
+  onProjectClick: (projectId: string,projectCode: string) => void;
 }
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -159,7 +159,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             </thead>
             <tbody>
               {filteredProjects.map((project) => (
-                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id)}>
+                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id,project.projectCode)}>
                   <td className="p-2 w-8">
                     <Folder className="text-gray-600" size={20} />
                   </td>

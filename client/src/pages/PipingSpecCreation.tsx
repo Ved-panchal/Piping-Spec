@@ -59,7 +59,8 @@ const PipingSpecCreation = () => {
     setIsModalOpen(false);
   };
 
-  const handleProjectClick = (projectId: string) => {
+  const handleProjectClick = (projectId: string,projectCode: string) => {
+    localStorage.setItem('projectCode', projectCode);
     setSelectedProjectId(projectId); // Set the selected project ID when clicking on a project
     localStorage.setItem('currentProjectId', projectId); // Save the selected project ID to localStorage
   };
