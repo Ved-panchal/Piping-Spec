@@ -393,11 +393,18 @@ const ComponentConfiguration: React.FC = () => {
   return (
     <div>
       <h1>Component Configuration</h1>
-      <Form layout="inline" style={{ marginBottom: '20px', marginTop: '10px' }}>
-        <Form.Item>
+      <Form layout="vertical" className="mb-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Component<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
             placeholder="Select a component"
-            style={{ width: '10rem', marginBottom: '1rem' }}
+            className="w-full"
             onChange={handleComponentChange}
             options={componentsList.map((component) => ({
               value: component.id,
@@ -405,60 +412,112 @@ const ComponentConfiguration: React.FC = () => {
             }))}
           />
         </Form.Item>
-        <Form.Item>
+
+        {/* Description field spans 2 columns */}
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Description<span className="text-red-500"> *</span>
+            </span>
+          }
+          className="lg:col-span-2"
+        >
           <Input
             placeholder="Description"
+            className="w-full"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Code"
+            className="w-full"
             value={newCode}
             onChange={(e) => setNewCode(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Client Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Client Code"
+            className="w-full"
             value={newClientCode}
             onChange={(e) => setNewClientCode(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              G Type<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
             placeholder="Select a G Type"
-            style={{ width: '10rem', marginBottom: '1rem' }}
+            className="w-full"
             value={newGType}
             onChange={(value) => setNewGType(value)}
             options={GTypeList.map((type) => ({ value: type, label: type }))}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              S Type<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="S Type"
+            className="w-full"
             value={newSType}
             onChange={(e) => setNewSType(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Short Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Short Code"
+            className="w-full"
             value={newShortCode}
             onChange={(e) => setNewShortCode(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <div className="flex items-center mt-[0.30rem]">
           <Button
             type="primary"
             onClick={handleAddComponentDesc}
             loading={buttonLoading}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
           >
             Add Data
           </Button>
-        </Form.Item>
-      </Form>
+        </div>
+      </div>
+    </Form>
 
       {loading ? (
         <Spin />

@@ -489,22 +489,35 @@ const SpecsCreation: React.FC = () => {
     <div>
       <h1>Specs Creation</h1>
 
-      <Form layout="inline" style={{ marginBottom: "20px", marginTop: "10px" }}>
-        <Form.Item style={{ marginRight: "10px" }}>
+      <Form layout="vertical" className="mb-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Spec Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
+            placeholder="Enter Spec Code"
+            className="w-full"
             value={newspecName}
             onChange={(e) => setNewspecName(e.target.value)}
-            placeholder="Enter Spec Code"
-            style={{ width: "180px" }}
           />
         </Form.Item>
 
-        <Form.Item style={{ marginRight: "10px" }}>
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Rating<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
             value={newRating}
             onChange={(value) => setNewRating(value)}
             placeholder="-Select-"
-            style={{ width: "180px" }}
+            className="w-full"
           >
             {ratingOptions.map((option) => (
               <Option key={option} value={option}>
@@ -514,36 +527,24 @@ const SpecsCreation: React.FC = () => {
           </Select>
         </Form.Item>
 
-        <Form.Item style={{ marginRight: "10px" }}>
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Base Material<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
             value={newBaseMaterial}
             onChange={(value) => setNewBaseMaterial(value)}
             placeholder="-Base Material-"
-            style={{ width: "180px" }}
+            className="w-full"
           >
             {[
-              "CA",
-              "CS",
-              "CS-NACE",
-              "CSGLV",
-              "CUNI",
-              "DD",
-              "DD-NACE",
-              "GRE",
-              "INC",
-              "INC-NACE",
-              "LTCS",
-              "LTCS-NACE",
-              "NM",
-              "RB",
-              "SA",
-              "SA-NACE",
-              "SAGLV",
-              "SD",
-              "SD-NACE",
-              "SI",
-              "SS",
-              "SS-NACE",
+              "CA", "CS", "CS-NACE", "CSGLV", "CUNI", "DD", "DD-NACE", 
+              "GRE", "INC", "INC-NACE", "LTCS", "LTCS-NACE", "NM", 
+              "RB", "SA", "SA-NACE", "SAGLV", "SD", "SD-NACE", "SI", 
+              "SS", "SS-NACE"
             ].map((option) => (
               <Option key={option} value={option}>
                 {option}
@@ -553,12 +554,18 @@ const SpecsCreation: React.FC = () => {
         </Form.Item>
 
         {isCopyMode && (
-          <Form.Item style={{ marginRight: "10px", width: "200px" }}>
+          <Form.Item
+            label={
+              <span className="text-white font-semibold">
+                Copy From<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
             <Select
               value={selectedSpecToCopy}
               onChange={handleSpecSelect}
               placeholder="Select spec to copy from"
-              style={{ width: "100%" }}
+              className="w-full"
             >
               {specs.map((spec) => (
                 <Option key={spec.key} value={spec.key}>
@@ -569,22 +576,29 @@ const SpecsCreation: React.FC = () => {
           </Form.Item>
         )}
 
-        <Form.Item style={{ marginRight: "10px" }}>
-          <Checkbox
-            className="text-white font-semibold"
-            checked={isCopyMode}
-            onChange={(e) => setIsCopyMode(e.target.checked)}
-          >
-            Copy Existing Spec
-          </Checkbox>
-        </Form.Item>
+        <div className="flex items-center mt-1">
+          <Form.Item className="mb-0">
+            <Checkbox
+              className="text-white font-semibold mr-4"
+              checked={isCopyMode}
+              onChange={(e) => setIsCopyMode(e.target.checked)}
+            >
+              Copy Existing Spec
+            </Checkbox>
+          </Form.Item>
 
-        <Form.Item>
-          <Button type="primary" onClick={handleAddSpec}>
-            {isCopyMode ? "Copy Existing Spec" : "Add Spec"}
-          </Button>
-        </Form.Item>
-      </Form>
+          <Form.Item className="mb-0">
+            <Button
+              type="primary"
+              onClick={handleAddSpec}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+            >
+              {isCopyMode ? "Copy Existing Spec" : "Add Spec"}
+            </Button>
+          </Form.Item>
+        </div>
+      </div>
+    </Form>
 
       <Table
         dataSource={specs}

@@ -376,55 +376,84 @@ const ScheduleConfiguration: React.FC = () => {
       <h1>Schedule Configuration</h1>
 
       {/* Form section */}
-      <Form layout="inline" style={{ marginBottom: '20px', marginTop: '10px' }}>
-        <Form.Item style={{ marginRight: '10px' }}>
+      <Form layout="vertical" className="mb-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Schedule<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
+            placeholder="Schedule 1/Schedule 2 Enter schedule"
+            className="w-full"
             value={newSch}
             onChange={(e) => setNewSch(e.target.value)}
-            placeholder="Schedule 1/Schedule 2 Enter schedule"
-            style={{ width: '180px' }} // Adjust width to match the required size
             onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
-        <Form.Item style={{ marginRight: '10px' }}>
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
+            placeholder="Enter code"
+            className="w-full"
             value={newCode}
             onChange={(e) => setNewCode(e.target.value)}
-            placeholder="Enter code"
-            style={{ width: '180px' }} // Adjust width to match the required size
             onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
-        <Form.Item style={{ marginRight: '10px' }}>
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Client Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
+            placeholder="Enter client code"
+            className="w-full"
             value={newCCode}
             onChange={(e) => setNewCCode(e.target.value)}
-            placeholder="Enter client code"
-            style={{ width: '180px' }} // Adjust width to match the required size
             onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
-        <Form.Item style={{ marginRight: '10px' }}>
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Description<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
+            placeholder="Enter description"
+            className="w-full"
             value={newSchDesc}
             onChange={(e) => setNewSchDesc(e.target.value)}
-            placeholder="Enter description"
-            style={{ width: '180px' }} // Adjust width to match the required size
             onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
           />
         </Form.Item>
 
-        <Form.Item>
-          <Button type="primary" onClick={handleAddSchedule} disabled={buttonLoading}>
-            {
-              buttonLoading ? <Spin /> : "Add Schedule"
-            }
+        <div className="flex items-center mt-1">
+          <Button
+            type="primary"
+            onClick={handleAddSchedule}
+            disabled={buttonLoading}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+          >
+            {buttonLoading ? <Spin /> : "Add Schedule"}
           </Button>
-        </Form.Item>
-      </Form>
+        </div>
+      </div>
+    </Form>
 
 
       {/* Table section */}

@@ -451,11 +451,18 @@ const CatRefConfiguration: React.FC = () => {
   return (
     <div>
       <h1>CatRef Configuration</h1>
-      <Form layout="inline" style={{ marginBottom: "20px", marginTop: "10px" }}>
-        <Form.Item>
+      <Form layout="vertical" className="mb-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Component<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
             placeholder="Select a component"
-            style={{ width: "10rem", marginBottom: "1rem" }}
+            className="w-full"
             onChange={handleComponentChange}
             options={componentsList.map((component) => ({
               value: component.id,
@@ -463,42 +470,68 @@ const CatRefConfiguration: React.FC = () => {
             }))}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Item Description<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Select
-             placeholder="Select a Item Description"
-             style={{ width: "15rem", marginBottom: "1rem" }}
-             onChange={(value) => setNewItemShortDesc(value)}
-             options={componentDesc.map((desc) => ({
+            placeholder="Select a Item Description"
+            className="w-full"
+            onChange={(value) => setNewItemShortDesc(value)}
+            options={componentDesc.map((desc) => ({
               value: desc.itemDescription,
               label: `${desc.code} - ${desc.itemDescription}`,
-             }))}
+            }))}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Rating<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Rating"
+            className="w-full"
             value={newRating}
             onChange={(e) => setNewRating(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Catalog<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Catalog"
+            className="w-full"
             value={newCatalog}
             onChange={(e) => setNewCatalog(e.target.value)}
           />
         </Form.Item>
-        <Form.Item>
+
+        <div className="flex items-center mt-1">
           <Button
             type="primary"
             onClick={handleAddCatRefData}
             loading={buttonLoading}
-            disabled={!selectedComponentId || !newItemShortDesc} // Added this line
+            disabled={!selectedComponentId || !newItemShortDesc}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
           >
             Add CatRef
           </Button>
-        </Form.Item>
-      </Form>
+        </div>
+      </div>
+    </Form>
       <Table
         columns={columns}
         pagination={false}

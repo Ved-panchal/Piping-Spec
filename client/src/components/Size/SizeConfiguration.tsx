@@ -436,56 +436,105 @@ const SizeConfiguration: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Size Configuration</h2>
-      <Form className="gap-2" layout="inline" style={{ marginBottom: "10px", marginTop: "10px" }}>
-        <Form.Item>
+      <Form layout="vertical" className="mb-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Size1_Size2<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Size1_Size2"
+            className="w-full"
             value={newSize1_2}
             onChange={(e) => setNewSize1_2(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Code"
+            className="w-full"
             value={newSizeCode}
             onChange={(e) => setNewSizeCode(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Client Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Client Code"
+            className="w-full"
             value={newSizeCCode}
             onChange={(e) => setNewSizeCCode(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Size (Inches)<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Size (Inches)"
+            className="w-full"
             value={newSizeInch}
             onChange={(e) => setNewSizeInch(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Size (mm)<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Size (mm)"
+            className="w-full"
             value={newSizeMm}
             onChange={(e) => setNewSizeMm(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Outer Diameter (OD)<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Outer Diameter (OD)"
+            className="w-full"
             value={newSizeOd}
             onChange={(e) => setNewSizeOd(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddSize()}
           />
         </Form.Item>
-      </Form>
+      </div>
+    </Form>
 
       {/* Centered button */}
       <div className="mb-[15px] flex justify-center">

@@ -334,42 +334,68 @@ const RatingConfiguration: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Rating Configuration</h2>
-      <Form layout="inline" style={{ marginBottom: "20px", marginTop: "10px" }}>
-        <Form.Item>
+      <Form layout="vertical" className=" mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Rating Value<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Rating Value (e.g., 100#)"
+            className="w-full"
             value={newRatingValue}
             onChange={(e) => setNewRatingValue(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Rating Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Rating Code (A-Z, a-z, 0-9)"
+            className="w-full"
             value={newRatingCode}
             onChange={(e) => setNewRatingCode(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-white font-semibold">
+              Client Rating Code<span className="text-red-500"> *</span>
+            </span>
+          }
+        >
           <Input
             placeholder="Client Rating Code (A-Z, a-z, 0-9)"
+            className="w-full"
             value={newCRatingCode}
             onChange={(e) => setNewCRatingCode(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
           />
         </Form.Item>
-        <Form.Item>
+
+        <div className="flex items-center mt-1">
           <Button
             type="primary"
             onClick={handleAddRating}
-            // loading={buttonLoading}
             disabled={buttonLoading}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
           >
             {buttonLoading ? <Spin /> : "Add Rating"}
           </Button>
-        </Form.Item>
-      </Form>
+        </div>
+      </div>
+    </Form>
       <div style={{ color: "grey", fontSize: "12px", marginBottom: "10px" }}>
         Rating Code can only include A-Z, a-z, 0-9. Rating Value must end with #.
       </div>

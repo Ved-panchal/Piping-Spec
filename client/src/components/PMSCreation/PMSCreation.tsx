@@ -1182,113 +1182,161 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   return (
     <div style={{ padding: "20px", maxWidth: "80vw" }}>
       <h2>PMS Creation</h2>
-      <Form layout="vertical" style={{ marginBottom: "20px" }}>
-        <Row gutter={16}>
-          {/* First Row with Comp Type and Item Description */}
-          <Col span={8}>
-            <Form.Item>
-              <Select
-                placeholder="Comp Type"
-                value={newItem.compType}
-                onChange={handleCompTypeChange}
-                options={dropdownData.compType}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={16}>
-            <Form.Item>
-              <Select
-                placeholder="Item Description"
-                value={newItem.itemDescription}
-                onChange={handleComponentDescChange}
-                options={dropdownData.itemDescription.map(
-                  ({ label, value }) => ({ label, value })
-                )}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+      <Form layout="vertical" className="mb-6 mt-5">
+      {/* First Row */}
+      <Row gutter={16}>
+        <Col span={8}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Component Type<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Comp Type"
+              value={newItem.compType}
+              onChange={handleCompTypeChange}
+              options={dropdownData.compType}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+        <Col span={16}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Item Description<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Item Description"
+              value={newItem.itemDescription}
+              onChange={handleComponentDescChange}
+              options={dropdownData.itemDescription.map(
+                ({ label, value }) => ({ label, value })
+              )}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+      </Row>
 
-
-        {/* Second Row with other inputs */}
-        <Row gutter={16}>
+      {/* Second Row */}
+      <Row gutter={16}>
+        <Col span={4}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Size-1<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Size-1"
+              value={newItem.size1}
+              onChange={(value) => handleSizeChange("size1", value)}
+              options={dropdownData.size1}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+        <Col span={4}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Size-2<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Size-2"
+              value={newItem.size2}
+              onChange={(value) => handleSizeChange("size2", value)}
+              options={dropdownData.size2}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+        {showRatingDropdown && (
           <Col span={4}>
-            <Form.Item>
+            <Form.Item
+              label={
+                <span className="text-black ">
+                  Rating<span className="text-red-500"> *</span>
+                </span>
+              }
+            >
               <Select
-                placeholder="Size-1"
-                value={newItem.size1}
-                onChange={(value) => handleSizeChange("size1", value)}
-                options={dropdownData.size1}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={4}>
-            <Form.Item>
-              <Select
-                placeholder="Size-2"
-                value={newItem.size2}
-                onChange={(value) => handleSizeChange("size2", value)}
-                options={dropdownData.size2}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-          {showRatingDropdown && (
-            <Col span={4}>
-              <Form.Item>
-                <Select
-                  placeholder="Rating"
-                  value={newItem.rating}
-                  onChange={(value) =>
-                    setNewItem({ ...newItem, rating: value })
-                  }
-                  options={dropdownData.rating}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-          )}
-          <Col span={6}>
-            <Form.Item>
-              <Select
-                placeholder="Material"
-                value={newItem.material}
+                placeholder="Rating"
+                value={newItem.rating}
                 onChange={(value) =>
-                  setNewItem({ ...newItem, material: value })
+                  setNewItem({ ...newItem, rating: value })
                 }
-                options={dropdownData.material}
-                style={{ width: "100%" }}
+                options={dropdownData.rating}
+                className="w-full"
               />
             </Form.Item>
           </Col>
-          <Col span={4}>
-            <Form.Item>
-              <Checkbox
-                checked={isAllMaterial}
-                onChange={handleAllMaterialChange}
-              >
-                All Material
-              </Checkbox>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item>
-              <Select
-                placeholder="Dimensional Standard"
-                value={newItem.dimensionalStandard}
-                onChange={(value) =>
-                  setNewItem({ ...newItem, dimensionalStandard: value })
-                }
-                options={dropdownData.dimensionalStandard}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
+        )}
+        <Col span={6}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Material<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Material"
+              value={newItem.material}
+              onChange={(value) =>
+                setNewItem({ ...newItem, material: value })
+              }
+              options={dropdownData.material}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+        <Col span={4}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                &nbsp;
+              </span>
+            }
+          >
+            <Checkbox
+              checked={isAllMaterial}
+              onChange={handleAllMaterialChange}
+              className="text-black  mt-2"
+            >
+              All Material
+            </Checkbox>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            label={
+              <span className="text-black ">
+                Dimensional Standard<span className="text-red-500"> *</span>
+              </span>
+            }
+          >
+            <Select
+              placeholder="Dimensional Standard"
+              value={newItem.dimensionalStandard}
+              onChange={(value) =>
+                setNewItem({ ...newItem, dimensionalStandard: value })
+              }
+              options={dropdownData.dimensionalStandard}
+              className="w-full"
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+    </Form>
 
       <div className="flex justify-between items-center mt-4">
         <Button 

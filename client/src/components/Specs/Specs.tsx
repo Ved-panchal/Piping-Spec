@@ -52,7 +52,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
             </div>
 
             {/* Right Panel - Main Content */}
-            <div className="w-full bg-transparent p-6 border-l-2 border-[#1d3650] rounded-md scrollable-container">
+            <div className="w-full bg-transparent h-full p-6 border-l-2 border-[#1d3650] rounded-md scrollable-container">
                 {activeComponent === 0 && <div className="text-lg text-white"><PmsInputSelector projectId={projectId}/></div>}
                 {activeComponent === 1 && <div className="text-lg text-white"><SpecsCreation/></div>}
                 {activeComponent === 2 && <div className="text-lg text-white"><ComponentConfiguration/></div>}

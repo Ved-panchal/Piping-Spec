@@ -5,7 +5,7 @@
 /* Custom Scrollbar for the specific container */
 .scrollable-container {
     overflow-y: auto; /* Enable vertical scrolling */
-    max-height: 80vh; /* Set maximum height for the scrollable area */
+    max-height: 85vh; /* Set maximum height for the scrollable area */
 }
 
 /* Custom Scrollbar Styles */
