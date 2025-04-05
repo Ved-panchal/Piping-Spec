@@ -68,10 +68,10 @@ DimensionalStandard.associate({Component});
 const db = {
     sequelize,
     User,
-    Spec,
     Project,
-    Subscription,
     Plan,
+    Subscription,
+    Spec,
     SizeRange,
     Branch,
     DimensionalStandard,

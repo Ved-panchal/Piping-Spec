@@ -31,7 +31,7 @@ const projectModel = (sequelize: any) => {
       userId: {
         type: DataTypes.INTEGER,
         references: {
-          model: userModel(sequelize),
+          model: 'user',
           key: 'id',
         },
         allowNull: false,
