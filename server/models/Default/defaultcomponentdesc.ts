@@ -8,7 +8,7 @@ const defaultComponentModel = (sequelize: any) => {
     component_id: {
         type: DataTypes.INTEGER,
             references: {
-                model: "component",
+                model: "components",
                 key: "id",
             },
             onDelete: "CASCADE",

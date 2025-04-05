@@ -1,5 +1,5 @@
 // models/index.ts
-import { Sequelize } from "sequelize";
+import { Model, Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import userModel from './usermodel';
 import projectModel from "./projectmodel";
@@ -95,6 +95,10 @@ const db = {
 
 const syncDatabase = async () => {
     try {
+        await db.User.sync();
+        await db.Project.sync();
+        await db.Spec.sync();
+        // await db.User.sync();
         await sequelize.sync();
         console.log('Database & tables created!');
     } catch (error) {

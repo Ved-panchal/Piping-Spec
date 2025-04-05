@@ -31,7 +31,7 @@ const specModel = (sequelize: any) => {
       projectId: {
         type: DataTypes.INTEGER,
         references: {
-          model: 'project', // Use the model name string
+          model: 'projects', // Use the model name string
           key: 'id',
         },
         allowNull: false,
