@@ -23,7 +23,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         if (!user) {
             res.json({
                 success: false,
-                error: "Invalid credentials",
+                error: "User is not exist",
                 status: "400"
             });
             return;
