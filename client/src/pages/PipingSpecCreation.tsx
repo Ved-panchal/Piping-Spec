@@ -13,6 +13,7 @@ import { Project, ProjectFormValues } from '../utils/interface';
 
 const PipingSpecCreation = () => {
   const [projectlist, setProjectList] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Project; direction: 'ascending' | 'descending' } | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectFormValues | null>(null);
@@ -65,6 +66,8 @@ const PipingSpecCreation = () => {
     localStorage.setItem('currentProjectId', projectId); // Save the selected project ID to localStorage
   };
 
+  useEffect(() => {
+    if(projectlist) {
   const sortedProjects = [...projectlist].sort((a, b) => {
     if (!sortConfig) return 0;
     if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -76,11 +79,15 @@ const PipingSpecCreation = () => {
     return 0;
   });
 
-  const filteredProjects = sortedProjects.filter((project) =>
+    setFilteredProjects(sortedProjects.filter((project) =>
     project.projectDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
     project.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     project.projectCode.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    ))
+  }
+  },[projectlist])
+
+  
 
   return (
     <div className="p-6">

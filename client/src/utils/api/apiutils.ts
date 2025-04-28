@@ -28,8 +28,8 @@ api.interceptors.response.use(
             console.log(error.response)
             if (error.response.data['detail'] === "Invalid credentials") {
                 localStorage.setItem('Failed', 'true');
-                window.location.href = '/';
             }
+            window.location.href = '/';
         }
         return Promise.reject(error);
     }

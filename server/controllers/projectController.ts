@@ -127,7 +127,7 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
           await subscription.update({ NoofProjects: subscription.NoofProjects + 1 });
       }
 
-      await project.update({ isDeleted: true });
+      await project.destroy();
 
       res.json({ success: true, message: "Project deleted successfully.", status: 200 });
   } catch (error: unknown) {
