@@ -43,7 +43,7 @@ const UserDropDown: React.FC<UserDropDownProps> = ({ username }) => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={toggleDropdown}
-        className="text-gray-700 hover:text-gray-900 focus:outline-none"
+        className="text-gray-700 font-semibold hover:text-gray-900 focus:outline-none"
       >
         Welcome, {username}
       </button>

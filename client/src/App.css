@@ -1,4 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 *{
   margin: 0;
   padding: 0;
+}
+/* Add these styles to your global CSS file or create a new theme.css file and import it */
+
+
+/* Apply the font to everything */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f9fa;
+  color: #374151;
+}
+
+/* Override button, input, and other element styles to match design */
+button, input, select, textarea {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Customize focus states */
+*:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
+}
+
+/* Create consistent shadows */
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Style tooltip consistently */
+.tooltip {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 50;
+}
+
+.group:hover .tooltip {
+  opacity: 1;
+}
+
+/* Customize scrollbars to match theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
 }

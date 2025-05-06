@@ -1,22 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from "react";
-import {
-  Table,
-  Button,
-  Form,
-  Select,
-  message,
-  Checkbox,
-  Row,
-  Col,
-  Popconfirm,
-  Tooltip,
-} from "antd";
-import { ColumnsType } from "antd/es/table";
-import api from "../../utils/api/apiutils";
-import { api as configApi } from "../../utils/api/config";
-import showToast from "../../utils/toast";
 import {
   ApiError,
   Component,
@@ -32,8 +15,31 @@ import {
   SizeToScheduleMap,
 } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
-import {Trash2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Table,
+  Button,
+  Form,
+  Select,
+  message,
+  Checkbox,
+  Row,
+  Col,
+  Popconfirm,
+  Tooltip,
+  Card,
+  Divider,
+  Typography,
+  Badge,
+} from "antd";
+import { ColumnsType } from "antd/es/table";
+import { Trash2, Plus, FileOutput, Edit2 } from "lucide-react";
 import ReviewOutputModal from "../ReviewOutputModal/ReviewOutputModal";
+import api from "../../utils/api/apiutils";
+import { api as configApi } from "../../utils/api/config";
+import showToast from "../../utils/toast";
+
+const { Title, Text } = Typography;
 
 interface DropdownDataState {
   compType: DropdownOption[];
@@ -56,17 +62,17 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [sizes, setSizes] = useState<Size[]>([]);
   const [, setSchedules] = useState<Schedule[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [reviewData,setReviewData] = useState([]);
+  const [reviewData, setReviewData] = useState([]);
 
   const [dropdownData, setDropdownData] = useState<DropdownDataState>({
     compType: [],
-    itemDescription:[],
-    size1: [] ,
-    size2: [] ,
-    rating: [] ,
-    material: [] ,
+    itemDescription: [],
+    size1: [],
+    size2: [],
+    rating: [],
+    material: [],
     dimensionalStandard: [],
-    sizeToScheduleMap:{},
+    sizeToScheduleMap: {},
   });
 
   const [editingCell, setEditingCell] = useState<{
@@ -83,9 +89,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       minWidth: "150px",
       maxWidth: "400px",
     },
-    dropdownlarge:{
-      minWidth:"200px",
-      maxWidth:"500px",
+    dropdownlarge: {
+      minWidth: "200px",
+      maxWidth: "500px",
     },
   };
 
@@ -100,10 +106,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     const projectId = localStorage.getItem("currentProjectId");
 
     fetchSizeRanges(),
-    fetchComponents(),
-    fetchSizes(projectId!),
-    fetchSchedules(projectId!),
-    fetchRatings(projectId!);
+      fetchComponents(),
+      fetchSizes(projectId!),
+      fetchSchedules(projectId!),
+      fetchRatings(projectId!);
     fetchPMSItems(specId);
   }, [specId]);
 
@@ -125,8 +131,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           rating: item.rating_value || "X",
           material: item.material_value,
           dimensionalStandard: item.dimensional_standard_value,
-        }))
-  
+        }));
+
         setItems(mappedItems);
       } else {
         showToast({ message: "Failed to fetch PMS items", type: "error" });
@@ -292,7 +298,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             key: size.code,
             c_code: size.c_code,
           }))
-          .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
+          .sort(
+            (a: { size_mm: number }, b: { size_mm: number }) =>
+              a.size_mm - b.size_mm
+          );
         setSizes(sizesWithKeys);
       }
     } catch (error) {
@@ -406,9 +415,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           ...prevData,
           rating: [
             {
-              label: 'X',
-              value: 'X',
-              c_code: 'X'
+              label: "X",
+              value: "X",
+              c_code: "X",
             },
             ...response.data.ratings.map((item: Rating) => ({
               label: item.ratingValue,
@@ -461,11 +470,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     return sizeValues.slice(startIndex, endIndex + 1);
   };
 
-  const validateScheduleConsistency = (sizeRange: string[], componentType: string) => {
+  const validateScheduleConsistency = (
+    sizeRange: string[],
+    componentType: string
+  ) => {
     // If component is not PIPE, return the first schedule directly
     if (componentType !== "PIPE") {
-        const firstSizeSchedules = dropdownData.sizeToScheduleMap[sizeRange[0]];
-        return firstSizeSchedules?.[0] || null;
+      const firstSizeSchedules = dropdownData.sizeToScheduleMap[sizeRange[0]];
+      return firstSizeSchedules?.[0] || null;
     }
 
     // For PIPE components, perform the existing consistency check
@@ -495,33 +507,57 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const isDuplicateItem = (newItemData: Partial<PMSItem>) => {
-    return items.some(item => {
+    return items.some((item) => {
       // Check for matching component type and description
-      const componentMatch = item.compType === dropdownData.compType.find(c => c.value === newItemData.compType)?.label;
-      const descMatch = item.itemDescription === dropdownData.itemDescription.find(d => d.value === newItemData.itemDescription)?.label;
-      
-      // Find selected sizes
-      const selectedSize1 = sizes.find(s => s.code === newItemData.size1)?.size1_size2;
-      const selectedSize2 = sizes.find(s => s.code === newItemData.size2)?.size1_size2;
-      
-      // Check for matching sizes
-      const sizesMatch = item.size1 === selectedSize1 && item.size2 === selectedSize2;
-      
-      // Find selected material
-      const materialMatch = item.material === dropdownData.material.find(m => m.value === newItemData.material)?.label;
-      
-      // Find selected rating
-      const selectedRating = newItemData.rating 
-        ? dropdownData.rating.find(r => r.value === newItemData.rating)?.label 
-        : 'X';
-      const ratingMatch = item.rating === selectedRating;
-      
-      // Find selected dimensional standard
-      const dimensionalStandardMatch = item.dimensionalStandard === dropdownData.dimensionalStandard.find(
-        d => d.value === newItemData.dimensionalStandard
-      )?.label;
+      const componentMatch =
+        item.compType ===
+        dropdownData.compType.find((c) => c.value === newItemData.compType)
+          ?.label;
+      const descMatch =
+        item.itemDescription ===
+        dropdownData.itemDescription.find(
+          (d) => d.value === newItemData.itemDescription
+        )?.label;
 
-      return componentMatch && descMatch && sizesMatch && materialMatch && ratingMatch && dimensionalStandardMatch;
+      // Find selected sizes
+      const selectedSize1 = sizes.find(
+        (s) => s.code === newItemData.size1
+      )?.size1_size2;
+      const selectedSize2 = sizes.find(
+        (s) => s.code === newItemData.size2
+      )?.size1_size2;
+
+      // Check for matching sizes
+      const sizesMatch =
+        item.size1 === selectedSize1 && item.size2 === selectedSize2;
+
+      // Find selected material
+      const materialMatch =
+        item.material ===
+        dropdownData.material.find((m) => m.value === newItemData.material)
+          ?.label;
+
+      // Find selected rating
+      const selectedRating = newItemData.rating
+        ? dropdownData.rating.find((r) => r.value === newItemData.rating)?.label
+        : "X";
+      const ratingMatch = item.rating === selectedRating;
+
+      // Find selected dimensional standard
+      const dimensionalStandardMatch =
+        item.dimensionalStandard ===
+        dropdownData.dimensionalStandard.find(
+          (d) => d.value === newItemData.dimensionalStandard
+        )?.label;
+
+      return (
+        componentMatch &&
+        descMatch &&
+        sizesMatch &&
+        materialMatch &&
+        ratingMatch &&
+        dimensionalStandardMatch
+      );
     });
   };
 
@@ -550,7 +586,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
       const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
 
-      const scheduleInfo = validateScheduleConsistency(sizeRange, selectedComponent ? selectedComponent.label : "");
+      const scheduleInfo = validateScheduleConsistency(
+        sizeRange,
+        selectedComponent ? selectedComponent.label : ""
+      );
 
       if (!scheduleInfo) {
         message.error(
@@ -602,7 +641,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       setButtonLoading(false);
     }
   };
-
 
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem("currentProjectId") || "";
@@ -671,18 +709,21 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  const handleCellDoubleClick = async (record: PMSItem, dataIndex: keyof PMSItem) => {
+  const handleCellDoubleClick = async (
+    record: PMSItem,
+    dataIndex: keyof PMSItem
+  ) => {
     setEditingCell({
       key: record.key,
       dataIndex,
       value: record[dataIndex],
-      originalRecord: record
+      originalRecord: record,
     });
 
     // Fetch necessary data for dropdowns
     const projectId = localStorage.getItem("currentProjectId") || "";
-    
-    switch(dataIndex) {
+
+    switch (dataIndex) {
       case "compType":
         await fetchComponents();
         break;
@@ -715,24 +756,28 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     let updatePayload: any = {
       id: editingCell.key,
       specId,
-      editingCell: dataIndex
+      editingCell: dataIndex,
     };
-    switch(dataIndex) {
+    switch (dataIndex) {
       case "compType": {
-        const selectedComp = dropdownData.compType.find(item => item.value === value);
-        if(selectedComp?.label === originalRecord.compType) return;
+        const selectedComp = dropdownData.compType.find(
+          (item) => item.value === value
+        );
+        if (selectedComp?.label === originalRecord.compType) return;
         updatePayload = {
           ...updatePayload,
           component: {
             Value: selectedComp?.label,
-            Code: selectedComp?.value
-          }
+            Code: selectedComp?.value,
+          },
         };
         break;
       }
       case "itemDescription": {
-        const selectedDesc = dropdownData.itemDescription.find(item => item.value === value);
-        if(selectedDesc?.label === originalRecord.itemDescription) return;
+        const selectedDesc = dropdownData.itemDescription.find(
+          (item) => item.value === value
+        );
+        if (selectedDesc?.label === originalRecord.itemDescription) return;
         updatePayload = {
           ...updatePayload,
           componentDesc: {
@@ -740,54 +785,60 @@ const PMSCreation = ({ specId }: { specId: string }) => {
             code: value,
             clientCode: selectedDesc?.c_code,
             gType: selectedDesc?.g_type,
-            sType: selectedDesc?.s_type
-          }
+            sType: selectedDesc?.s_type,
+          },
         };
         break;
       }
       case "material": {
-        const selectedMaterial = dropdownData.material.find(item => item.value === value);
-        if(selectedMaterial?.label === originalRecord.material) return;
+        const selectedMaterial = dropdownData.material.find(
+          (item) => item.value === value
+        );
+        if (selectedMaterial?.label === originalRecord.material) return;
         updatePayload = {
           ...updatePayload,
           material: {
             value: selectedMaterial?.label,
             code: selectedMaterial?.value,
-            clientCode: selectedMaterial?.c_code
-          }
+            clientCode: selectedMaterial?.c_code,
+          },
         };
         break;
       }
       case "dimensionalStandard": {
-        const selectedStandard = dropdownData.dimensionalStandard.find(item => item.value === value);
-        if(selectedStandard?.label === originalRecord.dimensionalStandard)
-        updatePayload = {
-          ...updatePayload,
-          dimensionalStandard: {
-            Value: selectedStandard?.label,
-            id: selectedStandard?.value
-          }
-        };
+        const selectedStandard = dropdownData.dimensionalStandard.find(
+          (item) => item.value === value
+        );
+        if (selectedStandard?.label === originalRecord.dimensionalStandard)
+          updatePayload = {
+            ...updatePayload,
+            dimensionalStandard: {
+              Value: selectedStandard?.label,
+              id: selectedStandard?.value,
+            },
+          };
         break;
       }
       case "rating": {
-        const selectedRating = dropdownData.rating.find(item => item.value === value);
-        if(selectedRating?.label === originalRecord.rating) return;
+        const selectedRating = dropdownData.rating.find(
+          (item) => item.value === value
+        );
+        if (selectedRating?.label === originalRecord.rating) return;
         updatePayload = {
           ...updatePayload,
           rating: {
             value: selectedRating?.label || null,
             code: selectedRating?.value || "X",
-            clientCode: selectedRating?.c_code || "X"
-          }
+            clientCode: selectedRating?.c_code || "X",
+          },
         };
         break;
       }
-      case "size1":{
-        const selectedSize = sizes.find(item => item.code === value);
+      case "size1": {
+        const selectedSize = sizes.find((item) => item.code === value);
         // tomorrow need to sepearte sizes and check weather it is increasing or not.
-        if(selectedSize!.size1_size2 === originalRecord.size1) return;
-        if(selectedSize!.size1_size2 > originalRecord.size2 ){
+        if (selectedSize!.size1_size2 === originalRecord.size1) return;
+        if (selectedSize!.size1_size2 > originalRecord.size2) {
           message.error("Size 1 cannot be greater than Size 2");
           return;
         }
@@ -796,16 +847,16 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           [dataIndex]: {
             value: selectedSize?.size1_size2,
             code: selectedSize?.code,
-            c_code:selectedSize?.code
-          }
+            c_code: selectedSize?.code,
+          },
         };
         break;
       }
       case "size2": {
-        const selectedSize = sizes.find(item => item.code === value);
+        const selectedSize = sizes.find((item) => item.code === value);
         // tomorrow need to sepearte sizes and check weather it is increasing or not.
-        if(selectedSize?.size1_size2 === originalRecord.size2) return;
-        if(selectedSize!.size1_size2 < originalRecord.size1 ){
+        if (selectedSize?.size1_size2 === originalRecord.size2) return;
+        if (selectedSize!.size1_size2 < originalRecord.size1) {
           message.error("Size 2 cannot be lesser than Size 1");
           return;
         }
@@ -814,8 +865,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           [dataIndex]: {
             value: selectedSize?.size1_size2,
             code: selectedSize?.code,
-            c_code:selectedSize?.code
-          }
+            c_code: selectedSize?.code,
+          },
         };
         break;
       }
@@ -879,8 +930,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  const handleGenerateReviewOutput = async() => {
-
+  const handleGenerateReviewOutput = async () => {
     const projectId = localStorage.getItem("currentProjectId") || "";
     try {
       setReviewLoading(true);
@@ -893,7 +943,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         setReviewData(response.data?.data);
       } else {
         message.error("Failed to generate review output");
-      } 
+      }
     } catch (error) {
       const apiError = error as ApiError;
       message.error(apiError.response?.data?.error || "Error adding items");
@@ -904,7 +954,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const transformData = (data: any[]) => {
-    return data.map(item => ({
+    return data.map((item) => ({
       spec: item.spec,
       compType: item.CompType,
       shortCode: item.ShortCode,
@@ -913,26 +963,28 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       itemLongDesc: item.ItemLongDesc,
       itemShortDesc: item.ItemShortDesc,
       size1Inch: formatSize(item.Size1Inch),
-      size2Inch: item.Size2Inch === 'X' ? 0 : formatSize(item.Size2Inch),
+      size2Inch: item.Size2Inch === "X" ? 0 : formatSize(item.Size2Inch),
       size1MM: item.Size1MM,
-      size2MM: item.Size2MM === 'X' ? 0 :item.Size2MM,
+      size2MM: item.Size2MM === "X" ? 0 : item.Size2MM,
       sch1: item.Sch1,
       sch2: item.Sch2,
       rating: item.Rating,
       unitWt: 0, // You'll need to add this if it's required
       gType: item.GType,
       sType: item.SType,
-      catRef: item.Catref 
+      catRef: item.Catref,
     }));
   };
-  
+
   // Helper function to format sizes
   const formatSize = (size: string | number): number => {
-    const parsedSize = typeof size === 'string' ? parseFloat(size.replace(/"/g, '')) : size;
-    
-    return parsedSize % 1 === 0 ? Math.trunc(parsedSize) : parseFloat(parsedSize.toFixed(2));
+    const parsedSize =
+      typeof size === "string" ? parseFloat(size.replace(/"/g, "")) : size;
+
+    return parsedSize % 1 === 0
+      ? Math.trunc(parsedSize)
+      : parseFloat(parsedSize.toFixed(2));
   };
-  
 
   const columns: ColumnsType<PMSItem> = [
     {
@@ -1001,8 +1053,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       }),
       render: (text, record) => {
         const isEditing =
-          editingCell?.key === record.key &&
-          editingCell?.dataIndex === "size1";
+          editingCell?.key === record.key && editingCell?.dataIndex === "size1";
         return isEditing ? (
           <Select
             ref={selectRef}
@@ -1030,8 +1081,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       }),
       render: (text, record) => {
         const isEditing =
-          editingCell?.key === record.key &&
-          editingCell?.dataIndex === "size2";
+          editingCell?.key === record.key && editingCell?.dataIndex === "size2";
         return isEditing ? (
           <Select
             ref={selectRef}
@@ -1056,16 +1106,16 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       key: "schedule",
       width: "7%",
       render: (text, record) => {
-        if (record.compType === 'PIPE') {
+        if (record.compType === "PIPE") {
           return text;
         }
-        
+
         return (
           <Tooltip title="Same as Pipe">
-            <span>M</span>
+            <Badge status="processing" text="M" />
           </Tooltip>
         );
-      }
+      },
     },
     {
       title: "Rating",
@@ -1160,19 +1210,25 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       render: (_, record) => {
         return (
           <div className="flex gap-2">
-              <>
-                <Popconfirm
-                  title="Are you sure you want to delete this item?"
-                  onConfirm={() => handleDelete(record.key)}
-                >
-                  <Button
-                    type="link"
-                    danger
-                    icon={<Trash2 className="w-4 h-4" />}
-                  />
-                </Popconfirm>
-              </>
-            
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                icon={<Edit2 className="w-4 h-4 text-blue-500" />}
+                onClick={() => handleCellDoubleClick(record, "compType")}
+              />
+            </Tooltip>
+            <Tooltip title="Delete">
+              <Popconfirm
+                title="Are you sure you want to delete this item?"
+                onConfirm={() => handleDelete(record.key)}
+              >
+                <Button
+                  type="text"
+                  danger
+                  icon={<Trash2 className="w-4 h-4" />}
+                />
+              </Popconfirm>
+            </Tooltip>
           </div>
         );
       },
@@ -1180,195 +1236,213 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   ];
 
   return (
-    <div style={{ padding: "20px", maxWidth: "80vw" }}>
-      <h2>PMS Creation</h2>
-      <Form layout="vertical" className="mb-6 mt-5">
-      {/* First Row */}
-      <Row gutter={16}>
-        <Col span={8}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Component Type<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Comp Type"
-              value={newItem.compType}
-              onChange={handleCompTypeChange}
-              options={dropdownData.compType}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-        <Col span={16}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Item Description<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Item Description"
-              value={newItem.itemDescription}
-              onChange={handleComponentDescChange}
-              options={dropdownData.itemDescription.map(
-                ({ label, value }) => ({ label, value })
-              )}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      {/* Second Row */}
-      <Row gutter={16}>
-        <Col span={4}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Size-1<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Size-1"
-              value={newItem.size1}
-              onChange={(value) => handleSizeChange("size1", value)}
-              options={dropdownData.size1}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-        <Col span={4}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Size-2<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Size-2"
-              value={newItem.size2}
-              onChange={(value) => handleSizeChange("size2", value)}
-              options={dropdownData.size2}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-        {showRatingDropdown && (
-          <Col span={4}>
-            <Form.Item
-              label={
-                <span className="text-black ">
-                  Rating<span className="text-red-500"> *</span>
-                </span>
-              }
-            >
-              <Select
-                placeholder="Rating"
-                value={newItem.rating}
-                onChange={(value) =>
-                  setNewItem({ ...newItem, rating: value })
-                }
-                options={dropdownData.rating}
-                className="w-full"
-              />
-            </Form.Item>
-          </Col>
-        )}
-        <Col span={6}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Material<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Material"
-              value={newItem.material}
-              onChange={(value) =>
-                setNewItem({ ...newItem, material: value })
-              }
-              options={dropdownData.material}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-        <Col span={4}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                &nbsp;
-              </span>
-            }
-          >
-            <Checkbox
-              checked={isAllMaterial}
-              onChange={handleAllMaterialChange}
-              className="text-black  mt-2"
-            >
-              All Material
-            </Checkbox>
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item
-            label={
-              <span className="text-black ">
-                Dimensional Standard<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              placeholder="Dimensional Standard"
-              value={newItem.dimensionalStandard}
-              onChange={(value) =>
-                setNewItem({ ...newItem, dimensionalStandard: value })
-              }
-              options={dropdownData.dimensionalStandard}
-              className="w-full"
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-    </Form>
-
-      <div className="flex justify-between items-center mt-4">
-        <Button 
-          type="primary" 
-          onClick={handleAddItem} 
-          loading={buttonLoading}
-        >
-          Add Item
-        </Button>
+    <div style={{ padding: "5px", maxWidth: "100%" }}>
+      <Card
+        bordered={false}
+        className="shadow-sm"
+        style={{ borderRadius: "8px" }}
+      >
         
-        <Button 
-          className="bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-          onClick={() => handleGenerateReviewOutput()}
-          loading={reviewLoading}
-        >
-          Generate Review Output
-        </Button>
-      </div>
-      <Table
-        style={{ marginTop: "20px" }}
-        columns={columns}
-        dataSource={items}
-        loading={tableLoading}
-        pagination={false}
-        rowClassName="editable-row"
-      />
-      <ReviewOutputModal 
-        // specId={specId}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        data={transformData(reviewData)}
-      />
+        <Title level={4} style={{ marginBottom: "24px", color: "#1890ff" }}>
+          PMS Creation
+        </Title>
+        <Form layout="vertical" className="mb-4">
+          {/* First Row */}
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Component Type<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Component Type"
+                  value={newItem.compType}
+                  onChange={handleCompTypeChange}
+                  options={dropdownData.compType}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={16}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Item Description<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Item Description"
+                  value={newItem.itemDescription}
+                  onChange={handleComponentDescChange}
+                  options={dropdownData.itemDescription.map(
+                    ({ label, value }) => ({ label, value })
+                  )}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Second Row */}
+          <Row gutter={16}>
+            <Col span={4}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Size-1<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Size-1"
+                  value={newItem.size1}
+                  onChange={(value) => handleSizeChange("size1", value)}
+                  options={dropdownData.size1}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Size-2<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Size-2"
+                  value={newItem.size2}
+                  onChange={(value) => handleSizeChange("size2", value)}
+                  options={dropdownData.size2}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+            {showRatingDropdown && (
+              <Col span={4}>
+                <Form.Item
+                  label={
+                    <Text strong>
+                      Rating<Text type="danger"> *</Text>
+                    </Text>
+                  }
+                >
+                  <Select
+                    placeholder="Select Rating"
+                    value={newItem.rating}
+                    onChange={(value) =>
+                      setNewItem({ ...newItem, rating: value })
+                    }
+                    options={dropdownData.rating}
+                    className="w-full"
+                    size="middle"
+                  />
+                </Form.Item>
+              </Col>
+            )}
+            <Col span={6}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Material<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Material"
+                  value={newItem.material}
+                  onChange={(value) =>
+                    setNewItem({ ...newItem, material: value })
+                  }
+                  options={dropdownData.material}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item label={<span>&nbsp;</span>}>
+                <Checkbox
+                  checked={isAllMaterial}
+                  onChange={handleAllMaterialChange}
+                  
+                >
+                  <Text>All Material</Text>
+                </Checkbox>
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                label={
+                  <Text strong>
+                    Dimensional Standard<Text type="danger"> *</Text>
+                  </Text>
+                }
+              >
+                <Select
+                  placeholder="Select Dimensional Standard"
+                  value={newItem.dimensionalStandard}
+                  onChange={(value) =>
+                    setNewItem({ ...newItem, dimensionalStandard: value })
+                  }
+                  options={dropdownData.dimensionalStandard}
+                  className="w-full"
+                  size="middle"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+
+        <div className="flex justify-between items-center mb-4">
+          <Button
+            type="primary"
+            onClick={handleAddItem}
+            loading={buttonLoading}
+            icon={<Plus size={16} />}
+            size="middle"
+          >
+            Add Item
+          </Button>
+
+          <Button
+            type="primary"
+            onClick={() => handleGenerateReviewOutput()}
+            loading={reviewLoading}
+            icon={<FileOutput size={16} />}
+            size="middle"
+          >
+            Generate Review Output
+          </Button>
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={items}
+          loading={tableLoading}
+          pagination={{ pageSize: 10 }}
+          rowClassName="editable-row"
+          size="middle"
+          bordered
+          className="shadow-sm"
+          scroll={{ x: "max-content" }}
+        />
+
+        <ReviewOutputModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          data={transformData(reviewData)}
+        />
+      </Card>
     </div>
   );
 };

@@ -57,7 +57,7 @@ const CatRefConfiguration: React.FC = () => {
     rating: string
   ): string => {
     const formattedRating = rating || "";
-    return `${itemShortDesc}+'-'+${rating ? '-' : ''}${formattedRating}`;
+    return `${itemShortDesc}${rating ? '-' : ''}${formattedRating}`;
   };
 
   // Fetch Component Description function
@@ -269,10 +269,10 @@ const CatRefConfiguration: React.FC = () => {
               : record.item_short_desc,
             dataIndex === "rating" ? localInputValue : record.rating
           );
-
           handleEditCatRefData(record.key, "concatenate", updatedConcatenate);
         }
-
+        
+        console.log("record",record)
         handleEditCatRefData(record.key, dataIndex, localInputValue);
       }
       setEditingKey(null);
@@ -323,7 +323,7 @@ const CatRefConfiguration: React.FC = () => {
               setEditingColumn(dataIndex);
             }}
           >
-            {children}
+            {children === '' ? '-' : children}
           </div>
         )}
       </td>
@@ -337,6 +337,7 @@ const CatRefConfiguration: React.FC = () => {
     field: keyof CatRefData,
     value: string
   ) => {
+    console.log(key)
     const project_id = localStorage.getItem('currentProjectId');
     const originalData = [...catRefData];
     const updatedData = catRefData.map((item) =>

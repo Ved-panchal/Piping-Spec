@@ -1,10 +1,10 @@
 import React, { useState, useEffect, TdHTMLAttributes } from "react";
-import { Table, Button, Form, message, Select, Input } from "antd";
+import { Table, Button, Form, message, Select, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
+import { Trash2, Info } from "lucide-react";
 import api from "../../utils/api/apiutils";
 import { api as configApi } from "../../utils/api/config";
 import showToast from "../../utils/toast";
-import { Trash2 } from "lucide-react";
 import deleteWithBody from "../../utils/api/DeleteAxios";
 import ConfirmationModal from "../ConfirmationDeleteModal/CornfirmationModal";
 import {
@@ -12,38 +12,48 @@ import {
   DeleteResponse,
   Schedule,
   Size,
+  SizeRange as Sizerange
 } from "../../utils/interface";
-import type { SizeRange } from "../../utils/interface";
 
 const { Option } = Select;
 
 interface OptionType {
   value: string;
   label: string;
+  size_mm?: number;
+  arrange_od?: number;
 }
 
-interface EditableCellProps extends TdHTMLAttributes<unknown> {
-  record: SizeRange;
-  editable: boolean;
-  dataIndex: keyof SizeRange;
-}
+// interface EditableCellProps extends TdHTMLAttributes<unknown> {
+//   record: Sizerange;
+//   editable: boolean;
+//   dataIndex: keyof Sizerange;
+// }
 
 const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
-  const [sizeRanges, setSizeRanges] = useState<SizeRange[]>([]);
+  const [sizeRanges, setSizeRanges] = useState<Sizerange[]>([]);
   const [newSize, setNewSize] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [btnloading, setBtnLoading] = useState(false);
+  const [btnLoading, setBtnLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | number | null>(null);
   const [sizeOptions, setSizeOptions] = useState<OptionType[]>([]);
+  const [filteredSizeOptions, setFilteredSizeOptions] = useState<OptionType[]>([]);
   const [scheduleOptions, setScheduleOptions] = useState<OptionType[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [sizeRangeToDelete, setSizeRangeToDelete] = useState<SizeRange | null>(
-    null
-  );
+  const [sizeRangeToDelete, setSizeRangeToDelete] = useState<Sizerange | null>(null);
+
+  // Update filtered size options when sizeRanges or sizeOptions change
+  useEffect(() => {
+    if (sizeOptions.length > 0) {
+      const existingSizes = sizeRanges.map(range => range.sizeValue);
+      const filtered = sizeOptions.filter(option => !existingSizes.includes(option.label));
+      setFilteredSizeOptions(filtered);
+    }
+  }, [sizeRanges, sizeOptions]);
 
   useEffect(() => {
     if (!specId) {
-      showToast({ message: "Please Select Spec ID First", type: "info" });
+      showToast({ message: "Please select a spec first", type: "info" });
       return;
     }
     fetchSizeRange();
@@ -56,12 +66,11 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const fetchSizeRange = async () => {
     try {
       setLoading(true);
-      const response = await api.post(configApi.API_URL.sizeranges.getall, {
-        specId,
-      });
+      const response = await api.post(configApi.API_URL.sizeranges.getall, { specId });
+      
       if (response.data.success) {
         const sizeRangesWithKey = response.data.sizeranges
-          .map((range: SizeRange) => ({
+          .map((range: Sizerange) => ({
             key: range.id,
             sizeValue: range.sizeValue,
             sizeCode: range.sizeCode,
@@ -69,19 +78,17 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
             scheduleCode: range.scheduleCode,
             odValue: range.odValue,
           }))
-          .sort(
-            (a: { sizeValue: number }, b: { sizeValue: number }) =>
-              a.sizeValue - b.sizeValue
-          ); // Sorting by sizeValue in ascending order
+          .sort((a: { sizeValue: number }, b: { sizeValue: number }) => 
+            a.sizeValue - b.sizeValue
+          );
 
         setSizeRanges(sizeRangesWithKey);
       } else {
-        throw new Error("Failed to fetch Size Ranges.");
+        throw new Error("Failed to fetch size ranges");
       }
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to update Size Range.";
+      const errorMessage = apiError.response?.data?.error || "Failed to load size ranges";
       showToast({ message: errorMessage, type: "error" });
     } finally {
       setLoading(false);
@@ -91,28 +98,19 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const fetchSizeAndScheduleOptions = async (projectId: string) => {
     try {
       const payload = { projectId };
-      const sizeResponse = await api.post(
-        configApi.API_URL.sizes.getall,
-        payload
-      );
-      const scheduleResponse = await api.post(
-        configApi.API_URL.schedules.getall,
-        payload
-      );
+      const sizeResponse = await api.post(configApi.API_URL.sizes.getall, payload);
+      const scheduleResponse = await api.post(configApi.API_URL.schedules.getall, payload);
 
       if (sizeResponse.data.success && scheduleResponse.data.success) {
-        const existingSizeValues = sizeRanges.map((range) => range.sizeValue);
-      const sizes = sizeResponse.data.sizes
-      .filter((size:Size) => !existingSizeValues.includes(size.size1_size2))
-        .map((size: Size) => ({
-          value: size.size1_size2,
-          label: size.size1_size2,
-          size_mm: size.size_mm,
-        }))
-        .sort(
-          (a: { size_mm: number }, b: { size_mm: number }) =>
+        const sizes = sizeResponse.data.sizes
+          .map((size: Size) => ({
+            value: size.size1_size2,
+            label: size.size1_size2,
+            size_mm: size.size_mm,
+          }))
+          .sort((a: { size_mm: number }, b: { size_mm: number }) => 
             a.size_mm - b.size_mm
-        );
+          );
 
         const schedules = scheduleResponse.data.schedules
           .map((schedule: Schedule) => ({
@@ -120,10 +118,10 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
             label: schedule.sch1_sch2,
             arrange_od: schedule.arrange_od,
           }))
-          .sort(
-            (a: { arrange_od: number }, b: { arrange_od: number }) =>
-              a.arrange_od - b.arrange_od
+          .sort((a: { arrange_od: number }, b: { arrange_od: number }) => 
+            a.arrange_od - b.arrange_od
           );
+
         setSizeOptions(sizes);
         setScheduleOptions(schedules);
       } else {
@@ -131,321 +129,208 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       }
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to fetch dropdown options.";
+      const errorMessage = apiError.response?.data?.error || "Failed to fetch dropdown options";
       showToast({ message: errorMessage, type: "error" });
     }
   };
 
   const handleAddSizeRange = async () => {
     if (!newSize || newSize.length === 0) {
-      message.error("Please select at least one size.");
+      message.error("Please select at least one size");
       return;
     }
-
-    const existingSizes = sizeRanges.map((range) => range.sizeValue);
-    const sizesToAdd = newSize.filter(
-      (sizeCode) => !existingSizes.includes(sizeCode)
-    );
-    const alreadyAddedSizes = newSize.filter((sizeCode) =>
-      existingSizes.includes(sizeCode)
-    );
-
-    if (alreadyAddedSizes.length > 0) {
-      message.error(
-        `${alreadyAddedSizes.join(", ")} ${
-          alreadyAddedSizes.length > 1 ? "are" : "is"
-        } already added.`
-      );
-      return;
-    }
-
-    const newSizeRanges = sizesToAdd.map((sizeCode) => ({
-      key: Math.random().toString(36).substring(2),
-      sizeValue: sizeCode,
-      sizeCode: sizeCode,
-      scheduleValue: "ST",
-      scheduleCode: "ST",
-    }));
-
-    const payload = {
-      sizes: sizesToAdd,
-      scheduleCode: "ST",
-      specId,
-    };
 
     setBtnLoading(true);
     try {
-      const response = await api.post(
-        configApi.API_URL.sizeranges.create,
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const payload = {
+        sizes: newSize,
+        scheduleCode: "ST",
+        specId,
+      };
+
+      const response = await api.post(configApi.API_URL.sizeranges.create, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (response.data.success) {
-        setSizeRanges((prev) => [...newSizeRanges, ...prev]);
+        showToast({ message: "Size range added successfully", type: "success" });
         setNewSize([]);
-        message.success("Size range added successfully");
         fetchSizeRange();
       } else {
-        throw new Error("Failed to add Size Range.");
+        throw new Error("Failed to add size range");
       }
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to add Size Range.";
+      const errorMessage = apiError.response?.data?.error || "Failed to add size range";
       showToast({ message: errorMessage, type: "error" });
     } finally {
       setBtnLoading(false);
     }
   };
 
-  const handleDeleteSizeRange = async (
-    key: number | string,
-    odValue: string
-  ) => {
+  const handleDeleteSizeRange = async (key: string | number, odValue: string) => {
     try {
       await deleteWithBody<DeleteResponse>(
-        `${configApi.API_URL.sizeranges.delete}`,
+        configApi.API_URL.sizeranges.delete, 
         { id: key, size_value: odValue }
       );
-      setSizeRanges((prev) =>
-        prev.filter((sizeRange) => sizeRange.key !== key)
-      );
+      setSizeRanges(prev => prev.filter(sizeRange => sizeRange.key !== key));
       setIsModalOpen(false);
-      message.success("Size range deleted successfully");
+      showToast({ message: "Size range deleted successfully", type: "success" });
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to delete size range.";
+      const errorMessage = apiError.response?.data?.error || "Failed to delete size range";
       showToast({ message: errorMessage, type: "error" });
     }
   };
 
-  const handleEdit = async (
-    key: number | string,
-    dataIndex: keyof SizeRange,
-    value: string | number
-  ) => {
+  const handleScheduleChange = async (record: Sizerange, value: string) => {
+    const schedule = scheduleOptions.find(s => s.label === value);
+    if (!schedule) return;
     
-    const isDuplicate =
-    dataIndex === "sizeValue" &&
-    sizeRanges.some(
-      (range) => range.sizeValue === value && range.key !== key
-    );
-
-  if (isDuplicate) {
-    message.error("This size already exists in the table.");
-    return; // Exit the function early if a duplicate is found
-  }
-
-    const updatedSizeRange = sizeRanges.find((range) => range.key === key);
-    const schedule = scheduleOptions.find(
-      (schedule) => schedule.label === value
-    );
-    if (updatedSizeRange) {
+    try {
       const payload = {
-        id: key,
-        sizeCode: dataIndex === "sizeValue" ? value : updatedSizeRange.sizeCode,
-        scheduleCode: dataIndex === "scheduleValue" && schedule?.value,
+        id: record.key,
+        sizeCode: record.sizeCode,
+        scheduleCode: schedule.value,
         specId,
       };
-      setSizeRanges((prev) =>
-        prev.map((range) =>
-          range.key === key ? { ...range, [dataIndex]: value } : range
-        )
-      );
-      try {
-        const response = await api.put(
-          configApi.API_URL.sizeranges.update,
-          payload
+      
+      const response = await api.put(configApi.API_URL.sizeranges.update, payload);
+      
+      if (response.data.success) {
+        setSizeRanges(prev =>
+          prev.map(range =>
+            range.key === record.key ? { ...range, scheduleValue: value, scheduleCode: schedule.value } : range
+          )
         );
-        if (response.data.success) {
-          message.success("Size range updated successfully");
-        } else {
-          fetchSizeRange();
-          message.error("Error updating size range");
-        }
-      } catch (error) {
-        fetchSizeRange();
-        const apiError = error as ApiError;
-        const errorMessage =
-          apiError.response?.data?.error || "Failed to update Size Range.";
-        throw new Error(errorMessage);
+        showToast({ message: "Schedule updated successfully", type: "success" });
+      } else {
+        throw new Error("Failed to update schedule");
       }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.response?.data?.error || "Failed to update schedule";
+      showToast({ message: errorMessage, type: "error" });
+      fetchSizeRange(); // Refresh data if update fails
     }
   };
 
-  const EditableCell: React.FC<EditableCellProps> = ({
-    children,
-    record,
-    dataIndex,
-    ...restProps
-  }) => {
-    const [localInputValue, setLocalInputValue] = useState(
-      record ? record[dataIndex] : ""
-    );
-    const [initialValue, setInitialValue] = useState(localInputValue);
-    const [isEditing, setIsEditing] = useState(dataIndex === "scheduleValue");
-
-    useEffect(() => {
-      if (record && record[dataIndex] !== localInputValue) {
-        setLocalInputValue(record[dataIndex] as string);
-      }
-    }, [record, dataIndex]);
-
-    const handleBlur = async (value: string | number) => {
-      if (record && record.key && value !== initialValue) {
-        try {
-          await handleEdit(record.key, dataIndex, value);
-          setInitialValue(value);
-        } catch (error) {
-          const apiError = error as ApiError;
-          const errorMessage =
-            apiError.response?.data?.error || "Failed to update Size range.";
-          setLocalInputValue(initialValue);
-          showToast({ message: errorMessage, type: "error" });
-        }
-      }
-      if (dataIndex !== "scheduleValue") {
-        setIsEditing(false);
-      }
-    };
-    
-
-    const handleDoubleClick = () => {
-      if (dataIndex !== "scheduleValue") {
-        setEditingKey(record?.key);
-        setIsEditing(true);
-        setInitialValue(localInputValue);
-      }
-    };
-
-    return (
-      <td {...restProps}>
-        {isEditing || dataIndex === "scheduleValue" ? (
-          dataIndex === "sizeValue" || dataIndex === "scheduleValue" ? (
-            <Select
-              value={localInputValue}
-              onChange={(value) => {
-                setLocalInputValue(value);
-                handleBlur(value); // Pass the value to the handleBlur logic.
-              }}
-              style={{ width: "100%" }}
-              showSearch
-            >
-              {(dataIndex === "sizeValue" ? sizeOptions : scheduleOptions).map(
-                (option) => (
-                  <Option key={option.value} value={option.label}>
-                    {option.label}
-                  </Option>
-                )
-              )}
-            </Select>
-          ) : (
-            <Input
-              value={localInputValue}
-              onChange={(e) => {setLocalInputValue(e.target.value); handleBlur(e.target.value)}}
-              style={{ width: "100%" }}
-            />
-          )
-        ) : (
-          <div onDoubleClick={handleDoubleClick}>{children}</div>
-        )}
-      </td>
-    );
-  };
-
-  const columns: ColumnsType<SizeRange> = [
+  const columns: ColumnsType<Sizerange> = [
     {
       title: "Size",
       dataIndex: "sizeValue",
       key: "sizeValue",
-      onCell: (record: SizeRange): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key,
-        dataIndex: "sizeValue",
-      }),
+      width: '40%',
+      render: (text) => (
+        <div className="font-medium">{text}</div>
+      )
     },
     {
       title: "Schedule",
       dataIndex: "scheduleValue",
       key: "scheduleValue",
-      onCell: (record: SizeRange): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key,
-        dataIndex: "scheduleValue",
-      }),
+      width: '40%',
+      render: (text, record) => (
+        <Select
+          value={text}
+          onChange={(value) => handleScheduleChange(record, value)}
+          style={{ width: '100%' }}
+          className="text-gray-800"
+        >
+          {scheduleOptions.map(option => (
+            <Option key={option.value} value={option.label}>
+              {option.label}
+            </Option>
+          ))}
+        </Select>
+      ),
     },
     {
       title: "Action",
       key: "action",
+      width: '20%',
       render: (_, record) => (
-        <Trash2
-          size={17}
-          style={{ cursor: "pointer", color: "red" }}
-          onClick={() => {
-            setSizeRangeToDelete(record);
-            setIsModalOpen(true);
-          }}
-        />
+        <div className="flex justify-center space-x-2">
+          <Button 
+            type="text" 
+            icon={<Trash2 size={16} />}
+            danger
+            className="flex items-center hover:bg-red-50"
+            onClick={() => {
+              setSizeRangeToDelete(record);
+              setIsModalOpen(true);
+            }}
+          />
+        </div>
       ),
     },
   ];
 
   return (
-    <div>
-      <h1>Size Range</h1>
-      <Form layout="inline" style={{ marginBottom: "20px" }}>
-        <Form.Item>
-          <Select
-            mode="multiple"
-            value={newSize}
-            onChange={(value) => setNewSize(value)}
-            placeholder="Select Size"
-            style={{ minWidth: "12rem", maxWidth: "25rem" }}
-          >
-            {sizeOptions.map((option) => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            onClick={handleAddSizeRange}
-            loading={btnloading}
-          >
-            Add Size Range
-          </Button>
-        </Form.Item>
-      </Form>
-      <div>
-        <Table
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          dataSource={sizeRanges}
-          columns={columns}
-          pagination={false}
-          loading={loading}
-        />
+    <div className="bg-white p-4 rounded-md">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-medium text-gray-800">Size Range</h2>
+        <Tooltip title="Add sizes and assign schedules">
+          <div className="cursor-help text-gray-400">
+            <Info size={16} />
+          </div>
+        </Tooltip>
       </div>
+      
+      <div className="flex gap-3 mb-6">
+        <Select
+          mode="multiple"
+          value={newSize}
+          onChange={setNewSize}
+          placeholder="Select sizes to add"
+          style={{ width: '300px' }}
+          className="text-gray-800"
+          optionFilterProp="children"
+          showSearch
+        >
+          {filteredSizeOptions.map(option => (
+            <Option key={option.value} value={option.value}>
+              {option.label}
+            </Option>
+          ))}
+        </Select>
+        
+        <Button
+          type="primary"
+          onClick={handleAddSizeRange}
+          loading={btnLoading}
+          className={`bg-blue-500 ${newSize.length === 0 ? '' : 'hover:bg-blue-600'} text-white`}
+          disabled={newSize.length === 0}
+        >
+          Add Size Range
+        </Button>
+      </div>
+      
+      <Table
+        columns={columns}
+        dataSource={sizeRanges}
+        pagination={false}
+        loading={loading}
+        bordered
+        className="border border-gray-200 rounded-sm"
+        rowClassName="hover:bg-gray-50"
+        locale={{
+          emptyText: (
+            <div className="py-8 text-center text-gray-500">
+              <div className="mb-2">No size ranges found</div>
+              <div className="text-sm">Select sizes above to add to this spec</div>
+            </div>
+          )
+        }}
+      />
+      
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConfirm={() =>
-          sizeRangeToDelete &&
-          handleDeleteSizeRange(
-            sizeRangeToDelete.key,
-            sizeRangeToDelete.odValue!
-          )
+        onConfirm={() => 
+          sizeRangeToDelete && 
+          handleDeleteSizeRange(sizeRangeToDelete.key, sizeRangeToDelete.odValue || '')
         }
         title="Confirm Delete"
         message={`Are you sure you want to delete size range: ${sizeRangeToDelete?.sizeValue}?`}

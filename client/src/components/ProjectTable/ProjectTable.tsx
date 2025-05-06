@@ -3,9 +3,8 @@ import { ArrowUpDown, Folder, Pencil, Trash2 } from 'lucide-react';
 import showToast from '../../utils/toast';
 import { api as configApi } from "../../utils/api/config";
 import deleteWithBody from '../../utils/api/DeleteAxios';
-import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal'; // Import your ConfirmationModal
+import ConfirmationModal from '../ConfirmationDeleteModal/CornfirmationModal';
 import { ApiError, DeleteResponse, Project, ProjectFormValues } from '../../utils/interface';
-
 
 interface ProjectTableProps {
   projects: Project[];
@@ -16,7 +15,7 @@ interface ProjectTableProps {
   setIsModalOpen: (isOpen: boolean) => void;
   setSelectedProject: (project: ProjectFormValues | null) => void;
   setProjectList: (projectlist: Project[]) => void;
-  onProjectClick: (projectId: string,projectCode: string) => void;
+  onProjectClick: (projectId: string, projectCode: string) => void;
 }
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -30,11 +29,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   setProjectList,
   onProjectClick,
 }) => {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Control visibility of delete modal
-  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null); // Track project to delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const handleEdit = (project: Project, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent event bubbling
+    event.stopPropagation();
     const projectFormValues: ProjectFormValues = {
       code: project.projectCode,
       description: project.projectDescription,
@@ -45,7 +44,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   const openConfirmationModal = (project: Project, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent event bubbling
+    event.stopPropagation();
     setProjectToDelete(project);
     setIsDeleteModalOpen(true);
   };
@@ -68,13 +67,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         if (success) {
           showToast({ message: message || 'Project deleted successfully!', type: 'success' });
 
+          // console.log(projects)
           const updatedProjects = projects.filter(
             (p) => p.projectCode !== project.projectCode
           );
-
           setProjectList(updatedProjects);
-          setIsDeleteModalOpen(false); // Close modal after deletion
-          setProjectToDelete(null); // Clear the project to delete
+          setIsDeleteModalOpen(false);
+          setProjectToDelete(null);
         } else {
           showToast({ message: error || 'Failed to delete project.', type: 'error' });
         }
@@ -108,7 +107,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md relative">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
@@ -123,13 +122,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         <input
           type="text"
           placeholder="Search projects..."
-          className="border rounded-lg p-2 w-[20rem]"
+          className="border border-gray-300 rounded-lg p-2 w-[20rem] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button
-          className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105"
-          onClick={() => setIsModalOpen(true)} // Open modal
+          className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105"
+          onClick={() => setIsModalOpen(true)}
         >
           + Create Project
         </button>
@@ -140,55 +139,70 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           No projects are created
         </div>
       ) : (
-        <div className="overflow-y-auto max-h-[75vh]">
+        <div className="overflow-y-auto max-h-[75vh] border border-gray-200 rounded-lg">
           <table className="min-w-full table-auto">
-            <thead>
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="p-2"></th>
-                <th className="p-2 w-20 text-left cursor-pointer select-none" onClick={() => handleSort('projectCode')}>
-                  Project Code <ArrowUpDown size={17} className="inline-block ml-1" />
+                <th className="p-3 text-left"></th>
+                <th 
+                  className="p-3 text-left text-sm font-medium text-gray-700 cursor-pointer select-none" 
+                  onClick={() => handleSort('projectCode')}
+                >
+                  Project Code <ArrowUpDown size={16} className="inline-block ml-1" />
                 </th>
-                <th className="p-2 w-2/5 text-left cursor-pointer select-none" onClick={() => handleSort('projectDescription')}>
-                  Project Description <ArrowUpDown size={17} className="inline-block ml-1" />
+                <th 
+                  className="p-3 text-left text-sm font-medium text-gray-700 cursor-pointer select-none" 
+                  onClick={() => handleSort('projectDescription')}
+                >
+                  Project Description <ArrowUpDown size={16} className="inline-block ml-1" />
                 </th>
-                <th className="p-2 w-1/4 text-left cursor-pointer select-none" onClick={() => handleSort('companyName')}>
-                  Company Name <ArrowUpDown size={17} className="inline-block ml-1" />
+                <th 
+                  className="p-3 text-left text-sm font-medium text-gray-700 cursor-pointer select-none" 
+                  onClick={() => handleSort('companyName')}
+                >
+                  Company Name <ArrowUpDown size={16} className="inline-block ml-1" />
                 </th>
-                <th className="p-2 w-32 text-left">Actions</th>
+                <th className="p-3 text-left text-sm font-medium text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProjects.map((project) => (
-                <tr key={project.projectCode} className="border-t hover:bg-gray-100 cursor-pointer" onClick={() => onProjectClick(project.id,project.projectCode)}>
-                  <td className="p-2 w-8">
+                <tr 
+                  key={project.projectCode} 
+                  className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors" 
+                  onClick={() => onProjectClick(project.id, project.projectCode)}
+                >
+                  <td className="p-3">
                     <Folder className="text-gray-600" size={20} />
                   </td>
-                  <td className="p-2 w-24">{project.projectCode}</td>
-                  <td className="p-2 w-2/5">{project.projectDescription}</td>
-                  <td className="p-2 w-1/4">{project.companyName}</td>
-                  <td className="p-2 w-32 flex justify-start space-x-2">
-                    <div className="relative group">
-                      <button
-                        className="text-blue-500 hover:underline mr-2"
-                        onClick={(e) => handleEdit(project, e)} // Pass the event
-                      >
-                        <Pencil size={17} />
-                      </button>
-                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg">
-                        Edit
-                      </span>
-                    </div>
+                  <td className="p-3 text-gray-700">{project.projectCode}</td>
+                  <td className="p-3 text-gray-700">{project.projectDescription}</td>
+                  <td className="p-3 text-gray-700">{project.companyName}</td>
+                  <td className="p-3">
+                    <div className="flex space-x-4">
+                      <div className="relative group">
+                        <button
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          onClick={(e) => handleEdit(project, e)}
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg whitespace-nowrap">
+                          Edit
+                        </span>
+                      </div>
 
-                    <div className="relative group">
-                      <button
-                        className="text-red-500 hover:underline"
-                        onClick={(e) => openConfirmationModal(project, e)} // Pass the event
-                      >
-                        <Trash2 size={17} />
-                      </button>
-                      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg">
-                        Delete
-                      </span>
+                      <div className="relative group">
+                        <button
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                          onClick={(e) => openConfirmationModal(project, e)}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs bg-gray-700 text-white py-1 px-2 rounded-lg shadow-lg whitespace-nowrap">
+                          Delete
+                        </span>
+                      </div>
                     </div>
                   </td>
                 </tr>
