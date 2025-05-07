@@ -14,16 +14,6 @@ interface EditableCellProps extends TdHTMLAttributes<unknown> {
 }
 
 const ScheduleConfiguration: React.FC = () => {
-  // Sample data for development
-  const sampleSchedules: Schedule[] = [
-    { key: "1", code: "10", sch1_sch2: "10", c_code: "C10", schDesc: "Sch.10", arrange_od: "10" },
-    { key: "2", code: "S1", sch1_sch2: "10S", c_code: "CS1", schDesc: "Sch.10S", arrange_od: "11" },
-    { key: "3", code: "20", sch1_sch2: "20", c_code: "C20", schDesc: "Sch.20", arrange_od: "20" },
-    { key: "4", code: "30", sch1_sch2: "30", c_code: "C30", schDesc: "Sch.30", arrange_od: "30" },
-    { key: "5", code: "HV", sch1_sch2: "HVY", c_code: "CHV", schDesc: "HVY", arrange_od: "40" },
-    { key: "6", code: "40", sch1_sch2: "40", c_code: "C40", schDesc: "Sch.40", arrange_od: "40" },
-    { key: "7", code: "ST", sch1_sch2: "STD", c_code: "CST", schDesc: "Sch.STD", arrange_od: "50" },
-  ];
 
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [newCode, setNewCode] = useState('');
@@ -35,8 +25,8 @@ const ScheduleConfiguration: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  // const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
+  const [_, setFormSubmitted] = useState(false);
 
   useEffect(() => {
     const projectId = localStorage.getItem('currentProjectId');
@@ -352,20 +342,20 @@ const ScheduleConfiguration: React.FC = () => {
     fetchSchedules();
   }, [currentProjectId]);
 
-  const handleSort = (columnKey: keyof Schedule) => {
-    if (sortOrder === 'ascend') {
-      setSortOrder('descend');
-    } else {
-      setSortOrder('ascend');
-    }
-    setSchedules((prevSchedules) =>
-      [...prevSchedules].sort((a, b) =>
-        sortOrder === 'ascend'
-          ? a[columnKey].localeCompare(b[columnKey])
-          : b[columnKey].localeCompare(a[columnKey])
-      )
-    );
-  };
+  // const handleSort = (columnKey: keyof Schedule) => {
+  //   if (sortOrder === 'ascend') {
+  //     setSortOrder('descend');
+  //   } else {
+  //     setSortOrder('ascend');
+  //   }
+  //   setSchedules((prevSchedules) =>
+  //     [...prevSchedules].sort((a, b) =>
+  //       sortOrder === 'ascend'
+  //         ? a[columnKey].localeCompare(b[columnKey])
+  //         : b[columnKey].localeCompare(a[columnKey])
+  //     )
+  //   );
+  // };
 
   return (
     <div style={{ padding: "0", maxWidth: "100%", maxHeight:"78vh", overflowY:"auto" }}>

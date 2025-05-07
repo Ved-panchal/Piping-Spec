@@ -35,7 +35,7 @@ const SizeConfiguration: React.FC = () => {
   const [newSizeInch, setNewSizeInch] = useState("");
   const [newSizeMm, setNewSizeMm] = useState("");
   const [newSizeOd, setNewSizeOd] = useState("");
-  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
+  // const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
 
   const sizeCodeRegex = /^[A-Za-z0-9]+$/;
   const sizeInchRegex = /^(?<=)[\d\\/\d" ]*(?=)/;

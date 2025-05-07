@@ -1,5 +1,5 @@
-import React, { useState, useEffect, TdHTMLAttributes } from "react";
-import { Table, Button, Form, message, Select, Tooltip } from "antd";
+import React, { useState, useEffect } from "react";
+import { Table, Button,  message, Select, Tooltip } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { Trash2, Info } from "lucide-react";
 import api from "../../utils/api/apiutils";
@@ -36,7 +36,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const [newSize, setNewSize] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
-  const [editingKey, setEditingKey] = useState<string | number | null>(null);
+  // const [editingKey, setEditingKey] = useState<string | number | null>(null);
   const [sizeOptions, setSizeOptions] = useState<OptionType[]>([]);
   const [filteredSizeOptions, setFilteredSizeOptions] = useState<OptionType[]>([]);
   const [scheduleOptions, setScheduleOptions] = useState<OptionType[]>([]);

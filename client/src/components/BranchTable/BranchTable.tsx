@@ -236,7 +236,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [sizes, setSizes] = useState<Size[]>([]);
+  const [, setSizes] = useState<Size[]>([]);
   const [matchingSizes, setMatchingSizes] = useState<Size[]>([]);
   const [runSizes, setRunSizes] = useState<number[]>([]);
   const [branchSizes, setBranchSizes] = useState<number[]>([]);

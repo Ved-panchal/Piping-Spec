@@ -52,12 +52,7 @@ interface EditableCellProps extends TdHTMLAttributes<any> {
 }
 
 const SpecsCreation: React.FC = () => {
-  const [specs, setSpecs] = useState<Spec[]>([
-    { key: "1", specName: "A1CD", rating: "6000#", baseMaterial: "CS" },
-    { key: "2", specName: "D1CN", rating: "150#", baseMaterial: "CS-NACE" },
-    { key: "3", specName: "D2NC", rating: "150#", baseMaterial: "CS-NACE" },
-    { key: "4", specName: "A5CD", rating: "6000#", baseMaterial: "CS" },
-  ]);
+  const [specs, setSpecs] = useState<Spec[]>([]);
   const [newspecName, setNewspecName] = useState("");
   const [newRating, setNewRating] = useState<string | undefined>(undefined);
   const [newBaseMaterial, setNewBaseMaterial] = useState<string | undefined>(undefined);
@@ -65,7 +60,7 @@ const SpecsCreation: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"ascend" | "descend" | null>(null);
+  // const [sortOrder, setSortOrder] = useState<"ascend" | "descend" | null>(null);
   const [, setFormSubmitted] = useState(false);
   const [ratingOptions, setRatingOptions] = useState<string[]>(["150#", "300#", "6000#"]); // Sample data
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -493,16 +488,16 @@ const SpecsCreation: React.FC = () => {
   }, [currentProjectId]);
 
   // Handle sorting functionality
-  const handleSort = (columnKey: keyof Spec) => {
-    setSortOrder((prev) => (prev === "ascend" ? "descend" : "ascend"));
-    setSpecs((prevSpecs) =>
-      [...prevSpecs].sort((a, b) =>
-        sortOrder === "ascend"
-          ? a[columnKey].localeCompare(b[columnKey])
-          : b[columnKey].localeCompare(a[columnKey])
-      )
-    );
-  };
+  // const handleSort = (columnKey: keyof Spec) => {
+  //   setSortOrder((prev) => (prev === "ascend" ? "descend" : "ascend"));
+  //   setSpecs((prevSpecs) =>
+  //     [...prevSpecs].sort((a, b) =>
+  //       sortOrder === "ascend"
+  //         ? a[columnKey].localeCompare(b[columnKey])
+  //         : b[columnKey].localeCompare(a[columnKey])
+  //     )
+  //   );
+  // };
 
   // Handler for spec selection
   const handleSpecSelect = (specId: string) => {
