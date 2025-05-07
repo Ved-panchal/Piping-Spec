@@ -1,10 +1,11 @@
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, message,Spin } from 'antd';
+import { Table, Input, Button, Form, message, Spin } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
 import showToast from '../../utils/toast';
 import { ApiError, Schedule } from '../../utils/interface';
+import { Plus } from 'lucide-react';
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: Schedule;
@@ -13,6 +14,17 @@ interface EditableCellProps extends TdHTMLAttributes<unknown> {
 }
 
 const ScheduleConfiguration: React.FC = () => {
+  // Sample data for development
+  const sampleSchedules: Schedule[] = [
+    { key: "1", code: "10", sch1_sch2: "10", c_code: "C10", schDesc: "Sch.10", arrange_od: "10" },
+    { key: "2", code: "S1", sch1_sch2: "10S", c_code: "CS1", schDesc: "Sch.10S", arrange_od: "11" },
+    { key: "3", code: "20", sch1_sch2: "20", c_code: "C20", schDesc: "Sch.20", arrange_od: "20" },
+    { key: "4", code: "30", sch1_sch2: "30", c_code: "C30", schDesc: "Sch.30", arrange_od: "30" },
+    { key: "5", code: "HV", sch1_sch2: "HVY", c_code: "CHV", schDesc: "HVY", arrange_od: "40" },
+    { key: "6", code: "40", sch1_sch2: "40", c_code: "C40", schDesc: "Sch.40", arrange_od: "40" },
+    { key: "7", code: "ST", sch1_sch2: "STD", c_code: "CST", schDesc: "Sch.STD", arrange_od: "50" },
+  ];
+
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [newCode, setNewCode] = useState('');
   const [newCCode, setNewCCode] = useState('');
@@ -21,10 +33,10 @@ const ScheduleConfiguration: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editingColumn, setEditingColumn] = useState<string | null>(null); // Track the column being edited
+  const [editingColumn, setEditingColumn] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'ascend' | 'descend' | null>(null);
-  const [, setFormSubmitted] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   useEffect(() => {
     const projectId = localStorage.getItem('currentProjectId');
@@ -137,7 +149,7 @@ const ScheduleConfiguration: React.FC = () => {
       });
   
       if (response && response.data.success) {
-        setSchedules([newSchedule, ...schedules]); // Add new schedule to the list
+        setSchedules([newSchedule, ...schedules]);
         setNewCode('');
         setNewCCode('');
         setNewSchDesc('');
@@ -155,7 +167,6 @@ const ScheduleConfiguration: React.FC = () => {
       setButtonLoading(false);
     }
   };
-  
 
   const handleEditSchedule = async (key: string, sch1_sch2: string, c_code: string, schDesc: string) => {
     const duplicateCCode = schedules.find((schedule) => schedule.c_code === c_code && schedule.key !== key);
@@ -225,7 +236,6 @@ const ScheduleConfiguration: React.FC = () => {
       showToast({ message: errorMessage, type: 'error' });
     }
   };
-  
 
   const EditableCell: React.FC<EditableCellProps> = ({
     editable,
@@ -287,69 +297,55 @@ const ScheduleConfiguration: React.FC = () => {
             onBlur={handleBlur}
             onKeyPress={handleKeyPress}
             autoFocus
-            style={{ marginBottom: 8 }}
+            size="small"
+            bordered
           />
         ) : (
-          <div onDoubleClick={() => {
-            setEditingKey(record?.key);
-            setEditingColumn(dataIndex);
-          }}>
+          <div 
+            onDoubleClick={() => {
+              setEditingKey(record?.key);
+              setEditingColumn(dataIndex);
+            }}
+            style={{ cursor: 'pointer', padding: '4px 0' }}
+          >
             {children}
           </div>
         )}
       </td>
     );
   };
-  
 
   const columns: ColumnsType<Schedule> = [
     {
-      title: (
-        <div onDoubleClick={() => handleSort('code')}>
-          Code
-        </div>
-      ),
+      title: <span>Code</span>,
       dataIndex: 'code',
       key: 'code',
     },
     {
-      title: (
-        <div onDoubleClick={() => handleSort('sch1_sch2')}>
-          Schedule 1/ Schedule 2
-        </div>
-      ),
+      title: <span>Schedule 1/ Schedule 2</span>,
       dataIndex: 'sch1_sch2',
       key: 'sch1_sch2',
     },
     {
-      title: (
-        <div onDoubleClick={() => handleSort('code')}>
-          Client Code
-        </div>
-      ),
+      title: <span>Client Code</span>,
       dataIndex: 'c_code',
       key: 'c_code',
       onCell: (record: Schedule): EditableCellProps => ({
         record,
-        editable: editingKey === record.key && editingColumn === 'c_code', // Only allow editing on the selected cell
+        editable: editingKey === record.key && editingColumn === 'c_code',
         dataIndex: 'c_code',
       }),
     },
     {
-      title: (
-        <div onDoubleClick={() => handleSort('schDesc')}>
-          Description
-        </div>
-      ),
+      title: <span>Description</span>,
       dataIndex: 'schDesc',
       key: 'schDesc',
       onCell: (record: Schedule): EditableCellProps => ({
         record,
-        editable: editingKey === record.key && editingColumn === 'schDesc', // Only allow editing on the selected cell
+        editable: editingKey === record.key && editingColumn === 'schDesc',
         dataIndex: 'schDesc',
       }),
     },
-    
   ];
 
   useEffect(() => {
@@ -372,103 +368,139 @@ const ScheduleConfiguration: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Schedule Configuration</h1>
+    <div style={{ padding: "0", maxWidth: "100%" }}>
+      <div className="bg-white p-4">
+        <h1 className="text-blue-500 text-xl mb-4">Schedule Configuration</h1>
+        
+        <Form layout="horizontal" className="mb-4">
+          <div className="grid grid-cols-4 gap-3">
+            <Form.Item
+              label={<span className="font-semibold">Schedule <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Schedule 1/Schedule 2 Enter schedule"
+                className="w-full"
+                value={newSch}
+                onChange={(e) => setNewSch(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
 
-      {/* Form section */}
-      <Form layout="vertical" className="mb-6 mt-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Schedule<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Schedule 1/Schedule 2 Enter schedule"
-            className="w-full"
-            value={newSch}
-            onChange={(e) => setNewSch(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
+            <Form.Item
+              label={<span className="font-semibold">Code <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter code"
+                className="w-full"
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-semibold">Client Code <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter client code"
+                className="w-full"
+                value={newCCode}
+                onChange={(e) => setNewCCode(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-semibold">Description <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter description"
+                className="w-full"
+                value={newSchDesc}
+                onChange={(e) => setNewSchDesc(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
+          </div>
+          
+          <div className="flex flex-row-reverse mt-6 mb-4">
+            <Button
+              type="primary"
+              onClick={handleAddSchedule}
+              loading={buttonLoading}
+              className="bg-blue-500 text-white"
+              icon={<Plus size={14} className="mr-1" />}
+            >
+              Add Schedule
+            </Button>
+          </div>
+        </Form>
+
+        <div className="border-t border-gray-200 my-3"></div>
+
+        {loading ? (
+          <div className="flex justify-center items-center p-10">
+            <Spin size="large" />
+          </div>
+        ) : schedules.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-10 text-gray-400">
+            <div className="text-center mb-3">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 3V7C14 7.26522 14.1054 7.51957 14.2929 7.70711C14.4804 7.89464 14.7348 8 15 8H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 21H7C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19V5C5 4.46957 5.21071 3.96086 5.58579 3.58579C5.96086 3.21071 6.46957 3 7 3H14L19 8V19C19 19.5304 18.7893 20.0391 18.4142 20.4142C18.0391 20.7893 17.5304 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p>No data</p>
+          </div>
+        ) : (
+          <Table
+            className="schedule-table"
+            columns={columns}
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            dataSource={schedules}
+            pagination={false}
+            bordered
+            size="small"
           />
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Code<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Enter code"
-            className="w-full"
-            value={newCode}
-            onChange={(e) => setNewCode(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Client Code<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Enter client code"
-            className="w-full"
-            value={newCCode}
-            onChange={(e) => setNewCCode(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Description<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Enter description"
-            className="w-full"
-            value={newSchDesc}
-            onChange={(e) => setNewSchDesc(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddSchedule()}
-          />
-        </Form.Item>
-
-        <div className="flex items-center mt-1">
-          <Button
-            type="primary"
-            onClick={handleAddSchedule}
-            disabled={buttonLoading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
-          >
-            {buttonLoading ? <Spin /> : "Add Schedule"}
-          </Button>
-        </div>
+        )}
       </div>
-    </Form>
 
-
-      {/* Table section */}
-      <Table
-      className='select-none'
-        dataSource={schedules}
-        columns={columns}
-        loading={loading}
-        pagination={false}
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-      />
+      <style>{`
+        .schedule-table .ant-table-thead > tr > th {
+          background-color: #f8f9fa;
+          padding: 8px;
+          font-weight: 500;
+        }
+        .schedule-table .ant-table-tbody > tr > td {
+          padding: 8px;
+        }
+        .schedule-table .ant-table-row:hover {
+          background-color: #f5f5f5;
+        }
+        .ant-form-item {
+          margin-bottom: 0;
+        }
+        .ant-form-item-label {
+          font-weight: normal;
+          padding-bottom: 2px;
+        }
+        .ant-form-item-label > label {
+          color: #333;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 };

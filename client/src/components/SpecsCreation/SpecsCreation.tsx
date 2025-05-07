@@ -1,16 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, TdHTMLAttributes } from "react";
-import { Table, Input, Button, Form, message, Select, Checkbox } from "antd";
+import { 
+  Table, 
+  Input, 
+  Button, 
+  Form, 
+  message, 
+  Select, 
+  Checkbox,
+} from "antd";
 import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
-import {  Trash2 } from "lucide-react";
+import { Trash2, Plus, Edit2, Copy } from "lucide-react";
 import deleteWithBody from "../../utils/api/DeleteAxios";
 import ConfirmationModal from "../ConfirmationDeleteModal/CornfirmationModal";
 import { Rating } from "../../utils/interface";
 
 const { Option } = Select;
+// const { Title, Text } = Typography;
 
 interface Spec {
   key: string;
@@ -26,6 +35,7 @@ interface DeleteResponse {
     error?: string;
   };
 }
+
 interface ApiError extends Error {
   response?: {
     data?: {
@@ -42,23 +52,34 @@ interface EditableCellProps extends TdHTMLAttributes<any> {
 }
 
 const SpecsCreation: React.FC = () => {
-  const [specs, setSpecs] = useState<Spec[]>([]);
+  const [specs, setSpecs] = useState<Spec[]>([
+    { key: "1", specName: "A1CD", rating: "6000#", baseMaterial: "CS" },
+    { key: "2", specName: "D1CN", rating: "150#", baseMaterial: "CS-NACE" },
+    { key: "3", specName: "D2NC", rating: "150#", baseMaterial: "CS-NACE" },
+    { key: "4", specName: "A5CD", rating: "6000#", baseMaterial: "CS" },
+  ]);
   const [newspecName, setNewspecName] = useState("");
-  const [newRating, setNewRating] = useState("Rating");
-  const [newBaseMaterial, setNewBaseMaterial] = useState("Base Material");
+  const [newRating, setNewRating] = useState<string | undefined>(undefined);
+  const [newBaseMaterial, setNewBaseMaterial] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"ascend" | "descend" | null>(null);
   const [, setFormSubmitted] = useState(false);
-  const [ratingOptions, setRatingOptions] = useState<string[]>([]); // State for rating options
+  const [ratingOptions, setRatingOptions] = useState<string[]>(["150#", "300#", "6000#"]); // Sample data
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [specToDelete, setSpecToDelete] = useState<Spec | null>(null);
-  const [selectedSpecToCopy, setSelectedSpecToCopy] = useState<string | null>(
-    null
-  );
+  const [selectedSpecToCopy, setSelectedSpecToCopy] = useState<string | null>(null);
   const [isCopyMode, setIsCopyMode] = useState(false);
+
+  // Base material options
+  const baseMaterialOptions = [
+    "CA", "CS", "CS-NACE", "CSGLV", "CUNI", "DD", "DD-NACE", 
+    "GRE", "INC", "INC-NACE", "LTCS", "LTCS-NACE", "NM", 
+    "RB", "SA", "SA-NACE", "SAGLV", "SD", "SD-NACE", "SI", 
+    "SS", "SS-NACE"
+  ];
 
   // Fetch project ID from local storage
   useEffect(() => {
@@ -170,10 +191,11 @@ const SpecsCreation: React.FC = () => {
       if (response && response.data.success) {
         setSpecs([...specs, newSpec]);
         setNewspecName("");
-        setNewRating("Rating");
-        setNewBaseMaterial("BaseMaterial");
+        setNewRating(undefined);
+        setNewBaseMaterial(undefined);
         setSelectedSpecToCopy(null); // Reset selected spec after successful creation
         setFormSubmitted(false);
+        setIsCopyMode(false);
         message.success("Spec added successfully");
         await fetchSpecs();
       } else {
@@ -255,9 +277,6 @@ const SpecsCreation: React.FC = () => {
       return;
     }
 
-    // const updatedSpecs = specs.filter((spec) => spec.key !== key);
-    // setSpecs(updatedSpecs);
-
     const payload = {
       specId: key,
     };
@@ -338,8 +357,11 @@ const SpecsCreation: React.FC = () => {
               value={localInputValue}
               onChange={(value) => setLocalInputValue(value)}
               onBlur={handleBlur}
-              placeholder="-Select-" // Add placeholder for rating Select
+              autoFocus
               style={{ width: "100%" }}
+              dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              size="small"
+              bordered
             >
               {ratingOptions.map((option) => (
                 <Option key={option} value={option}>
@@ -352,33 +374,13 @@ const SpecsCreation: React.FC = () => {
               value={localInputValue}
               onChange={(value) => setLocalInputValue(value)}
               onBlur={handleBlur}
-              placeholder="-Select-"
+              autoFocus
               style={{ width: "100%" }}
+              dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              size="small"
+              bordered
             >
-              {[
-                "CA",
-                "CS",
-                "CS-NACE",
-                "CSGLV",
-                "CUNI",
-                "DD",
-                "DD-NACE",
-                "GRE",
-                "INC",
-                "INC-NACE",
-                "LTCS",
-                "LTCS-NACE",
-                "NM",
-                "RB",
-                "SA",
-                "SA-NACE",
-                "SAGLV",
-                "SD",
-                "SD-NACE",
-                "SI",
-                "SS",
-                "SS-NACE",
-              ].map((option) => (
+              {baseMaterialOptions.map((option) => (
                 <Option key={option} value={option}>
                   {option}
                 </Option>
@@ -390,7 +392,9 @@ const SpecsCreation: React.FC = () => {
               onChange={(e) => setLocalInputValue(e.target.value)}
               onBlur={handleBlur}
               onKeyPress={handleKeyPress}
-              style={{ marginBottom: 8 }}
+              autoFocus
+              size="small"
+              bordered
             />
           )
         ) : (
@@ -399,6 +403,7 @@ const SpecsCreation: React.FC = () => {
               setEditingKey(record?.key);
               setEditingColumn(dataIndex);
             }}
+            style={{ cursor: 'pointer', padding: '4px 0' }}
           >
             {children}
           </div>
@@ -409,7 +414,7 @@ const SpecsCreation: React.FC = () => {
 
   const columns: ColumnsType<Spec> = [
     {
-      title: <div onDoubleClick={() => handleSort("specName")}>Spec Code</div>,
+      title: <span>Spec Code</span>,
       dataIndex: "specName",
       key: "specName",
       onCell: (record: Spec): EditableCellProps => ({
@@ -419,7 +424,7 @@ const SpecsCreation: React.FC = () => {
       }),
     },
     {
-      title: <div onDoubleClick={() => handleSort("rating")}>Rating</div>,
+      title: <span>Rating</span>,
       dataIndex: "rating",
       key: "rating",
       onCell: (record: Spec): EditableCellProps => ({
@@ -429,11 +434,7 @@ const SpecsCreation: React.FC = () => {
       }),
     },
     {
-      title: (
-        <div onDoubleClick={() => handleSort("baseMaterial")}>
-          Base Material
-        </div>
-      ),
+      title: <span>Base Material</span>,
       dataIndex: "baseMaterial",
       key: "baseMaterial",
       onCell: (record: Spec): EditableCellProps => ({
@@ -443,17 +444,45 @@ const SpecsCreation: React.FC = () => {
       }),
     },
     {
-      title: "Action",
+      title: <span>Actions</span>,
       key: "action",
+      width: 120,
       render: (_, record) => (
-        <Trash2
-          size={17}
-          style={{ cursor: "pointer", color: "red" }}
-          onClick={() => {
-            setSpecToDelete(record);
-            setIsModalOpen(true);
-          }}
-        />
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <Button
+            type="text"
+            style={{ padding: 4 }}
+            onClick={() => {
+              setEditingKey(record.key);
+              setEditingColumn("specName");
+            }}
+          >
+            <Edit2 size={16} color="#1890ff" />
+          </Button>
+          <Button
+            type="text"
+            style={{ padding: 4 }}
+            onClick={() => {
+              setSpecToDelete(record);
+              setIsModalOpen(true);
+            }}
+          >
+            <Trash2 size={16} color="#ff4d4f" />
+          </Button>
+          <Button
+            type="text"
+            style={{ padding: 4 }}
+            onClick={() => {
+              setSelectedSpecToCopy(record.key);
+              setIsCopyMode(true);
+              setNewspecName("");
+              setNewRating(record.rating);
+              setNewBaseMaterial(record.baseMaterial);
+            }}
+          >
+            <Copy size={16} color="#52c41a" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -486,143 +515,162 @@ const SpecsCreation: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Specs Creation</h1>
-
-      <Form layout="vertical" className="mb-6 mt-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Spec Code<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Enter Spec Code"
-            className="w-full"
-            value={newspecName}
-            onChange={(e) => setNewspecName(e.target.value)}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Rating<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Select
-            value={newRating}
-            onChange={(value) => setNewRating(value)}
-            placeholder="-Select-"
-            className="w-full"
-          >
-            {ratingOptions.map((option) => (
-              <Option key={option} value={option}>
-                {option}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Base Material<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Select
-            value={newBaseMaterial}
-            onChange={(value) => setNewBaseMaterial(value)}
-            placeholder="-Base Material-"
-            className="w-full"
-          >
-            {[
-              "CA", "CS", "CS-NACE", "CSGLV", "CUNI", "DD", "DD-NACE", 
-              "GRE", "INC", "INC-NACE", "LTCS", "LTCS-NACE", "NM", 
-              "RB", "SA", "SA-NACE", "SAGLV", "SD", "SD-NACE", "SI", 
-              "SS", "SS-NACE"
-            ].map((option) => (
-              <Option key={option} value={option}>
-                {option}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        {isCopyMode && (
-          <Form.Item
-            label={
-              <span className="text-white font-semibold">
-                Copy From<span className="text-red-500"> *</span>
-              </span>
-            }
-          >
-            <Select
-              value={selectedSpecToCopy}
-              onChange={handleSpecSelect}
-              placeholder="Select spec to copy from"
-              className="w-full"
+    <div style={{ padding: "0", maxWidth: "100%" }}>
+      <div className="bg-white p-4">
+        <h1 className="text-blue-500 text-xl mb-3">Specs Management</h1>
+        
+        <Form layout="horizontal" className="mb-0">
+          <div className="grid grid-cols-3 gap-3">
+            <Form.Item
+              label={<span className="font-semibold">Spec Code <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-1"
             >
-              {specs.map((spec) => (
-                <Option key={spec.key} value={spec.key}>
-                  {spec.specName}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        )}
+              <Input
+                placeholder="Enter Spec Code"
+                value={newspecName}
+                onChange={(e) => setNewspecName(e.target.value)}
+                className="w-full"
+                size="middle"
+              />
+            </Form.Item>
 
-        <div className="flex items-center mt-1">
-          <Form.Item className="mb-0">
+            <Form.Item
+              label={<span className="font-semibold">Rating <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-1"
+            >
+              <Select
+                placeholder="Select Rating"
+                value={newRating}
+                onChange={(value) => setNewRating(value)}
+                className="w-full"
+                size="middle"
+                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              >
+                {ratingOptions.map((option) => (
+                  <Option key={option} value={option}>
+                    {option}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label={<span className="font-semibold">Base Material <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-1"
+            >
+              <Select
+                placeholder="Select Base Material"
+                value={newBaseMaterial}
+                onChange={(value) => setNewBaseMaterial(value)}
+                className="w-full"
+                size="middle"
+                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              >
+                {baseMaterialOptions.map((option) => (
+                  <Option key={option} value={option}>
+                    {option}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </div>
+          
+          {isCopyMode && (
+            <div className="mt-3">
+              <Form.Item
+                label={<span className="font-semibold">Copy From <span className="text-red-500">*</span></span>}
+                colon={false}
+                className="mb-1 w-72"
+              >
+                <Select
+                  value={selectedSpecToCopy}
+                  onChange={handleSpecSelect}
+                  placeholder="Select spec to copy from"
+                  className="w-full"
+                  size="middle"
+                  dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                >
+                  {specs.map((spec) => (
+                    <Option key={spec.key} value={spec.key}>
+                      {spec.specName}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center mt-4 mb-5">
             <Checkbox
-              className="text-white font-semibold mr-4"
               checked={isCopyMode}
               onChange={(e) => setIsCopyMode(e.target.checked)}
+              className="mr-4"
             >
               Copy Existing Spec
             </Checkbox>
-          </Form.Item>
 
-          <Form.Item className="mb-0">
             <Button
               type="primary"
               onClick={handleAddSpec}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
+              className="bg-blue-500 text-white"
+              icon={<Plus size={14} className="mr-1" />}
             >
-              {isCopyMode ? "Copy Existing Spec" : "Add Spec"}
+              {isCopyMode ? "Copy Spec" : "Add Spec"}
             </Button>
-          </Form.Item>
-        </div>
-      </div>
-    </Form>
+          </div>
+        </Form>
 
-      <Table
-        dataSource={specs}
-        columns={columns}
-        loading={loading}
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-      />
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={() => {
-          if (specToDelete) {
-            handleDeleteSpec(specToDelete.key);
-          }
-        }}
-        title="Delete Specification"
-        message={`Are you sure you want to delete the specification ${specToDelete?.specName}?`}
-        confirmText="Delete"
-        cancelText="Cancel"
-      />
+        <div className="border-t border-gray-200 my-3"></div>
+
+        <Table
+          dataSource={specs}
+          columns={columns}
+          loading={loading}
+          components={{
+            body: {
+              cell: EditableCell,
+            },
+          }}
+          pagination={false} 
+          rowClassName={() => "editable-row"}
+          bordered
+          size="small"
+          className="specs-table"
+        />
+        
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {
+            if (specToDelete) {
+              handleDeleteSpec(specToDelete.key);
+            }
+          }}
+          title="Delete Specification"
+          message={`Are you sure you want to delete the specification ${specToDelete?.specName}?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      </div>
+
+      <style>
+        {`
+        .specs-table .ant-table-thead > tr > th {
+          background-color: #f8f9fa;
+          padding: 8px;
+          font-weight: 500;
+        }
+        .specs-table .ant-table-tbody > tr > td {
+          padding: 8px;
+        }
+        .editable-row:hover {
+          background-color: #f5f5f5;
+        }
+        `}
+      </style>
     </div>
   );
 };

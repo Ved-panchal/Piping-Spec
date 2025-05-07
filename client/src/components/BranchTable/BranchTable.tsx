@@ -3,6 +3,7 @@ import { ApiError, Size, SizeRange } from '../../utils/interface';
 import showToast from '../../utils/toast';
 import api from '../../utils/api/apiutils';
 import { api as configApi } from "../../utils/api/config";
+import Title from 'antd/es/typography/Title';
 
 // Types
 type Position = {
@@ -81,14 +82,15 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
       if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
         setDropdownPosition({
-          top: rect.top + window.scrollY - dropdownHeight - 8,
+          top: rect.top - dropdownHeight - 8,
           left: rect.left + window.scrollX
         });
         setIsAbove(true);
       } else {
-        console.log("Hererere2")
+        // console.log("Hererere2")
+        console.log(rect)
         setDropdownPosition({
-          top: rect.bottom - 8,
+          top: rect.bottom + 8,
           left: rect.left + window.scrollX
         });
         setIsAbove(false);
@@ -190,7 +192,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         className="fixed w-20 bg-white rounded-md shadow-lg border overflow-hidden"
         style={{ 
           zIndex: 9999,
-          top: `${(dropdownPosition.top/2)}px`,
+          top: `${(dropdownPosition.top)}px`,
           left: `${dropdownPosition.left}px`
         }}
         >
@@ -510,7 +512,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
   return (
     <div className="w-full flex flex-col" ref={tableRef}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Branch Table Configuration</h2>
+      <Title level={4} className="text-lg font-medium text-gray-800 mt-2">Branch Table Configuration</Title>
         <SizeToggle />
       </div>
       

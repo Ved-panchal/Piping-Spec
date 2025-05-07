@@ -14,6 +14,7 @@ import {
   Size,
   SizeRange as Sizerange
 } from "../../utils/interface";
+import Title from "antd/es/typography/Title";
 
 const { Option } = Select;
 
@@ -270,7 +271,10 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   return (
     <div className="bg-white p-4 rounded-md">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-medium text-gray-800">Size Range</h2>
+        {/* <h2 className="text-lg font-medium text-gray-800">Size Range</h2> */}
+        <Title level={4} className="text-lg font-medium text-gray-800">
+        Size Range
+        </Title>
         <Tooltip title="Add sizes and assign schedules">
           <div className="cursor-help text-gray-400">
             <Info size={16} />

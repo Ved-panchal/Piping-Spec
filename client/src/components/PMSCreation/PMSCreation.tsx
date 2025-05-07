@@ -1243,7 +1243,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         style={{ borderRadius: "8px" }}
       >
         
-        <Title level={4} style={{ marginBottom: "24px", color: "#1890ff" }}>
+        <Title level={4} className="text-lg font-medium text-gray-800">
           PMS Creation
         </Title>
         <Form layout="vertical" className="mb-4">
@@ -1370,7 +1370,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item label={<span>&nbsp;</span>}>
+              <Form.Item label={<span className="font-semibold">&nbsp;</span>}>
                 <Checkbox
                   checked={isAllMaterial}
                   onChange={handleAllMaterialChange}
@@ -1429,7 +1429,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           columns={columns}
           dataSource={items}
           loading={tableLoading}
-          pagination={{ pageSize: 10 }}
+          pagination={false}
           rowClassName="editable-row"
           size="middle"
           bordered

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Button, Form, Select, message } from "antd";
+import { Table, Input, Button, Form, Select, message, Spin } from "antd";
 import { ColumnsType } from "antd/es/table";
 import showToast from "../../utils/toast";
 import api from "../../utils/api/apiutils";
 import { api as configApi } from "../../utils/api/config";
 import { ApiError, Component } from "../../utils/interface";
+import { Plus } from "lucide-react";
 
 interface ComponentDesc {
   id?: number;
@@ -13,15 +14,13 @@ interface ComponentDesc {
   key?: string;
 }
 
-// Extend the interface to match the CatRef data structure
 export interface EditableCellProps extends React.TdHTMLAttributes<unknown> {
   record: CatRefData;
   editable: boolean;
   dataIndex: keyof CatRefData;
-  componentDesc?: ComponentDesc[]; // Add this to pass component descriptions
+  componentDesc?: ComponentDesc[];
 }
 
-// Update the interface in your utils/interface.ts to match this
 interface CatRefData {
   id?: number;
   key: string;
@@ -38,15 +37,10 @@ const CatRefConfiguration: React.FC = () => {
   const [currentProjectId, setCurrentProjectId] = useState<string>();
   const [componentsList, setComponentsList] = useState<Component[]>([]);
   const [componentDesc, setComponentDesc] = useState<ComponentDesc[]>([]);
-  const [selectedComponentId, setSelectedComponentId] = useState<number | null>(
-    null
-  );
-
-  // New state for input fields
+  const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
   const [newItemShortDesc, setNewItemShortDesc] = useState("");
   const [newRating, setNewRating] = useState("");
   const [newCatalog, setNewCatalog] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -60,7 +54,6 @@ const CatRefConfiguration: React.FC = () => {
     return `${itemShortDesc}${rating ? '-' : ''}${formattedRating}`;
   };
 
-  // Fetch Component Description function
   const fetchComponentDesc = async (componentId: number) => {
     try {
       const payload = {
@@ -96,13 +89,10 @@ const CatRefConfiguration: React.FC = () => {
     }
   };
 
-  // Modify handleComponentChange to call fetchComponentDesc
   const handleComponentChange = (componentId: number) => {
-    // Reset input fields
     setNewItemShortDesc("");
     setNewRating("");
     setNewCatalog("");
-
     setSelectedComponentId(componentId);
     fetchCatRefData(componentId);
     fetchComponentDesc(componentId);
@@ -172,7 +162,6 @@ const CatRefConfiguration: React.FC = () => {
   };
 
   const handleAddCatRefData = async () => {
-    // Validate input fields with more comprehensive checks
     if (!selectedComponentId) {
       message.error("Please select a component first.");
       return;
@@ -188,10 +177,8 @@ const CatRefConfiguration: React.FC = () => {
       return;
     }
 
-    // Generate concatenate field
     const newConcatenate = generateConcatenate(newItemShortDesc, newRating);
 
-    // More robust duplicate checking
     const isDuplicateEntry = catRefData.some(
       (item) => 
         item.item_short_desc === newItemShortDesc && 
@@ -228,14 +215,10 @@ const CatRefConfiguration: React.FC = () => {
       );
 
       if (response && response.data.success) {
-        // Add new data to the beginning of the list
         setCatRefData((prevData) => [newData, ...prevData]);
-
-        // Reset input fields
         setNewItemShortDesc("");
         setNewRating("");
         setNewCatalog("");
-
         message.success("CatRef data added successfully");
       } else {
         message.error(response.data.message || "Failed to add CatRef data");
@@ -261,7 +244,6 @@ const CatRefConfiguration: React.FC = () => {
 
     const handleBlur = () => {
       if (localInputValue !== initialInputValue) {
-        // For item_short_desc or rating, regenerate concatenate
         if (dataIndex === "item_short_desc" || dataIndex === "rating") {
           const updatedConcatenate = generateConcatenate(
             dataIndex === "item_short_desc"
@@ -272,7 +254,6 @@ const CatRefConfiguration: React.FC = () => {
           handleEditCatRefData(record.key, "concatenate", updatedConcatenate);
         }
         
-        console.log("record",record)
         handleEditCatRefData(record.key, dataIndex, localInputValue);
       }
       setEditingKey(null);
@@ -291,6 +272,7 @@ const CatRefConfiguration: React.FC = () => {
             style={{ width: "100%" }}
             onBlur={handleBlur}
             autoFocus
+            size="small"
           >
             {componentDesc!.map((desc) => (
               <Select.Option key={desc.code} value={desc.code}>
@@ -308,6 +290,7 @@ const CatRefConfiguration: React.FC = () => {
           onBlur={handleBlur}
           onKeyPress={(e) => e.key === "Enter" && handleBlur()}
           autoFocus
+          size="small"
         />
       );
     };
@@ -322,6 +305,7 @@ const CatRefConfiguration: React.FC = () => {
               setEditingKey(record.key);
               setEditingColumn(dataIndex);
             }}
+            style={{ cursor: 'pointer', padding: '4px 0' }}
           >
             {children === '' ? '-' : children}
           </div>
@@ -330,14 +314,11 @@ const CatRefConfiguration: React.FC = () => {
     );
   };
 
-
-
   const handleEditCatRefData = async (
     key: string,
     field: keyof CatRefData,
     value: string
   ) => {
-    console.log(key)
     const project_id = localStorage.getItem('currentProjectId');
     const originalData = [...catRefData];
     const updatedData = catRefData.map((item) =>
@@ -347,7 +328,6 @@ const CatRefConfiguration: React.FC = () => {
     const catRefToUpdate = updatedData.find((item) => item.key === key);
     if (!catRefToUpdate) return;
 
-    // Check for duplicate entries when editing item_short_desc or rating
     if (field === "item_short_desc" || field === "rating") {
       const newConcatenate = generateConcatenate(
         field === "item_short_desc" ? value : catRefToUpdate.item_short_desc,
@@ -390,7 +370,7 @@ const CatRefConfiguration: React.FC = () => {
       if (response && response.data.success) {
         message.success("CatRef data updated successfully");
       } else {
-        setCatRefData(originalData); // Revert to original data if update fails
+        setCatRefData(originalData);
         throw new Error("Failed to update CatRef data.");
       }
     } catch (error) {
@@ -400,7 +380,7 @@ const CatRefConfiguration: React.FC = () => {
 
   const columns: ColumnsType<CatRefData> = [
     {
-      title: "Item Short Desc",
+      title: <span>Item Short Desc</span>,
       dataIndex: "item_short_desc",
       key: "item_short_desc",
       onCell: (record: CatRefData): EditableCellProps => ({
@@ -412,7 +392,7 @@ const CatRefConfiguration: React.FC = () => {
       }),
     },
     {
-      title: "Rating",
+      title: <span>Rating</span>,
       dataIndex: "rating",
       key: "rating",
       onCell: (record: CatRefData): EditableCellProps => ({
@@ -422,7 +402,7 @@ const CatRefConfiguration: React.FC = () => {
       }),
     },
     {
-      title: "Concatenate",
+      title: <span>Concatenate</span>,
       dataIndex: "concatenate",
       key: "concatenate",
       onCell: (record: CatRefData): EditableCellProps => ({
@@ -432,7 +412,7 @@ const CatRefConfiguration: React.FC = () => {
       }),
     },
     {
-      title: "Catalog",
+      title: <span>Catalog</span>,
       dataIndex: "catalog",
       key: "catalog",
       onCell: (record: CatRefData): EditableCellProps => ({
@@ -450,100 +430,148 @@ const CatRefConfiguration: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>CatRef Configuration</h1>
-      <Form layout="vertical" className="mb-6 mt-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Component<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Select
-            placeholder="Select a component"
-            className="w-full"
-            onChange={handleComponentChange}
-            options={componentsList.map((component) => ({
-              value: component.id,
-              label: component.componentname,
-            }))}
-          />
-        </Form.Item>
+    <div style={{ padding: "0", maxWidth: "100%" }}>
+      <div className="bg-white p-4">
+        <h1 className="text-blue-500 text-xl mb-4">CatRef Configuration</h1>
+        
+        <Form layout="horizontal" className="mb-4">
+          <div className="grid grid-cols-6 gap-3 mb-3">
+            <Form.Item
+              label={<span className="font-semibold">Component <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0 col-span-2"
+            >
+              <Select
+                placeholder="Select a component"
+                className="w-full"
+                onChange={handleComponentChange}
+                size="middle"
+                options={componentsList.map((component) => ({
+                  value: component.id,
+                  label: component.componentname,
+                }))}
+              />
+            </Form.Item>
 
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Item Description<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Select
-            placeholder="Select a Item Description"
-            className="w-full"
-            onChange={(value) => setNewItemShortDesc(value)}
-            options={componentDesc.map((desc) => ({
-              value: desc.itemDescription,
-              label: `${desc.code} - ${desc.itemDescription}`,
-            }))}
-          />
-        </Form.Item>
+            <Form.Item
+              label={<span className="font-semibold">Rating <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0 col-span-2"
+            >
+              <Input
+                placeholder="Enter Rating"
+                className="w-full"
+                value={newRating}
+                onChange={(e) => setNewRating(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
 
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Rating<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Rating"
-            className="w-full"
-            value={newRating}
-            onChange={(e) => setNewRating(e.target.value)}
-          />
-        </Form.Item>
+            <Form.Item
+              label={<span className="font-semibold">Catalog <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0 col-span-2"
+            >
+              <Input
+                placeholder="Enter Catalog"
+                className="w-full"
+                value={newCatalog}
+                onChange={(e) => setNewCatalog(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
+          </div>
 
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Catalog<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Catalog"
-            className="w-full"
-            value={newCatalog}
-            onChange={(e) => setNewCatalog(e.target.value)}
-          />
-        </Form.Item>
+          <div className="grid grid-cols-1 gap-3">
+            <Form.Item
+              label={<span className="font-semibold">Item Description <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Select
+                placeholder="Select an Item Description"
+                className="w-full"
+                onChange={(value) => setNewItemShortDesc(value)}
+                size="middle"
+                options={componentDesc.map((desc) => ({
+                  value: desc.itemDescription,
+                  label: `${desc.code} - ${desc.itemDescription}`,
+                }))}
+              />
+            </Form.Item>
+          </div>
+          
+          <div className="flex justify-end mt-5 mb-2">
+            <Button
+              type="primary"
+              onClick={handleAddCatRefData}
+              loading={buttonLoading}
+              // disabled={!selectedComponentId || !newItemShortDesc}
+              className="bg-blue-500 text-white"
+              icon={<Plus size={14} className="mr-1" />}
+            >
+              Add CatRef
+            </Button>
+          </div>
+        </Form>
 
-        <div className="flex items-center mt-1">
-          <Button
-            type="primary"
-            onClick={handleAddCatRefData}
-            loading={buttonLoading}
-            disabled={!selectedComponentId || !newItemShortDesc}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
-          >
-            Add CatRef
-          </Button>
-        </div>
+        <div className="border-t border-gray-200 my-3"></div>
+
+        {loading ? (
+          <div className="flex justify-center items-center p-10">
+            <Spin size="large" />
+          </div>
+        ) : catRefData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-10 text-gray-400">
+            <div className="text-center mb-3">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 3V7C14 7.26522 14.1054 7.51957 14.2929 7.70711C14.4804 7.89464 14.7348 8 15 8H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 21H7C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19V5C5 4.46957 5.21071 3.96086 5.58579 3.58579C5.96086 3.21071 6.46957 3 7 3H14L19 8V19C19 19.5304 18.7893 20.0391 18.4142 20.4142C18.0391 20.7893 17.5304 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p>No data</p>
+          </div>
+        ) : (
+          <Table
+            className="catref-table"
+            columns={columns}
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            dataSource={catRefData}
+            pagination={false}
+            bordered
+            size="small"
+          />
+        )}
       </div>
-    </Form>
-      <Table
-        columns={columns}
-        pagination={false}
-        dataSource={catRefData}
-        loading={loading}
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-      />
+
+      <style>{`
+        .catref-table .ant-table-thead > tr > th {
+          background-color: #f8f9fa;
+          padding: 8px;
+          font-weight: 500;
+        }
+        .catref-table .ant-table-tbody > tr > td {
+          padding: 8px;
+        }
+        .catref-table .ant-table-row:hover {
+          background-color: #f5f5f5;
+        }
+        .ant-form-item {
+          margin-bottom: 0;
+        }
+        .ant-form-item-label {
+          font-weight: normal;
+          padding-bottom: 2px;
+        }
+        .ant-form-item-label > label {
+          color: #333;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 };

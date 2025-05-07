@@ -6,6 +6,7 @@ import { ColumnsType } from "antd/es/table";
 import api from "../../utils/api/apiutils"; // API utility
 import { api as configApi } from "../../utils/api/config"; // API config for URLs
 import showToast from "../../utils/toast";
+import { Plus } from "lucide-react";
 
 // Types for rating data
 interface Rating {
@@ -39,7 +40,6 @@ const RatingConfiguration: React.FC = () => {
   const [loading, setLoading] = useState(false); // Table loading
   const [editingOriginalValue, setEditingOriginalValue] = useState<string>("");
   const [buttonLoading, setButtonLoading] = useState(false); // Button loading
-
 
   const ratingCodeRegex = /^[A-Za-z0-9]+$/;
   const ratingValueRegex = /^\d+#$/;
@@ -80,38 +80,42 @@ const RatingConfiguration: React.FC = () => {
           c_ratingCode: rating.c_rating_code
         }));
         setRatings(ratingsWithKeys);
-        setLoading(false);
       } else {
         showToast({ message: "Failed to fetch ratings.", type: "error" });
-        setLoading(false);
       }
     } catch (error) {
       const apiError = error as ApiError;
       const errorMessage =
         apiError.response?.data?.error || "Error fetching ratings.";
       showToast({ message: errorMessage, type: "error" });
+    } finally {
       setLoading(false);
     }
   };
 
   const handleAddRating = async () => {
-
     const duplicateFields: string[] = [];
 
-  if (ratings.some((rating) => rating.ratingValue === newRatingValue)) {
-    duplicateFields.push("Rating Value");
-  }
-  if (ratings.some((rating) => rating.ratingCode === newRatingCode)) {
-    duplicateFields.push("Rating Code");
-  }
-  if (ratings.some((rating) => rating.c_ratingCode === newCRatingCode)) {
-    duplicateFields.push("Client Rating Code");
-  }
+    if (ratings.some((rating) => rating.ratingValue === newRatingValue)) {
+      duplicateFields.push("Rating Value");
+    }
+    if (ratings.some((rating) => rating.ratingCode === newRatingCode)) {
+      duplicateFields.push("Rating Code");
+    }
+    if (ratings.some((rating) => rating.c_ratingCode === newCRatingCode)) {
+      duplicateFields.push("Client Rating Code");
+    }
 
-  if (duplicateFields.length > 0) {
-    message.error(`${duplicateFields.join(", ")} already in use.`);
-    return;
-  }
+    if (duplicateFields.length > 0) {
+      message.error(`${duplicateFields.join(", ")} already in use.`);
+      return;
+    }
+    
+    if (!newRatingValue || !newRatingCode || !newCRatingCode) {
+      message.error("Rating Value, Rating Code, and Client Rating Code are required.");
+      return;
+    }
+    
     if (!ratingCodeRegex.test(newCRatingCode)) {
       message.error("Rating code can only include A-Z, a-z, and 0-9");
       return;
@@ -174,7 +178,6 @@ const RatingConfiguration: React.FC = () => {
   };
 
   const handleEditRatingCode = async (key: string, c_ratingCode:string) => {
-    
     const duplicateRating = ratings.find(
       (rating) => rating.c_ratingCode === c_ratingCode && rating.key !== key
     );
@@ -284,8 +287,7 @@ const RatingConfiguration: React.FC = () => {
         if (record) {
           handleEditRatingCode(record.key, inputValue);
         }
-      } 
-      
+      }
     };
 
     return (
@@ -297,9 +299,16 @@ const RatingConfiguration: React.FC = () => {
             onBlur={() => handleEditRatingCode(record.key, inputValue)}
             onKeyPress={handleKeyPress}
             autoFocus
+            size="small"
+            bordered
           />
         ) : (
-          <div onDoubleClick={() => setEditingKey(record?.key)}>{children}</div>
+          <div 
+            onDoubleClick={() => setEditingKey(record?.key)}
+            style={{ cursor: 'pointer', padding: '4px 0' }}
+          >
+            {children}
+          </div>
         )}
       </td>
     );
@@ -307,17 +316,17 @@ const RatingConfiguration: React.FC = () => {
 
   const columns: ColumnsType<Rating> = [
     {
-      title: "Rating Code",
+      title: <span>Rating Code</span>,
       dataIndex: "ratingCode",
       key: "ratingCode",
     },
     {
-      title: "Rating Value",
+      title: <span>Rating Value</span>,
       dataIndex: "ratingValue",
       key: "ratingValue",
     },
     {
-      title: "Client Rating Code",
+      title: <span>Client Rating Code</span>,
       dataIndex: "c_ratingCode",
       key: "c_ratingCode",
       onCell: (record: Rating) :EditableCellProps => ({
@@ -332,86 +341,130 @@ const RatingConfiguration: React.FC = () => {
   }, [currentProjectId]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Rating Configuration</h2>
-      <Form layout="vertical" className=" mt-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Rating Value<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Rating Value (e.g., 100#)"
-            className="w-full"
-            value={newRatingValue}
-            onChange={(e) => setNewRatingValue(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
-          />
-        </Form.Item>
+    <div style={{ padding: "0", maxWidth: "100%" }}>
+      <div className="bg-white p-4">
+        <h1 className="text-blue-500 text-xl mb-4">Rating Configuration</h1>
+        
+        <Form layout="horizontal" className="mb-4">
+          <div className="grid grid-cols-3 gap-3">
+            <Form.Item
+              label={<span className="font-semibold">Rating Value <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter Rating Value (e.g., 150#)"
+                className="w-full"
+                value={newRatingValue}
+                onChange={(e) => setNewRatingValue(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
 
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Rating Code<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Rating Code (A-Z, a-z, 0-9)"
-            className="w-full"
-            value={newRatingCode}
-            onChange={(e) => setNewRatingCode(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
-          />
-        </Form.Item>
+            <Form.Item
+              label={<span className="font-semibold">Rating Code <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter Rating Code"
+                className="w-full"
+                value={newRatingCode}
+                onChange={(e) => setNewRatingCode(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
 
-        <Form.Item
-          label={
-            <span className="text-white font-semibold">
-              Client Rating Code<span className="text-red-500"> *</span>
-            </span>
-          }
-        >
-          <Input
-            placeholder="Client Rating Code (A-Z, a-z, 0-9)"
-            className="w-full"
-            value={newCRatingCode}
-            onChange={(e) => setNewCRatingCode(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddRating()}
-          />
-        </Form.Item>
+            <Form.Item
+              label={<span className="font-semibold">Client Rating Code <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0"
+            >
+              <Input
+                placeholder="Enter Client Rating Code"
+                className="w-full"
+                value={newCRatingCode}
+                onChange={(e) => setNewCRatingCode(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
+          </div>
+          
+          <div className="mt-6 mb-1 flex justify-between items-center">
+            <p className="text-gray-500 text-xs">
+              Rating Code can only include A-Z, a-z, 0-9. Rating Value must end with # (e.g., 150#).
+            </p>
+            <Button
+              type="primary"
+              onClick={handleAddRating}
+              loading={buttonLoading}
+              className="bg-blue-500 text-white"
+              icon={<Plus size={14} className="mr-1" />}
+            >
+              Add Rating
+            </Button>
+          </div>
+        </Form>
 
-        <div className="flex items-center mt-1">
-          <Button
-            type="primary"
-            onClick={handleAddRating}
-            disabled={buttonLoading}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded"
-          >
-            {buttonLoading ? <Spin /> : "Add Rating"}
-          </Button>
-        </div>
+        <div className="border-t border-gray-200 my-3"></div>
+
+        {loading ? (
+          <div className="flex justify-center items-center p-10">
+            <Spin size="large" />
+          </div>
+        ) : ratings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-10 text-gray-400">
+            <div className="text-center mb-3">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 3V7C14 7.26522 14.1054 7.51957 14.2929 7.70711C14.4804 7.89464 14.7348 8 15 8H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 21H7C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19V5C5 4.46957 5.21071 3.96086 5.58579 3.58579C5.96086 3.21071 6.46957 3 7 3H14L19 8V19C19 19.5304 18.7893 20.0391 18.4142 20.4142C18.0391 20.7893 17.5304 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p>No data</p>
+          </div>
+        ) : (
+          <Table
+            className="rating-table"
+            columns={columns}
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            dataSource={ratings}
+            pagination={false}
+            bordered
+            size="small"
+          />
+        )}
       </div>
-    </Form>
-      <div style={{ color: "grey", fontSize: "12px", marginBottom: "10px" }}>
-        Rating Code can only include A-Z, a-z, 0-9. Rating Value must end with #.
-      </div>
-      <Table
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        loading={loading}
-        dataSource={ratings}
-        columns={columns}
-        pagination={false}
-      />
+
+      <style>{`
+        .rating-table .ant-table-thead > tr > th {
+          background-color: #f8f9fa;
+          padding: 8px;
+          font-weight: 500;
+        }
+        .rating-table .ant-table-tbody > tr > td {
+          padding: 8px;
+        }
+        .rating-table .ant-table-row:hover {
+          background-color: #f5f5f5;
+        }
+        .ant-form-item {
+          margin-bottom: 0;
+        }
+        .ant-form-item-label {
+          font-weight: normal;
+          padding-bottom: 2px;
+        }
+        .ant-form-item-label > label {
+          color: #333;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 };
+
 export default RatingConfiguration;
