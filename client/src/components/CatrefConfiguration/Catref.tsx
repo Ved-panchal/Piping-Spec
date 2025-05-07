@@ -430,7 +430,7 @@ const CatRefConfiguration: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "0", maxWidth: "100%" }}>
+    <div style={{ padding: "0", maxWidth: "100%", maxHeight:"78vh", overflowY:"auto" }}>
       <div className="bg-white p-4">
         <h1 className="text-blue-500 text-xl mb-4">CatRef Configuration</h1>
         

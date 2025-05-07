@@ -27,8 +27,6 @@ import {
   Col,
   Popconfirm,
   Tooltip,
-  Card,
-  Divider,
   Typography,
   Badge,
 } from "antd";
@@ -1236,13 +1234,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   ];
 
   return (
-    <div style={{ padding: "5px", maxWidth: "100%" }}>
-      <Card
-        bordered={false}
-        className="shadow-sm"
-        style={{ borderRadius: "8px" }}
-      >
-        
+    <div style={{ padding: "10px 8px 5px 8px", maxWidth: "100%" , maxHeight:"79vh", overflowY:"auto" }}>        
         <Title level={4} className="text-lg font-medium text-gray-800">
           PMS Creation
         </Title>
@@ -1442,7 +1434,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           onClose={() => setIsModalOpen(false)}
           data={transformData(reviewData)}
         />
-      </Card>
+      {/* </Card> */}
     </div>
   );
 };
