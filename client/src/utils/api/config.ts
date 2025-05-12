@@ -1,5 +1,5 @@
-export const API_URL = 'http://localhost:5500/';
-// export const API_URL = 'https://staging.enginatrix.com/api/'
+// export const API_URL = 'http://localhost:5500/';
+export const API_URL = 'https://staging.enginatrix.com/api/'
 
 export const api = {
     API_URL: {
