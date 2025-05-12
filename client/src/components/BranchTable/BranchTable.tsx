@@ -422,7 +422,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
         newBranchDataMap[`${runSizeOD}-${branchSizeOD}`] = selectedOption;
         setBranchDataMap(newBranchDataMap);
         
-        showToast({ message: response.data.message || "Branch updated successfully", type: 'success' });
+        // showToast({ message: response.data.message || "Branch updated successfully", type: 'success' });
       } else {
         throw new Error(response.data.message || 'Failed to add or update branch.');
       }
@@ -518,7 +518,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
       
       <Instructions />
       
-      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200" style={{ width: tableWidth }}>
+      <div className="bg-white rounded-lg shadow-md border border-gray-200" style={{ width: tableWidth }}>
         <div className="relative overflow-x-auto">
           <table className="w-full border-collapse">
             <tbody>
@@ -583,7 +583,7 @@ const BranchTable: React.FC<{ specId: string }> = ({ specId }) => {
         </div>
       </div>
       
-      <div className="mt-4 text-sm text-gray-500 italic">
+      <div className="mt-2 text-sm text-gray-500 italic">
         Note: Select the appropriate component type for each run size and branch size combination.
       </div>
     </div>

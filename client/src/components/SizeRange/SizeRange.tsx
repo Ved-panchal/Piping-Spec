@@ -25,18 +25,11 @@ interface OptionType {
   arrange_od?: number;
 }
 
-// interface EditableCellProps extends TdHTMLAttributes<unknown> {
-//   record: Sizerange;
-//   editable: boolean;
-//   dataIndex: keyof Sizerange;
-// }
-
 const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
   const [sizeRanges, setSizeRanges] = useState<Sizerange[]>([]);
   const [newSize, setNewSize] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
-  // const [editingKey, setEditingKey] = useState<string | number | null>(null);
   const [sizeOptions, setSizeOptions] = useState<OptionType[]>([]);
   const [filteredSizeOptions, setFilteredSizeOptions] = useState<OptionType[]>([]);
   const [scheduleOptions, setScheduleOptions] = useState<OptionType[]>([]);
@@ -238,6 +231,9 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
           onChange={(value) => handleScheduleChange(record, value)}
           style={{ width: '100%' }}
           className="text-gray-800"
+          size="small"
+          dropdownMatchSelectWidth={false}
+          bordered={false}
         >
           {scheduleOptions.map(option => (
             <Option key={option.value} value={option.label}>
@@ -251,65 +247,65 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
       title: "Action",
       key: "action",
       width: '20%',
+      align: 'center',
       render: (_, record) => (
-        <div className="flex justify-center space-x-2">
-          <Button 
-            type="text" 
-            icon={<Trash2 size={16} />}
-            danger
-            className="flex items-center hover:bg-red-50"
-            onClick={() => {
-              setSizeRangeToDelete(record);
-              setIsModalOpen(true);
-            }}
-          />
-        </div>
+        <Button 
+          type="text" 
+          icon={<Trash2 size={14} />}
+          danger
+          size="small"
+          onClick={() => {
+            setSizeRangeToDelete(record);
+            setIsModalOpen(true);
+          }}
+          style={{ padding: '0px 8px', height: '24px', margin: '0' }}
+        />
       ),
     },
   ];
 
   return (
-    <div className="bg-white p-4 rounded-md">
-      <div className="flex items-center justify-between mb-6">
-        {/* <h2 className="text-lg font-medium text-gray-800">Size Range</h2> */}
-        <Title level={4} className="text-lg font-medium text-gray-800">
-        Size Range
-        </Title>
-        <Tooltip title="Add sizes and assign schedules">
-          <div className="cursor-help text-gray-400">
-            <Info size={16} />
-          </div>
-        </Tooltip>
-      </div>
+    <div className="bg-white p-4 rounded-md max-h-[76vh] overflow-y-auto">
+    <div className="flex items-center justify-between mb-6">
+      {/* <h2 className="text-lg font-medium text-gray-800">Size Range</h2> */}
+      <Title level={4} className="text-lg font-medium text-gray-800">
+      Size Range
+      </Title>
+      <Tooltip title="Add sizes and assign schedules">
+        <div className="cursor-help text-gray-400">
+          <Info size={16} />
+        </div>
+      </Tooltip>
+    </div>
+    
+    <div className="flex gap-3 mb-6">
+      <Select
+        mode="multiple"
+        value={newSize}
+        onChange={setNewSize}
+        placeholder="Select sizes to add"
+        style={{ width: '300px' }}
+        className="text-gray-800"
+        optionFilterProp="children"
+        showSearch
+      >
+        {filteredSizeOptions.map(option => (
+          <Option key={option.value} value={option.value}>
+            {option.label}
+          </Option>
+        ))}
+      </Select>
       
-      <div className="flex gap-3 mb-6">
-        <Select
-          mode="multiple"
-          value={newSize}
-          onChange={setNewSize}
-          placeholder="Select sizes to add"
-          style={{ width: '300px' }}
-          className="text-gray-800"
-          optionFilterProp="children"
-          showSearch
-        >
-          {filteredSizeOptions.map(option => (
-            <Option key={option.value} value={option.value}>
-              {option.label}
-            </Option>
-          ))}
-        </Select>
-        
-        <Button
-          type="primary"
-          onClick={handleAddSizeRange}
-          loading={btnLoading}
-          className={`bg-blue-500 ${newSize.length === 0 ? '' : 'hover:bg-blue-600'} text-white`}
-          disabled={newSize.length === 0}
-        >
-          Add Size Range
-        </Button>
-      </div>
+      <Button
+        type="primary"
+        onClick={handleAddSizeRange}
+        loading={btnLoading}
+        className={`bg-blue-500 ${newSize.length === 0 ? '' : 'hover:bg-blue-600'} text-white`}
+        disabled={newSize.length === 0}
+      >
+        Add Size Range
+      </Button>
+    </div>
       
       <Table
         columns={columns}
@@ -317,13 +313,14 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         pagination={false}
         loading={loading}
         bordered
-        className="border border-gray-200 rounded-sm"
+        className="border border-gray-200 rounded-sm compact-sizing-table"
         rowClassName="hover:bg-gray-50"
+        size="small"
         locale={{
           emptyText: (
-            <div className="py-8 text-center text-gray-500">
-              <div className="mb-2">No size ranges found</div>
-              <div className="text-sm">Select sizes above to add to this spec</div>
+            <div className="py-4 text-center text-gray-500 text-xs">
+              <div>No size ranges found</div>
+              <div>Select sizes above to add to this spec</div>
             </div>
           )
         }}
@@ -339,6 +336,29 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
         title="Confirm Delete"
         message={`Are you sure you want to delete size range: ${sizeRangeToDelete?.sizeValue}?`}
       />
+
+      <style>{`
+        .compact-sizing-table .ant-table-thead > tr > th {
+          padding: 6px 8px;
+          background-color: #f8f9fa;
+          font-weight: 500;
+          font-size: 13px;
+        }
+        .compact-sizing-table .ant-table-tbody > tr > td {
+          padding: 4px 8px;
+          font-size: 13px;
+        }
+        .compact-sizing-table .ant-select-selector {
+          padding: 0 !important;
+          height: 24px !important;
+        }
+        .compact-sizing-table .ant-select-selection-item {
+          line-height: 22px !important;
+        }
+        .compact-sizing-table .ant-table-cell {
+          vertical-align: middle;
+        }
+      `}</style>
     </div>
   );
 };

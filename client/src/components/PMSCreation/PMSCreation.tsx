@@ -1234,7 +1234,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   ];
 
   return (
-    <div style={{ padding: "10px 8px 5px 8px", maxWidth: "100%" , maxHeight:"79vh", overflowY:"auto" }}>        
+    <div style={{ padding: "10px 8px 5px 8px", maxWidth: "100%" , maxHeight:"74vh", overflowY:"auto" }}>        
         <Title level={4} className="text-lg font-medium text-gray-800">
           PMS Creation
         </Title>

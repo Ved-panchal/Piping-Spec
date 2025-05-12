@@ -18,11 +18,11 @@ export const getCatRefByComponentId = async (req: Request, res: Response): Promi
     const catRefMap: Record<string, any> = {};
 
     defaultCatRefs.forEach((defaultCatRef: any) => {
-      catRefMap[defaultCatRef.concatenate || defaultCatRef.id] = defaultCatRef;
+      catRefMap[defaultCatRef.item_short_desc || defaultCatRef.id] = defaultCatRef;
     });
 
     userCatRefs.forEach((userCatRef: any) => {
-      catRefMap[userCatRef.concatenate || userCatRef.id] = userCatRef;
+      catRefMap[userCatRef.item_short_desc || userCatRef.id] = userCatRef;
     });
 
     const mergedCatRefs = Object.values(catRefMap);
@@ -55,16 +55,16 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
         project_id 
       } = catRef;
 
-      const processedRating = rating === "null" ? null : rating;
+      const processedRating = rating == "null" ? null : rating;
 
-      // Check for existing entries to prevent duplicates
-      const existingDefaultCatRef = await db.D_Catref.findOne({
-        where: { 
-          component_id: componentId, 
-          item_short_desc, 
-          concatenate 
-        }
-      });
+      // // Check for existing entries to prevent duplicates
+      // const existingDefaultCatRef = await db.D_Catref.findOne({
+      //   where: { 
+      //     component_id: componentId, 
+      //     item_short_desc, 
+      //     concatenate 
+      //   }
+      // });
 
       const existingUserCatRef = await db.Catref.findOne({
         where: { 
@@ -75,12 +75,7 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
         }
       });
 
-      if (existingDefaultCatRef && !project_id) {
-        // Update existing default CatRef
-        existingDefaultCatRef.rating = rating;
-        existingDefaultCatRef.catalog = catalog;
-        await existingDefaultCatRef.save();
-      } else if (existingUserCatRef && project_id) {
+      if (existingUserCatRef && project_id) {
         // Update existing project-specific CatRef
         existingUserCatRef.rating = rating;
         existingUserCatRef.catalog = catalog;

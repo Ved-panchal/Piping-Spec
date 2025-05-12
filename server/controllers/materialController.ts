@@ -81,22 +81,22 @@ export const addOrUpdateMaterial = async (req: Request, res: Response): Promise<
       const { code, c_code, material_description,base_material } = material;
 
       let isCode = await db.Material.findOne({
-        where:{code}
+        where:{code,c_code:c_code,material_description:material_description,base_material:base_material}
       })
 
       if(isCode){
-        res.json({success: false, message: "Code is already in Use."})
+        res.json({success: false, error: "Material with this code already exist!"})
         return;
       }
 
-      isCode = await db.D_Material.findOne({
-        where: { code }
-      });
+      // isCode = await db.D_Material.findOne({
+      //   where: { code }
+      // });
       
-      if (isCode) {
-        res.json({ success: false, message: "Code is already in use." });
-        return;
-      } 
+      // if (isCode) {
+      //   res.json({ success: false, message: "Code is already in use." });
+      //   return;
+      // } 
 
       const existingMaterial = await db.Material.findOne({
         where: { comp_matching_id:compMatchingId,code, project_id:projectId },

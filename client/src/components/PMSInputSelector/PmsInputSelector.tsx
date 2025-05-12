@@ -99,7 +99,7 @@ const PmsInputSelector = ({ projectId } : { projectId?: string }) => {
       </div>
 
       {/* Tab Content - White background with subtle shadow */}
-      <div className="bg-white min-h-64">
+      <div className="bg-white">
         {selectedSpec ? (
           <>
             {activeTab === 'PMS' && <PMS specId={selectedSpec} />}

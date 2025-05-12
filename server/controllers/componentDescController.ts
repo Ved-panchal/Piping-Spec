@@ -47,22 +47,22 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
       const { code, c_code, itemDescription,g_type,s_type,short_code,project_id } = desc;
 
       let isCode = await db.ComponentDesc.findOne({
-        where: { code }
+        where: { code , c_code:c_code,itemDescription:itemDescription,g_type:g_type,s_type:s_type,short_code:short_code,project_id:project_id}
       });
       
       if (isCode) {
-        res.json({ success: false, message: "Code is already in use." });
+        res.json({ success: false, message: "Component Description with this code already exist" });
         return;
       } 
 
-       isCode = await db.D_Component.findOne({
-        where: { code }
-      });
+      //  isCode = await db.D_Component.findOne({
+      //   where: { code }
+      // });
       
-      if (isCode) {
-        res.json({ success: false, message: "Code is already in use." });
-        return;
-      } 
+      // if (isCode) {
+      //   res.json({ success: false, message: "Code is already in use." });
+      //   return;
+      // } 
 
       if(!validProject){
         res.json({ success: false, error: "Invalid project.", status: 403 });

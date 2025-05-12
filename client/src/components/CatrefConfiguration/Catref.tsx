@@ -178,11 +178,12 @@ const CatRefConfiguration: React.FC = () => {
     }
 
     const newConcatenate = generateConcatenate(newItemShortDesc, newRating);
-
+    // console.log(newRating)
+    console.log(catRefData)
     const isDuplicateEntry = catRefData.some(
       (item) => 
         item.item_short_desc === newItemShortDesc && 
-        item.rating === (newRating || "-") && 
+        item.rating == newRating &&
         item.catalog === newCatalog
     );
 
@@ -199,7 +200,7 @@ const CatRefConfiguration: React.FC = () => {
         component_id: selectedComponentId!,
         project_id: currentProjectId,
         item_short_desc: newItemShortDesc,
-        rating: newRating || "-",
+        rating: newRating,
         concatenate: newConcatenate,
         catalog: newCatalog,
       };
@@ -491,6 +492,7 @@ const CatRefConfiguration: React.FC = () => {
               <Select
                 placeholder="Select an Item Description"
                 className="w-full"
+                value={newItemShortDesc || ""}
                 onChange={(value) => setNewItemShortDesc(value)}
                 size="middle"
                 options={componentDesc.map((desc) => ({
@@ -498,6 +500,7 @@ const CatRefConfiguration: React.FC = () => {
                   label: `${desc.code} - ${desc.itemDescription}`,
                 }))}
               />
+
             </Form.Item>
           </div>
           
