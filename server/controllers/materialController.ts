@@ -16,6 +16,8 @@ export const getAllMaterials = async (req: Request, res: Response): Promise<void
       compMatchingId = 3;
     } else if (componentId === 18){
         compMatchingId = 5
+    } else if (componentId === 19){
+      compMatchingId = 6
     } else {
       compMatchingId = 4;
     }
