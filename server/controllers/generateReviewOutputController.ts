@@ -452,8 +452,6 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                         );
 
 
-                        // console.log(branchValues);
-
                         for (const branch of branchValues) {
                             const branchRunSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.run_size);
                             const branchSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.branch_size);
@@ -492,8 +490,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Catref: catalogRef ?catalogRef.catalog+"-"+branchRunSize.size_mm+"x"+branchSize.size_mm : "",
                             });
                     } 
-                }
-                    else {
+                }  else {
                         const scheduleCode = sizeRanges.find(
                             (sr: SizeRange) => sr.size_code === sizeData.code && sr.specId === specId
                         );

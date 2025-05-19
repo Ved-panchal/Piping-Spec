@@ -57,6 +57,7 @@ app.use('/dimensional-standards',dimensionalStandardRoute);
 app.use('/branch_table',branchRoute);
 app.use('/items',itemOutputRoutes)
 app.use('/catref',catrefRoutes);
+// app.use('/dim-std',dimensionalStandardRoute)
 app.use('/pmsc',pmsCreationRoutes)
 app.use('/output',generateReviewOutputRoutes);
 
