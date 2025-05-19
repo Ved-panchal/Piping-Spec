@@ -62,7 +62,9 @@ export const api = {
         update:"dimensional-standards/update",
         getall:"dimensional-standards/getall",
         bycomponent:"dimensional-standards/by-component",
-        delete:"/dimensional-standards/delete"
+        delete:"dimensional-standards/delete",
+        getbygtype:"dimensional-standards/getbygtype",
+        addorupdate:"dimensional-standards/add-or-update"
       },
       pms:{
         // addItem:"items/create",
