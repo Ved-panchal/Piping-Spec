@@ -119,7 +119,7 @@ export const getDimStdByGType = async (req: Request, res: Response): Promise<voi
     const defaultDimStds = await db.D_DimStd.findAll({
       where: { g_type: gType },
     });
-    console.log("defaultDimStds",defaultDimStds);
+    // console.log("defaultDimStds",defaultDimStds);
 
     const userDimStds = await db.DimStd.findAll({
       where: { g_type: gType, project_id: projectId },
@@ -128,11 +128,11 @@ export const getDimStdByGType = async (req: Request, res: Response): Promise<voi
     const dimStdMap: Record<string, any> = {};
 
     defaultDimStds.forEach((defaultDimStd: any) => {
-      dimStdMap[defaultDimStd.g_type] = defaultDimStd;
+      dimStdMap[defaultDimStd.indexing] = defaultDimStd;
     });
 
     userDimStds.forEach((userDimStd: any) => {
-      dimStdMap[userDimStd.g_type] = userDimStd;
+      dimStdMap[userDimStd.indexing] = userDimStd;
     });
 
     const mergedDimStds = Object.values(dimStdMap);
@@ -157,14 +157,16 @@ export const addOrUpdateDimStd = async (req: Request, res: Response): Promise<vo
     }
 
     for (const dimStd of payload) {
-      const { 
+      const {
+        indexing, 
         g_type, 
         dim_std,
         project_id 
-      } = payload;
+      } = dimStd;
 
       const existingUserDimStd = await db.DimStd.findOne({
-        where: { 
+        where: {
+          indexing, 
           g_type,
           dim_std,
           project_id 
@@ -172,13 +174,14 @@ export const addOrUpdateDimStd = async (req: Request, res: Response): Promise<vo
       });
 
       if (existingUserDimStd && project_id) {
-
+        existingUserDimStd.indexing = indexing;
         existingUserDimStd.g_type = g_type;
         existingUserDimStd.dim_std = dim_std;
         await existingUserDimStd.save();
       } else {
 
         await db.DimStd.create({
+        indexing,
         g_type,
         dim_std,
         project_id

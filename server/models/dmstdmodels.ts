@@ -6,6 +6,11 @@ const DimStdModel = (sequelize: any) => {
   const DimStd = sequelize.define(
     "dim_std",
     {
+    indexing:{
+        type:DataTypes.STRING,
+        allownull:true,
+        unique:true,
+    },
     g_type:{
         type:DataTypes.STRING,
         allownull:true,

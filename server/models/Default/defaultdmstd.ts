@@ -5,14 +5,19 @@ const defaultDimStdModel = (sequelize: any) => {
   const DefaultDimStd = sequelize.define(
     "default_dim_std",
     {
-    g_type:{
-        type:DataTypes.STRING,
-        allownull:true,
-    },
-    dim_std:{
-        type:DataTypes.STRING,
-        allownull:true,
-    }
+      indexing:{
+          type:DataTypes.STRING,
+          allownull:true,
+          unique:true,
+      }, 
+      g_type:{
+          type:DataTypes.STRING,
+          allownull:true,
+      },
+      dim_std:{
+          type:DataTypes.STRING,
+          allownull:true,
+      }
     },
     {
       timestamps: true,
