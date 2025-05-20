@@ -15,6 +15,7 @@ interface DimStd {
   g_type: string;
   dim_std: string;
   project_id?: string;
+  indexing?: string;
 }
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
@@ -61,6 +62,7 @@ const DimStdConfiguration: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [newDimStd, setNewDimStd] = useState("");
+  const [nextIndexValue, setNextIndexValue] = useState<number>(1);
 
   useEffect(() => {
     const projectId = localStorage.getItem("currentProjectId");
@@ -102,6 +104,23 @@ const DimStdConfiguration: React.FC = () => {
           key: dimStd.id || Math.random().toString(36).substring(7)
         }));
         setDimStds(dimStdsWithKeys);
+        
+        // // Find the highest index value
+        // let highestIndex = 0;
+        // dimStdsWithKeys.forEach((dimStd: DimStd) => {
+        //   if (dimStd.indexing) {
+        //     const indexMatch = dimStd.indexing.match(/DS(\d+)/);
+        //     if (indexMatch && indexMatch[1]) {
+        //       const indexNumber = parseInt(indexMatch[1], 10);
+        //       if (!isNaN(indexNumber) && indexNumber > highestIndex) {
+        //         highestIndex = indexNumber;
+        //       }
+        //     }
+        //   }
+        // });
+        
+        // Set the next index value
+        setNextIndexValue(response.data.lastIndex + 1);
       } else {
         showToast({ message: "Failed to fetch dimension standards.", type: "error" });
       }
@@ -141,10 +160,13 @@ const DimStdConfiguration: React.FC = () => {
 
     try {
       setButtonLoading(true);
+      const newIndexing = `DS${nextIndexValue}`;
+      
       const payload = [{
         g_type: selectedGType,
         dim_std: newDimStd,
-        project_id: currentProjectId
+        project_id: currentProjectId,
+        indexing: newIndexing
       }];
 
       const response = await api.post(
@@ -158,11 +180,13 @@ const DimStdConfiguration: React.FC = () => {
           key: Math.random().toString(36).substring(7),
           g_type: selectedGType,
           dim_std: newDimStd,
-          project_id: currentProjectId
+          project_id: currentProjectId,
+          indexing: newIndexing
         };
 
         setDimStds([...dimStds, newDimStdItem]);
         setNewDimStd("");
+        setNextIndexValue(nextIndexValue + 1);
         message.success("Dimension standard added successfully");
       } else {
         throw new Error("Failed to add dimension standard.");
@@ -207,7 +231,8 @@ const DimStdConfiguration: React.FC = () => {
       const payload = [{
         g_type: currentDimStd.g_type,
         dim_std: field === "dim_std" ? value : currentDimStd.dim_std,
-        project_id: currentProjectId
+        project_id: currentProjectId,
+        indexing: currentDimStd.indexing
       }];
 
       const response = await api.post(
@@ -313,6 +338,11 @@ const DimStdConfiguration: React.FC = () => {
 
   const columns: ColumnsType<DimStd> = [
     {
+      title:<span>DS Indexing</span>,
+      dataIndex:"indexing",
+      key:"indexing",
+    },
+    {
       title: <span>Type</span>,
       dataIndex: "g_type",
       key: "g_type",
@@ -335,7 +365,20 @@ const DimStdConfiguration: React.FC = () => {
         <h1 className="text-blue-500 text-xl mb-4">Dimension Standard Configuration</h1>
         
         <Form layout="horizontal" className="mb-4">
-          <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <Form.Item
+              label={<span className="font-semibold">DS Indexing <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0 col-span-1"
+            >
+              <Input
+                value={`DS${nextIndexValue}`}
+                disabled
+                className="w-full bg-gray-100"
+                size="middle"
+              />
+            </Form.Item>
+            
             <Form.Item
               label={<span className="font-semibold">Type <span className="text-red-500">*</span></span>}
               colon={false}

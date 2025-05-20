@@ -119,7 +119,6 @@ export const getDimStdByGType = async (req: Request, res: Response): Promise<voi
     const defaultDimStds = await db.D_DimStd.findAll({
       where: { g_type: gType },
     });
-    // console.log("defaultDimStds",defaultDimStds);
 
     const userDimStds = await db.DimStd.findAll({
       where: { g_type: gType, project_id: projectId },
@@ -136,12 +135,29 @@ export const getDimStdByGType = async (req: Request, res: Response): Promise<voi
     });
 
     const mergedDimStds = Object.values(dimStdMap);
-    res.json({ success: true, dimStds: mergedDimStds });
+
+    // Find max index in defaultDimStds and userDimStds
+    const getMaxIndex = (arr: any[]) =>
+      arr.length === 0 ? -Infinity : Math.max(...arr.map(item => Number(item.indexing.replace("DS",""))));
+
+    const allDefaultDimStds = await db.D_DimStd.findAll();
+
+    const allUserDimStds = await db.DimStd.findAll({
+      where: { project_id: projectId },
+    });
+
+    const maxDefaultIndex = getMaxIndex(allDefaultDimStds);
+    const maxUserIndex = getMaxIndex(allUserDimStds);
+
+    const lastIndex = Math.max(maxDefaultIndex, maxUserIndex);
+
+    res.json({ success: true, dimStds: mergedDimStds, lastIndex });
   } catch (error: unknown) {
     console.error("Error fetching DimStds:", error);
     res.json({ success: false, error: "Internal server error", status: 500 });
   }
 };
+
 
 // Add or update DimStd
 export const addOrUpdateDimStd = async (req: Request, res: Response): Promise<void> => {
