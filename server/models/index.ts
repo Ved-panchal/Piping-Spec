@@ -27,11 +27,13 @@ import CatRefModel from "./catrefmodel";
 import defaultDimStdModel from "./Default/defaultdmstd";
 import DimStdModel from "./dmstdmodels";
 import reducer from "./Default/reducermodel";
+import defaultValvSubTypeModel from "./Default/defaultValvSubType";
+import ValvSubTypeModel from "./valvsubtypemodel";
 
 dotenv.config();
 
 const sequelize = new Sequelize(process.env.DB_URL!, {
-    logging: true,
+    // logging: true,
     dialect: 'postgres', 
 });
 
@@ -59,6 +61,8 @@ const D_Catref = DefaultCatRefModel(sequelize);
 const Catref = CatRefModel(sequelize);
 const D_DimStd = defaultDimStdModel(sequelize);
 const DimStd = DimStdModel(sequelize);
+const D_VSType = defaultValvSubTypeModel(sequelize);
+const VSType = ValvSubTypeModel(sequelize);
 const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
 const Reducer = reducer(sequelize);
@@ -94,6 +98,8 @@ const db = {
     D_Catref,
     DimStd,
     D_DimStd,
+    D_VSType,
+    VSType,
     Item,
     PmsCreation,
     Reducer

@@ -10,7 +10,7 @@ import { ApiError, Component, ComponentDesc } from '../../utils/interface';
 const { Option } = Select;
 
 const GTypeList = [
-  'CAP', 'COUP', 'CROS', 'ELBO', 'FLAN', 'FTUB', 'GASK', 'OLET', 'PCOM', 'REDU', 'TEE', 'TUBE', 'UNIO'
+  'CAP', 'COUP', 'CROS', 'ELBO', 'FLAN', 'FTUB', 'GASK', 'OLET', 'PCOM', 'REDU', 'TEE', 'TUBE', 'UNIO', 'VALV'
 ];
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {

@@ -19,6 +19,7 @@ import sizeRoute from "./routes/sizeRoutes";
 import itemOutputRoutes from "./routes/itemOutputRoutes";
 import pmsCreationRoutes from "./routes/pmsCreationRoutes";
 import catrefRoutes from "./routes/catrefRoutes";
+import valvSubTypeRoutes from "./routes/valvSubTypeRoutes";
 import generateReviewOutputRoutes from "./routes/generateReviewOutputRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
@@ -57,6 +58,7 @@ app.use('/dimensional-standards',dimensionalStandardRoute);
 app.use('/branch_table',branchRoute);
 app.use('/items',itemOutputRoutes)
 app.use('/catref',catrefRoutes);
+app.use('/valvsubtype',valvSubTypeRoutes)
 // app.use('/dim-std',dimensionalStandardRoute)
 app.use('/pmsc',pmsCreationRoutes)
 app.use('/output',generateReviewOutputRoutes);
