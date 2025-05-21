@@ -31,6 +31,7 @@ const ComponentConfiguration: React.FC = () => {
   const [newGType, setNewGType] = useState<string | undefined>(undefined);
   const [newSType, setNewSType] = useState('');
   const [newShortCode, setNewShortCode] = useState('');
+  const [newSKey, setNewSkey] = useState('');
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -145,6 +146,7 @@ const ComponentConfiguration: React.FC = () => {
         g_type: newGType,
         s_type: newSType,
         short_code: newShortCode,
+        skey: newSKey,
       };
   
       const payload = {
@@ -158,6 +160,7 @@ const ComponentConfiguration: React.FC = () => {
             g_type: newGType,
             s_type: newSType,
             short_code: newShortCode,
+            skey: newSKey,
           },
         ],
       };
@@ -389,6 +392,16 @@ const ComponentConfiguration: React.FC = () => {
       }),
     },
     {
+      title: <span>Skey</span>,
+      dataIndex: 'skey',
+      key: 'skey',
+      onCell: (record: ComponentDesc): EditableCellProps => ({
+        record,
+        editable: editingKey === record.key && editingColumn === 'skey',
+        dataIndex: 'skey',
+      }),
+    },
+    {
       title: <span>Actions</span>,
       key: 'action',
       width: 80,
@@ -530,8 +543,21 @@ const ComponentConfiguration: React.FC = () => {
                 size="middle"
               />
             </Form.Item>
+            <Form.Item
+              label={<span className="font-semibold">Skey <span className="text-red-500">*</span></span>}
+              colon={false}
+              className="mb-0 col-span-2"
+            >
+              <Input
+                placeholder="Enter Skey"
+                className="w-full"
+                value={newShortCode}
+                onChange={(e) => setNewSkey(e.target.value)}
+                size="middle"
+              />
+            </Form.Item>
 
-            <div className="col-span-2 flex items-end justify-end">
+            <div className="col-span-6 flex items-end justify-end">
               <Button
                 type="primary"
                 onClick={handleAddComponentDesc}

@@ -25,6 +25,7 @@ export interface ComponentDesc {
     g_type: string;
     s_type: string;
     short_code: string;
+    skey: string;
 }
   
 export interface Component {

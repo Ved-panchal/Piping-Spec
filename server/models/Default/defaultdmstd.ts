@@ -17,7 +17,15 @@ const defaultDimStdModel = (sequelize: any) => {
       dim_std:{
           type:DataTypes.STRING,
           allownull:true,
-      }
+      },
+      code:{
+          type:DataTypes.STRING,
+          allownull:true,
+      },
+      c_code:{
+          type:DataTypes.STRING,
+          allownull:true,
+      },
     },
     {
       timestamps: true,

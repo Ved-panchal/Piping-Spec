@@ -49,6 +49,10 @@ const ComponentDescModel = (sequelize: any) => {
         type:DataTypes.STRING,
         allownull:true,
       },
+      skey:{
+        type:DataTypes.STRING,
+        allownull:true,
+      },
       project_id: {
         type: DataTypes.INTEGER,
         references: {

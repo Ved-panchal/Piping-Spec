@@ -177,14 +177,17 @@ export const addOrUpdateDimStd = async (req: Request, res: Response): Promise<vo
         indexing, 
         g_type, 
         dim_std,
+        code,
+        c_code,
         project_id 
       } = dimStd;
 
       const existingUserDimStd = await db.DimStd.findOne({
         where: {
-          indexing, 
+          indexing,
           g_type,
-          dim_std,
+          code,
+          c_code,
           project_id 
         }
       });
@@ -200,6 +203,8 @@ export const addOrUpdateDimStd = async (req: Request, res: Response): Promise<vo
         indexing,
         g_type,
         dim_std,
+        code,
+        c_code,
         project_id
         });
       }

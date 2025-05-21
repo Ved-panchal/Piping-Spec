@@ -19,6 +19,14 @@ const DimStdModel = (sequelize: any) => {
         type:DataTypes.STRING,
         allownull:true,
     },
+    code:{
+        type:DataTypes.STRING,
+        allownull:true,
+    },
+    c_code:{
+        type:DataTypes.STRING,
+        allownull:true,
+    },
     project_id: {
         type: DataTypes.INTEGER, 
         references: {

@@ -16,7 +16,10 @@ interface DimStd {
   dim_std: string;
   project_id?: string;
   indexing?: string;
+  code?: string; // Add code field
+  c_code?: string; // Add client_code field
 }
+
 
 interface EditableCellProps extends TdHTMLAttributes<unknown> {
   record: DimStd;
@@ -62,6 +65,8 @@ const DimStdConfiguration: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [newDimStd, setNewDimStd] = useState("");
+  const [newCode, setNewCode] = useState("");
+  const [newClientCode, setNewClientCode] = useState("");
   const [nextIndexValue, setNextIndexValue] = useState<number>(1);
 
   useEffect(() => {
@@ -149,6 +154,17 @@ const DimStdConfiguration: React.FC = () => {
       return;
     }
 
+    if (selectedGType === "VALV") {
+      const codeExists = dimStds.some(
+        (dimStd) => dimStd.code === newCode
+      );
+
+      if (codeExists) {
+        message.error("This Code already exists for the selected type.");
+        return;
+      }
+    }
+
     const existingDimStd = dimStds.some(
       (dimStd) => dimStd.dim_std === newDimStd
     );
@@ -166,7 +182,9 @@ const DimStdConfiguration: React.FC = () => {
         g_type: selectedGType,
         dim_std: newDimStd,
         project_id: currentProjectId,
-        indexing: newIndexing
+        indexing: newIndexing,
+        code: selectedGType === "VALV" ? newCode : undefined,  // Handle Code if VALV
+        c_code: selectedGType === "VALV" ? newClientCode : undefined,  // Handle Client Code if VALV
       }];
 
       const response = await api.post(
@@ -181,7 +199,9 @@ const DimStdConfiguration: React.FC = () => {
           g_type: selectedGType,
           dim_std: newDimStd,
           project_id: currentProjectId,
-          indexing: newIndexing
+          indexing: newIndexing,
+          code: selectedGType === "VALV" ? newCode : undefined,
+          c_code: selectedGType === "VALV" ? newClientCode : undefined,
         };
 
         setDimStds([...dimStds, newDimStdItem]);
@@ -200,6 +220,7 @@ const DimStdConfiguration: React.FC = () => {
       setButtonLoading(false);
     }
   };
+
 
   const handleEditField = async (key: string, field: keyof DimStd, value: string) => {
     if (!currentProjectId) {
@@ -338,9 +359,9 @@ const DimStdConfiguration: React.FC = () => {
 
   const columns: ColumnsType<DimStd> = [
     {
-      title:<span>DS Indexing</span>,
-      dataIndex:"indexing",
-      key:"indexing",
+      title: <span>DS Indexing</span>,
+      dataIndex: "indexing",
+      key: "indexing",
     },
     {
       title: <span>Type</span>,
@@ -356,8 +377,33 @@ const DimStdConfiguration: React.FC = () => {
         editable: editingKey === record.key,
         field: "dim_std",
       }),
-    }
+    },
+    ...(selectedGType === "VALV"
+      ? [
+          {
+            title: <span>Code</span>,
+            dataIndex: "code",
+            key: "code",
+            // onCell: (record: DimStd): EditableCellProps => ({
+            //   record,
+            //   editable: editingKey === record.key,
+            //   field: "code",
+            // }),
+          },
+          {
+            title: <span>Client Code</span>,
+            dataIndex: "c_code",
+            key: "c_code",
+            // onCell: (record: DimStd): EditableCellProps => ({
+            //   record,
+            //   editable: editingKey === record.key,
+            //   field: "c_code",
+            // }),
+          },
+        ]
+      : []),
   ];
+
 
   return (
     <div style={{ padding: "0", maxWidth: "100%", maxHeight:"78vh", overflowY:"auto" }}>
@@ -378,7 +424,7 @@ const DimStdConfiguration: React.FC = () => {
                 size="middle"
               />
             </Form.Item>
-            
+
             <Form.Item
               label={<span className="font-semibold">Type <span className="text-red-500">*</span></span>}
               colon={false}
@@ -409,6 +455,39 @@ const DimStdConfiguration: React.FC = () => {
                 size="middle"
               />
             </Form.Item>
+            
+            {/* Conditionally render Code and Client Code fields */}
+            {selectedGType === "VALV" && (
+              <>
+                <Form.Item
+                  label={<span className="font-semibold">Code <span className="text-red-500">*</span></span>}
+                  colon={false}
+                  className="mb-0 col-span-1"
+                >
+                  <Input
+                    placeholder="Enter Code"
+                    className="w-full"
+                    value={newCode}  // you may need a separate state to handle the 'code' value
+                    onChange={(e) => setNewCode(e.target.value)}
+                    size="middle"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label={<span className="font-semibold">Client Code <span className="text-red-500">*</span></span>}
+                  colon={false}
+                  className="mb-0 col-span-1"
+                >
+                  <Input
+                    placeholder="Enter Client Code"
+                    className="w-full"
+                    value={newClientCode}  // you may need a separate state to handle the 'client_code' value
+                    onChange={(e) => setNewClientCode(e.target.value)}
+                    size="middle"
+                  />
+                </Form.Item>
+              </>
+            )}
           </div>
           
           <div className="flex justify-end mt-5 mb-4">

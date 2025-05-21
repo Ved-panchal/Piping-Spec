@@ -47,7 +47,11 @@ const defaultComponentModel = (sequelize: any) => {
       short_code:{
         type:DataTypes.STRING,
         allownull:true,
-      }
+      },
+      skey:{
+        type:DataTypes.STRING,
+        allownull:true,
+      },
     },
     {
       timestamps: true,
