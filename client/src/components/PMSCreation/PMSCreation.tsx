@@ -4,7 +4,7 @@ import {
   ApiError,
   Component,
   ComponentDesc,
-  DimensionalStandard,
+  // DimensionalStandard,
   DropdownOption,
   MaterialData,
   PMSItem,
@@ -209,39 +209,39 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  const fetchDimensionalStandards = async (componentId: string) => {
-    try {
-      // console.log(componentId)
-      const response = await api.post(
-        configApi.API_URL.dimensionalstandards.bycomponent,
-        { component_id: componentId }
-      );
-      if (response?.data?.success) {
-        const dimensionalStandardsOptions =
-          response.data.dimensionalStandards.map(
-            (item: DimensionalStandard) => ({
-              label: item.dimensional_standard,
-              value: item.id,
-            })
-          );
-        setDropdownData((prevData) => ({
-          ...prevData,
-          dimensionalStandard: dimensionalStandardsOptions,
-        }));
-      } else {
-        showToast({
-          message: "Failed to fetch Dimensional Standards",
-          type: "error",
-        });
-      }
-    } catch (error) {
-      const apiError = error as ApiError;
-      const errMessage =
-        apiError.response?.data?.error ||
-        "Error fetching Dimensional Standards";
-      showToast({ message: errMessage, type: "error" });
-    }
-  };
+  // const fetchDimensionalStandards = async (componentId: string) => {
+  //   try {
+  //     // console.log(componentId)
+  //     const response = await api.post(
+  //       configApi.API_URL.dimensionalstandards.bycomponent,
+  //       { component_id: componentId }
+  //     );
+  //     if (response?.data?.success) {
+  //       const dimensionalStandardsOptions =
+  //         response.data.dimensionalStandards.map(
+  //           (item: DimensionalStandard) => ({
+  //             label: item.dimensional_standard,
+  //             value: item.id,
+  //           })
+  //         );
+  //       setDropdownData((prevData) => ({
+  //         ...prevData,
+  //         dimensionalStandard: dimensionalStandardsOptions,
+  //       }));
+  //     } else {
+  //       showToast({
+  //         message: "Failed to fetch Dimensional Standards",
+  //         type: "error",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     const apiError = error as ApiError;
+  //     const errMessage =
+  //       apiError.response?.data?.error ||
+  //       "Error fetching Dimensional Standards";
+  //     showToast({ message: errMessage, type: "error" });
+  //   }
+  // };
 
   const fetchComponentDesc = async (projectId: string, componentId: string) => {
     try {
@@ -431,6 +431,44 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       const apiError = error as ApiError;
       const errMessage =
         apiError.response?.data?.error || "Error fetching ratings data";
+      showToast({ message: errMessage, type: "error" });
+    }
+  };
+
+  // New function to fetch dimensional standards by g_type
+  const fetchDimensionalStandardsByGType = async (gType: string) => {
+    try {
+      const projectId = localStorage.getItem("currentProjectId");
+      const payload = {
+        gType,
+        projectId,
+      };
+      const response = await api.post(
+        configApi.API_URL.dimensionalstandards.getbygtype,
+        payload
+      );
+      if (response?.data?.success) {
+        const dimensionalStandardsOptions = response.data.dimStds.map(
+          (item: any) => ({
+            label: item.dimensional_standard,
+            value: item.id,
+          })
+        );
+        setDropdownData((prevData) => ({
+          ...prevData,
+          dimensionalStandard: dimensionalStandardsOptions,
+        }));
+      } else {
+        showToast({
+          message: "Failed to fetch Dimensional Standards by G Type",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errMessage =
+        apiError.response?.data?.error ||
+        "Error fetching Dimensional Standards by G Type";
       showToast({ message: errMessage, type: "error" });
     }
   };
@@ -667,7 +705,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     // Fetch new data for the selected component
     fetchComponentDesc(projectId, value);
     fetchMaterials(projectId, value, false);
-    fetchDimensionalStandards(value);
+    // fetchDimensionalStandards(value);
   };
 
   const handleComponentDescChange = (value: string) => {
@@ -680,8 +718,15 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       c_code: selectedItem?.c_code,
       g_type: selectedItem?.g_type,
       s_type: selectedItem?.s_type,
+      // Reset dimensional standard when item description changes
+      dimensionalStandard: undefined,
     }));
     setShowRatingDropdown(!!selectedItem?.ratingRequired);
+    
+    // Fetch dimensional standards by g_type instead of component
+    if (selectedItem?.g_type) {
+      fetchDimensionalStandardsByGType(selectedItem.g_type);
+    }
   };
 
   const handleAllMaterialChange = (e: CheckboxChangeEvent) => {
@@ -731,9 +776,21 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       case "material":
         await fetchMaterials(projectId, record.compCode, false);
         break;
-      case "dimensionalStandard":
-        await fetchDimensionalStandards(record.compCode);
+      case "dimensionalStandard": {
+        const itemDescObj = dropdownData.itemDescription.find(
+          (item) => item.value === record.itemDescription
+        );
+      
+        if (itemDescObj?.g_type) {
+          await fetchDimensionalStandardsByGType(itemDescObj.g_type);
+        } else {
+          setDropdownData((prevData) => ({
+            ...prevData,
+            dimensionalStandard: [],
+          }));
+        }
         break;
+      }
       case "rating":
         await fetchRatings(projectId);
         break;
