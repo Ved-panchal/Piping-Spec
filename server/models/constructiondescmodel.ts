@@ -1,11 +1,11 @@
 import { DataTypes } from "sequelize";
 import projectModel from "./projectmodel";
 
-const ValvSubTypeModel = (sequelize: any) => {
-  const ValvSubType = sequelize.define(
-    "valv_sub_type",
+const ConstructionDescModel = (sequelize: any) => {
+  const ConstructionDesc = sequelize.define(
+    "construction_desc",
     {
-      valv_sub_type: {
+      construction_desc: {
         type: DataTypes.STRING,
         allowNull: false,
       },
@@ -31,7 +31,7 @@ const ValvSubTypeModel = (sequelize: any) => {
         },
         allowNull: false,
         onDelete: "CASCADE",
-    }
+       }
     },
     {
       timestamps: true,
@@ -39,7 +39,7 @@ const ValvSubTypeModel = (sequelize: any) => {
     }
   );
 
-  return ValvSubType;
+  return ConstructionDesc;
 };
 
-export default ValvSubTypeModel;
+export default ConstructionDescModel;

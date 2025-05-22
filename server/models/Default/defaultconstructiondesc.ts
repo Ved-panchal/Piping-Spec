@@ -1,11 +1,10 @@
 import { DataTypes } from "sequelize";
-import projectModel from "./projectmodel";
 
-const ValvSubTypeModel = (sequelize: any) => {
-  const ValvSubType = sequelize.define(
-    "valv_sub_type",
+const defaultConstructionDescModel = (sequelize: any) => {
+  const DefaultConstructionDesc = sequelize.define(
+    "default_construction_desc",
     {
-      valv_sub_type: {
+      construction_desc: {
         type: DataTypes.STRING,
         allowNull: false,
       },
@@ -23,15 +22,6 @@ const ValvSubTypeModel = (sequelize: any) => {
           is: /^[0-9A-Z]+$/,
         },
       },
-      project_id: {
-        type: DataTypes.INTEGER, 
-        references: {
-          model: projectModel(sequelize),
-          key: 'id',
-        },
-        allowNull: false,
-        onDelete: "CASCADE",
-    }
     },
     {
       timestamps: true,
@@ -39,7 +29,7 @@ const ValvSubTypeModel = (sequelize: any) => {
     }
   );
 
-  return ValvSubType;
+  return DefaultConstructionDesc;
 };
 
-export default ValvSubTypeModel;
+export default defaultConstructionDescModel;

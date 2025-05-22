@@ -66,6 +66,14 @@ export const api = {
         getbygtype:"dimensional-standards/getbygtype",
         addorupdate:"dimensional-standards/add-or-update"
       },
+      valvsubtype:{
+        getAll:"valvsubtype/getall",
+        addorupdate:"valvsubtype/add-or-update",
+      },
+      constructiondesc:{
+        getAll:"constructiondesc/getall",
+        addorupdate:"constructiondesc/add-or-update",
+      },
       pms:{
         // addItem:"items/create",
         // getallItem:"items/getbySpecId",

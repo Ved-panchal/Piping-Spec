@@ -26,6 +26,8 @@ import DefaultCatRefModel from "./Default/defaultcatref";
 import CatRefModel from "./catrefmodel";
 import defaultDimStdModel from "./Default/defaultdmstd";
 import DimStdModel from "./dmstdmodels";
+import defaultConstructionDescModel from "./Default/defaultconstructiondesc";
+import ConstructionDescModel from "./constructiondescmodel";
 import reducer from "./Default/reducermodel";
 import defaultValvSubTypeModel from "./Default/defaultValvSubType";
 import ValvSubTypeModel from "./valvsubtypemodel";
@@ -63,6 +65,8 @@ const D_DimStd = defaultDimStdModel(sequelize);
 const DimStd = DimStdModel(sequelize);
 const D_VSType = defaultValvSubTypeModel(sequelize);
 const VSType = ValvSubTypeModel(sequelize);
+const D_CDesc = defaultConstructionDescModel(sequelize);
+const CDesc = ConstructionDescModel(sequelize);
 const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
 const Reducer = reducer(sequelize);
@@ -100,6 +104,8 @@ const db = {
     D_DimStd,
     D_VSType,
     VSType,
+    D_CDesc,
+    CDesc,
     Item,
     PmsCreation,
     Reducer
