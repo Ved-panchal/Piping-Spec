@@ -16,8 +16,8 @@ interface DimStd {
   dim_std: string;
   project_id?: string;
   indexing?: string;
-  code?: string; // Add code field
-  c_code?: string; // Add client_code field
+  code?: string;
+  c_code?: string;
 }
 
 
@@ -183,8 +183,8 @@ const DimStdConfiguration: React.FC = () => {
         dim_std: newDimStd,
         project_id: currentProjectId,
         indexing: newIndexing,
-        code: selectedGType === "VALV" ? newCode : undefined,  // Handle Code if VALV
-        c_code: selectedGType === "VALV" ? newClientCode : undefined,  // Handle Client Code if VALV
+        code: selectedGType === "VALV" ? newCode : null,
+        c_code: selectedGType === "VALV" ? newClientCode : null,
       }];
 
       const response = await api.post(
@@ -253,7 +253,9 @@ const DimStdConfiguration: React.FC = () => {
         g_type: currentDimStd.g_type,
         dim_std: field === "dim_std" ? value : currentDimStd.dim_std,
         project_id: currentProjectId,
-        indexing: currentDimStd.indexing
+        indexing: currentDimStd.indexing,
+        code: field === "code" ? value : currentDimStd.code,
+        c_code: field === "c_code" ? value : currentDimStd.c_code,
       }];
 
       const response = await api.post(
@@ -394,11 +396,11 @@ const DimStdConfiguration: React.FC = () => {
             title: <span>Client Code</span>,
             dataIndex: "c_code",
             key: "c_code",
-            // onCell: (record: DimStd): EditableCellProps => ({
-            //   record,
-            //   editable: editingKey === record.key,
-            //   field: "c_code",
-            // }),
+            onCell: (record: DimStd): EditableCellProps => ({
+              record,
+              editable: editingKey === record.key,
+              field: "c_code",
+            }),
           },
         ]
       : []),
