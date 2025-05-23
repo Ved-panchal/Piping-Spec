@@ -435,8 +435,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  // New function to fetch dimensional standards by g_type
   const fetchDimensionalStandardsByGType = async (gType: string) => {
+    // console.log(gType)
     try {
       const projectId = localStorage.getItem("currentProjectId");
       const payload = {
@@ -450,7 +450,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       if (response?.data?.success) {
         const dimensionalStandardsOptions = response.data.dimStds.map(
           (item: any) => ({
-            label: item.dimensional_standard,
+            label: item.dim_std,
             value: item.id,
           })
         );
@@ -679,34 +679,40 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const handleCompTypeChange = (value: string) => {
-    const projectId = localStorage.getItem("currentProjectId") || "";
+  const projectId = localStorage.getItem("currentProjectId") || "";
+  
+  const selectedComponent = dropdownData.compType.find(
+    (item) => item.value === value
+  );
+  
+  setNewItem({
+    compType: value,
+    itemDescription: undefined,
+    size1: undefined,
+    size2: undefined,
+    schedule: undefined,
+    rating: undefined,
+    material: undefined,
+    dimensionalStandard: undefined,
+  });
 
-    setNewItem({
-      compType: value,
-      itemDescription: undefined,
-      size1: undefined,
-      size2: undefined,
-      schedule: undefined,
-      rating: undefined,
-      material: undefined,
-      dimensionalStandard: undefined,
-    });
+  setDropdownData((prevData) => ({
+    ...prevData,
+    itemDescription: [],
+    material: [],
+    dimensionalStandard: [],
+  }));
 
-    setDropdownData((prevData) => ({
-      ...prevData,
-      itemDescription: [],
-      material: [],
-      dimensionalStandard: [],
-    }));
+  setShowRatingDropdown(false);
+  setIsAllMaterial(false);
 
-    setShowRatingDropdown(false);
-    setIsAllMaterial(false);
-
-    // Fetch new data for the selected component
-    fetchComponentDesc(projectId, value);
-    fetchMaterials(projectId, value, false);
-    // fetchDimensionalStandards(value);
-  };
+  fetchComponentDesc(projectId, value);
+  fetchMaterials(projectId, value, false);
+  
+  if (selectedComponent?.label) {
+    fetchDimensionalStandardsByGType(selectedComponent.label);
+  }
+};
 
   const handleComponentDescChange = (value: string) => {
     const selectedItem = dropdownData.itemDescription.find(
@@ -777,18 +783,18 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         await fetchMaterials(projectId, record.compCode, false);
         break;
       case "dimensionalStandard": {
-        const itemDescObj = dropdownData.itemDescription.find(
-          (item) => item.value === record.itemDescription
-        );
+        // const itemDescObj = dropdownData.itemDescription.find(
+        //   (item) => item.value === record.itemDescription
+        // );
       
-        if (itemDescObj?.g_type) {
-          await fetchDimensionalStandardsByGType(itemDescObj.g_type);
-        } else {
-          setDropdownData((prevData) => ({
-            ...prevData,
-            dimensionalStandard: [],
-          }));
-        }
+        // if (itemDescObj?.g_type) {
+          await fetchDimensionalStandardsByGType(record.compType);
+        // } else {
+        //   setDropdownData((prevData) => ({
+        //     ...prevData,
+        //     dimensionalStandard: [],
+        //   }));
+        // }
         break;
       }
       case "rating":
