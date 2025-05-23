@@ -1326,14 +1326,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     dataIndex: "valvSubType",
     key: "valvSubType",
     width: "11%",
-    render: (text, record) => record.valvSubType || "-",
+    render: (_, record) => record.valvSubType || "-",
   },
   {
     title: "Construction Description",
     dataIndex: "constructionDesc",
     key: "constructionDesc",
     width: "10%",
-    render: (text, record) => record.constructionDesc || "-",
+    render: (_, record) => record.constructionDesc || "-",
   },
 ];
 
