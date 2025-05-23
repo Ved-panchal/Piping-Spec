@@ -11,99 +11,11 @@ interface PmsCreation {
     rating_code?: string;
     material_code?: string;
     dimensional_standard_id?: number;
+    dimensional_standard_code?: string;
+    valv_sub_type_code?: string;
+    construction_desc_code?: string;
 }
 
-// Create PMSC Creation
-// export const createPMSCCreation = async (req: Request, res: Response): Promise<void> => {
-//     try {
-//         // Handle both single item and array cases
-//         const items = Array.isArray(req.body) ? req.body : [req.body];
-        
-//         if (items.length === 0) {
-//             res.json({ 
-//                 success: false, 
-//                 error: "Invalid input: Expected non-empty data", 
-//                 status: 400 
-//             });
-//             return;
-//         }
-
-//         const createdItems = [];
-//         const errors = [];
-
-//         for (const itemData of items) {
-//             try {
-//                 // Validate spec exists
-//                 const specExists = await db.Spec.findByPk(itemData.specId);
-//                 if (!specExists) {
-//                     errors.push({ 
-//                         specId: itemData.specId, 
-//                         error: "Spec not found" 
-//                     });
-//                     continue;
-//                 }
-
-//                 // Create new PMSC item
-//                 const newItem = await db.PmsCreation.create({
-//                     spec_id: itemData.specId,
-//                     component_value: itemData.component.Value,
-//                     component_code: itemData.component.Code,
-//                     component_desc_value: itemData.componentDesc?.value,
-//                     component_desc_code: itemData.componentDesc?.code,
-//                     component_desc_client_code: itemData.componentDesc?.clientCode,
-//                     component_desc_g_type: itemData.componentDesc?.gType,
-//                     component_desc_s_type: itemData.componentDesc?.sType,
-//                     size1_value: itemData.size1?.value,
-//                     size1_code: itemData.size1?.code,
-//                     size1_client_code: itemData.size1?.clientCode,
-//                     size2_value: itemData.size2?.value,
-//                     size2_code: itemData.size2?.code,
-//                     size2_client_code: itemData.size2?.clientCode,
-//                     schedule_value: itemData.schedule?.value,
-//                     schedule_code: itemData.schedule?.code,
-//                     schedule_client_code: itemData.schedule?.clientCode,
-//                     rating_value: itemData.rating?.value,
-//                     rating_code: itemData.rating?.code,
-//                     rating_client_code: itemData.rating?.clientCode,
-//                     material_value: itemData.material?.value,
-//                     material_code: itemData.material?.code,
-//                     material_client_code: itemData.material?.clientCode,
-//                     dimensional_standard_value: itemData.dimensionalStandard?.Value,
-//                     dimensional_standard_id: itemData.dimensionalStandard?.id
-//                 });
-
-//                 createdItems.push(newItem);
-//             } catch (itemError) {
-//                 console.error(`Error creating PMSC Creation item:`, itemError);
-//                 errors.push({ 
-//                     specId: itemData.specId, 
-//                     error: "Failed to create PMSC Creation item",
-//                     details: (itemError as Error).message
-//                 });
-//             }
-//         }
-
-//         // Determine response status based on results
-//         const responseStatus = createdItems.length > 0 ? 
-//             (errors.length === 0 ? 201 : 207) :
-//             400;
-
-//         res.status(responseStatus).json({
-//             success: createdItems.length > 0,
-//             message: `Processed ${items.length} items. ${createdItems.length} created successfully.`,
-//             createdItems,
-//             errors: errors.length > 0 ? errors : undefined
-//         });
-
-//     } catch (error) {
-//         console.error("Error in PMSC Creation:", error);
-//         res.status(500).json({ 
-//             success: false, 
-//             error: "Internal server error", 
-//             details: (error as Error).message 
-//         });
-//     }
-// };
 
 export const createPMSCCreation = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -133,19 +45,34 @@ export const createPMSCCreation = async (req: Request, res: Response): Promise<v
                     });
                     continue;
                 }
-
-                // Create new PMSC item - only store code and ID
-                const newItem = await db.PmsCreation.create({
-                    spec_id: itemData.specId,
-                    component_code: itemData.component.Code,
-                    component_desc_code: itemData.componentDesc?.code,
-                    size1_code: itemData.size1?.code,
-                    size2_code: itemData.size2?.code,
-                    schedule_code: itemData.schedule?.code,
-                    rating_code: itemData.rating?.code,
-                    material_code: itemData.material?.code,
-                    dimensional_standard_id: itemData.dimensionalStandard?.id
-                });
+                let newItem = null;
+                if(itemData.component.Code === 19){
+                    newItem = await db.ValvPmsCreation.create({
+                        spec_id: itemData.specId,
+                        component_code: itemData.component.Code,
+                        component_desc_code: itemData.componentDesc?.code,
+                        size1_code: itemData.size1?.code,
+                        size2_code: itemData.size2?.code,
+                        schedule_code: itemData.schedule?.code,
+                        rating_code: itemData.rating?.code,
+                        material_code: itemData.material?.code,
+                        dimensional_standard_code: itemData.dimensionalStandard?.id,
+                        valv_sub_type_code: itemData.valvSubtype?.code,
+                        construction_desc_code: itemData.constructionDesc?.code
+                    });
+                } else {
+                    newItem = await db.PmsCreation.create({
+                        spec_id: itemData.specId,
+                        component_code: itemData.component.Code,
+                        component_desc_code: itemData.componentDesc?.code,
+                        size1_code: itemData.size1?.code,
+                        size2_code: itemData.size2?.code,
+                        schedule_code: itemData.schedule?.code,
+                        rating_code: itemData.rating?.code,
+                        material_code: itemData.material?.code,
+                        dimensional_standard_id: itemData.dimensionalStandard?.id
+                    });
+                }
 
                 createdItems.push(newItem);
             } catch (itemError) {
@@ -354,33 +281,7 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
     }
 };
 
-// Get PMSC Creation by SpecId
-// export const getPMSCCreationBySpecId = async (req: Request, res: Response): Promise<void> => {
-//     try {
-//         const { specId } = req.body;
-
-//         if (!specId) {
-//             res.json({ success: false, error: "SpecId is required", status: 400 });
-//             return;
-//         }
-
-//         // Fetch PMSC Creation items by specId
-//         const items = await db.PmsCreation.findAll({
-//             where: { spec_id: specId },
-//         });
-
-//         res.json({
-//             success: true,
-//             message: `PMSC Creation items fetched successfully.`,
-//             status: 200,
-//             items: items,
-//         });
-//     } catch (error: unknown) {
-//         console.error("Error fetching PMSC Creation items by specId:", error);
-//         res.json({ success: false, error: "Internal server error", status: 500 });
-//     }
-// };
-
+// TODO: Need to create another Function to get PMSC item for valv
 export const getPMSCCreationBySpecId = async (req: Request, res: Response): Promise<void> => {
     try {
         const { specId } = req.body;
@@ -390,12 +291,18 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
             return;
         }
 
+        let items = []
+        let valvItems = []
         // Fetch PMSC Creation items by specId
-        const items = await db.PmsCreation.findAll({
+        items = await db.PmsCreation.findAll({
             where: { spec_id: specId }
         });
 
-        const transformedItems = await Promise.all(items.map(async (item:PmsCreation) => {
+        valvItems = await db.ValvPmsCreation.findAll({
+            where: { spec_id: specId }
+        });
+
+        const transformedItems = await Promise.all([...items,...valvItems].map(async (item:PmsCreation) => {
             let component = null;
             if (item.component_code) {
                 component = await db.Component.findOne({ 
@@ -496,10 +403,74 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
 
             let dimensionalStandard = null;
             if (item.dimensional_standard_id) {
-                dimensionalStandard = await db.DimensionalStandard.findByPk(
-                    item.dimensional_standard_id, 
-                    { attributes: ['id', 'dimensional_standard'] }
-                );
+
+                dimensionalStandard = await db.D_DimStd.findByPk(item.dimensional_standard_id, {
+                attributes: ['id', 'dim_std'],
+                });
+
+                if (!dimensionalStandard) {
+                    dimensionalStandard = await db.DimStd.findByPk(item.dimensional_standard_id, {
+                    attributes: ['id', 'dim_std'],
+                    });
+                }
+            }
+
+            let valvSubType = null;
+            let constructionDesc = null;
+            if(item.component_code === '19'){
+                valvSubType = await db.VSType.findOne({
+                    where: { code: item.valv_sub_type_code },
+                    attributes: ['id', 'valv_sub_type', 'code', 'c_code']
+                })
+
+                if(!valvSubType){
+                    valvSubType = await db.D_VSType.findOne({
+                        where: { code: item.valv_sub_type_code },
+                        attributes: ['id', 'valv_sub_type', 'code', 'c_code']
+                    })
+                }
+
+                constructionDesc = await db.D_CDesc.findOne({
+                    where: { code: item.construction_desc_code },
+                    attributes: ['id', 'construction_desc', 'code', 'c_code']
+                })
+
+                if(!constructionDesc){
+                    constructionDesc = await db.CDesc.findOne({
+                        where: { code: item.construction_desc_code },
+                        attributes: ['id', 'construction_desc', 'code', 'c_code']
+                    })
+                }
+
+                let dimensionalStandard = null;
+                if (item.dimensional_standard_code) {
+                    dimensionalStandard = await db.D_DimStd.findOne({
+                        where: { code: item.dimensional_standard_code },
+                        attributes: ['code', 'dim_std'],
+                    });
+
+                    if (!dimensionalStandard) {
+                        dimensionalStandard = await db.DimStd.findOne({
+                        where: { code: item.dimensional_standard_code },
+                        attributes: ['code', 'dim_std'],
+                    });
+                    }
+                }
+
+                return {
+                    id: item.id,
+                    component_value: component?.componentname || '',
+                    component_code: item.component_code,
+                    component_desc_value: componentDesc?.itemDescription || '',
+                    size1_value: size1?.size1_size2 || '',
+                    size2_value: size2?.size1_size2 || 'X',
+                    schedule_value: schedule?.sch1_sch2 || '',
+                    rating_value: rating?.ratingValue || 'X',
+                    material_value: material?.material_description || '',
+                    dimensional_standard_value: dimensionalStandard?.dim_std || '',
+                    valv_sub_type_value: valvSubType?.valv_sub_type || '',
+                    construction_desc_value: constructionDesc?.construction_desc || ''
+                };
             }
 
             // Transform to match frontend structure
@@ -513,9 +484,11 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
                 schedule_value: schedule?.sch1_sch2 || '',
                 rating_value: rating?.ratingValue || 'X',
                 material_value: material?.material_description || '',
-                dimensional_standard_value: dimensionalStandard?.dimensional_standard || ''
+                dimensional_standard_value: dimensionalStandard?.dim_std || ''
             };
         }));
+
+        
 
         res.json({
             success: true,

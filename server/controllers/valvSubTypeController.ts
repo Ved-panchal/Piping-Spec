@@ -6,15 +6,12 @@ export const getValvSubTypes = async (req: Request, res: Response) => {
   try {
     const { projectId } = req.body;
 
-    // Fetch all defaults
     const defaultValvs = await db.D_VSType.findAll();
 
-    // Fetch user/project-specific
     const userValvs = projectId
       ? await db.VSType.findAll({ where: { project_id: projectId } })
       : [];
 
-    // Use code+c_code as unique identifier for merging
     const valvMap: Record<string, any> = {};
 
     defaultValvs.forEach((item: any) => {
@@ -34,7 +31,6 @@ export const getValvSubTypes = async (req: Request, res: Response) => {
   }
 };
 
-// Add or update Valv Sub Types (array support)
 export const addOrUpdateValvSubType = async (req: Request, res: Response) => {
   try {
     const { payload } = req.body;

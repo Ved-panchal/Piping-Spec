@@ -9,7 +9,7 @@ interface ReviewOutputModalProps {
   // specId: string | null;
   onClose: () => void;
   isOpen: boolean;
-  data: any[];
+  data: TableDataType[];
 }
 
 interface TableDataType {
@@ -30,6 +30,7 @@ interface TableDataType {
   unitWt: number;
   gType: string;
   sType: string;
+  skey: string;
   catRef: string;
 }
 
@@ -38,6 +39,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
   isOpen,
   data 
 }) => {
+  // console.log(data)
   const [projectCode,setProjectCode] = useState<string | null>(null);
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
@@ -204,6 +206,14 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       className: 'font-semibold text-xs'
     },
     {
+      title: 'S Key',
+      dataIndex: 'skey',
+      key: 'skey',
+      width: 100,
+      ellipsis: true,
+      className: 'font-semibold text-xs'
+    },
+    {
       title: 'Cat Ref',
       dataIndex: 'catRef',
       key: 'catRef',
@@ -305,9 +315,9 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       ].join('\n');
     
       let lineCounter = content.split('\n').length;
-    
       // Process each component
-      components.forEach((comp: any) => {
+      // console.log('Components', components);
+      components.forEach((comp: TableDataType) => {
         const sTypeFormatted = comp.sType.length > 4 ? `TEXT '${comp.sType}'` : comp.sType;
         
         const componentBlock = [

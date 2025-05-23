@@ -13,6 +13,8 @@ export interface PMSItem {
     schedule: string;
     rating: string;
     material: string;
+    constructionDesc?: string;
+    valvSubType?: string;
     dimensionalStandard: string;
 }
   
@@ -114,6 +116,20 @@ export interface Size {
     size_inch: string;
     size_mm: string;
     od: string;
+}
+
+export interface Valv {
+    key: string;
+    code: string;
+    c_code: string;
+    valv_sub_type: string;
+}
+
+export interface ConstructionDesc {
+    key: string;
+    code: string;
+    c_code: string;
+    construction_desc: string;
 }
 
 export interface SizeRange {

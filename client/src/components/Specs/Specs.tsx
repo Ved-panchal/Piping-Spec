@@ -159,7 +159,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4">
         <div className="bg-white p-6 rounded-lg shadow-sm min-h-[84vh] overflow-y-none">
           {showPmsSelector
             ? pmsInputSelectorComponent

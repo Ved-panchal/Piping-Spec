@@ -138,7 +138,7 @@ const SizeRange: React.FC<{ specId: string }> = ({ specId }) => {
     try {
       const payload = {
         sizes: newSize,
-        scheduleCode: "ST",
+        scheduleCode: "STD",
         specId,
       };
 

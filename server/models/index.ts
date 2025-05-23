@@ -31,6 +31,7 @@ import ConstructionDescModel from "./constructiondescmodel";
 import reducer from "./Default/reducermodel";
 import defaultValvSubTypeModel from "./Default/defaultValvSubType";
 import ValvSubTypeModel from "./valvsubtypemodel";
+import valvSubTypePMSCreationModel from "./valvitemoutputmodel";
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ const D_CDesc = defaultConstructionDescModel(sequelize);
 const CDesc = ConstructionDescModel(sequelize);
 const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
+const ValvPmsCreation = valvSubTypePMSCreationModel(sequelize);
 const Reducer = reducer(sequelize);
 
 D_Component.associate({Component});
@@ -108,6 +110,7 @@ const db = {
     CDesc,
     Item,
     PmsCreation,
+    ValvPmsCreation,
     Reducer
 };
 

@@ -51,7 +51,7 @@ const router = Router();
  *                       c_code:
  *                         type: string
  *                         example: "CCF"
- *                       projectidproject_id:
+ *                       project_id:
  *                         type: string
  *                         example: "project123"
  *                       default:

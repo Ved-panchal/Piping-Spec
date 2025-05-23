@@ -4,6 +4,7 @@ import {
   ApiError,
   Component,
   ComponentDesc,
+  ConstructionDesc,
   // DimensionalStandard,
   DropdownOption,
   MaterialData,
@@ -13,6 +14,7 @@ import {
   Size,
   SizeRange,
   SizeToScheduleMap,
+  Valv,
 } from "../../utils/interface";
 import { CheckboxChangeEvent } from "antd/es/checkbox";
 import { useState, useEffect, useRef } from "react";
@@ -29,6 +31,8 @@ import {
   Tooltip,
   Typography,
   Badge,
+  Modal,
+  Switch,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { Trash2, Plus, FileOutput, Edit2 } from "lucide-react";
@@ -37,7 +41,7 @@ import api from "../../utils/api/apiutils";
 import { api as configApi } from "../../utils/api/config";
 import showToast from "../../utils/toast";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface DropdownDataState {
   compType: DropdownOption[];
@@ -58,9 +62,16 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [sizes, setSizes] = useState<Size[]>([]);
+  const [constructionDesc, setConstructionDesc] = useState<ConstructionDesc[]>([]);
+  const [valvSubTypes, setValvSubTypes] = useState<Valv[]>([]);
+  const [valvSubtypeSelected, setValvSubtypeSelected] = useState<string>();
+  const [constructionDescSelected, setConstructionDescSelected] = useState<string>();
   const [, setSchedules] = useState<Schedule[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviewData, setReviewData] = useState([]);
+  const [isPmsModalOpen, setIsPmsModalOpen] = useState(false);
+  const [isValvView, setIsValvView] = useState(false); // false = Bulk Items default
+
 
   const [dropdownData, setDropdownData] = useState<DropdownDataState>({
     compType: [],
@@ -106,6 +117,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     fetchSizeRanges(),
       fetchComponents(),
       fetchSizes(projectId!),
+      fetchValvSubTypes(projectId!)
+      fetchConstructionDesc(projectId!)
       fetchSchedules(projectId!),
       fetchRatings(projectId!);
     fetchPMSItems(specId);
@@ -118,18 +131,21 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         specId,
       });
       if (response?.data?.success) {
-        const mappedItems = response.data.items.map((item: any) => ({
-          key: item.id,
-          compType: item.component_value,
-          compCode: item.component_code,
-          itemDescription: item.component_desc_value,
-          size1: item.size1_value,
-          size2: item.size2_value || "X",
-          schedule: item.schedule_value,
-          rating: item.rating_value || "X",
-          material: item.material_value,
-          dimensionalStandard: item.dimensional_standard_value,
-        }));
+       const mappedItems = response.data.items.map((item: any) => ({
+        key: item.id,
+        compType: item.component_value,
+        compCode: item.component_code,
+        itemDescription: item.component_desc_value,
+        size1: item.size1_value,
+        size2: item.size2_value || "X",
+        schedule: item.schedule_value,
+        rating: item.rating_value || "X",
+        material: item.material_value,
+        dimensionalStandard: item.dimensional_standard_value,
+        valvSubType: item.valv_sub_type_value || undefined,
+        constructionDesc: item.construction_desc_value || undefined,
+      }));
+
 
         setItems(mappedItems);
       } else {
@@ -208,40 +224,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       showToast({ message: errMessage, type: "error" });
     }
   };
-
-  // const fetchDimensionalStandards = async (componentId: string) => {
-  //   try {
-  //     // console.log(componentId)
-  //     const response = await api.post(
-  //       configApi.API_URL.dimensionalstandards.bycomponent,
-  //       { component_id: componentId }
-  //     );
-  //     if (response?.data?.success) {
-  //       const dimensionalStandardsOptions =
-  //         response.data.dimensionalStandards.map(
-  //           (item: DimensionalStandard) => ({
-  //             label: item.dimensional_standard,
-  //             value: item.id,
-  //           })
-  //         );
-  //       setDropdownData((prevData) => ({
-  //         ...prevData,
-  //         dimensionalStandard: dimensionalStandardsOptions,
-  //       }));
-  //     } else {
-  //       showToast({
-  //         message: "Failed to fetch Dimensional Standards",
-  //         type: "error",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     const apiError = error as ApiError;
-  //     const errMessage =
-  //       apiError.response?.data?.error ||
-  //       "Error fetching Dimensional Standards";
-  //     showToast({ message: errMessage, type: "error" });
-  //   }
-  // };
 
   const fetchComponentDesc = async (projectId: string, componentId: string) => {
     try {
@@ -436,7 +418,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const fetchDimensionalStandardsByGType = async (gType: string) => {
-    // console.log(gType)
     try {
       const projectId = localStorage.getItem("currentProjectId");
       const payload = {
@@ -451,7 +432,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         const dimensionalStandardsOptions = response.data.dimStds.map(
           (item: any) => ({
             label: item.dim_std,
-            value: item.id,
+            value: item.code ? item.code : item.id,
           })
         );
         setDropdownData((prevData) => ({
@@ -472,6 +453,54 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       showToast({ message: errMessage, type: "error" });
     }
   };
+
+  const fetchValvSubTypes = async (projectId: string) => {
+    try {
+      const response = await api.post(configApi.API_URL.valvsubtype.getAll, {
+        projectId,
+      });
+
+      if (response?.data?.success) {
+        const valvSubTypes = response.data.valvSubTypes
+          .map((valv: Valv) => ({
+            ...valv,
+            key: valv.code,
+            c_code: valv.c_code,
+          }))
+        setValvSubTypes(valvSubTypes);
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      showToast({
+        message: apiError.response?.data?.error || "Error fetching Valv Sub Types.",
+        type: "error",
+      });
+    }
+  }
+
+  const fetchConstructionDesc = async (projectId: string) => {
+    try {
+      const response = await api.post(configApi.API_URL.constructiondesc.getAll, {
+        projectId,
+      });
+
+      if (response?.data?.success) {
+        const constructionDesc = response.data.constructionDescs
+          .map((construct: ConstructionDesc) => ({
+            ...construct,
+            key: construct.code,
+            c_code: construct.c_code,
+          }))
+        setConstructionDesc(constructionDesc);
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      showToast({
+        message: apiError.response?.data?.error || "Error fetching Construction Desc.",
+        type: "error",
+      });
+    }
+  }
 
   const handleSizeChange = (field: "size1" | "size2", value: string) => {
     const selectedSize = sizes?.find((size) => size.code === value);
@@ -608,6 +637,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       return;
     }
 
+    if (
+      dropdownData.compType.find(ct => ct.value === newItem.compType)?.label?.toLowerCase() === "valv" &&
+      (!valvSubtypeSelected || !constructionDescSelected)
+    ) {
+      message.error("Please select Valv Sub Type and Construction Desc");
+      return;
+    }
+
     if (isDuplicateItem(newItem)) {
       message.error("This item already exists in the table");
       return;
@@ -634,7 +671,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         return;
       }
 
-      const payload = {
+      const payload: any = {
         specId,
         component: {
           Code: selectedComponent?.value,
@@ -662,11 +699,22 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         },
       };
 
+      if (
+        selectedComponent?.label?.toLowerCase() === "valv"
+      ) {
+        payload.valvSubtype = { code: valvSubtypeSelected };
+        payload.constructionDesc = { code: constructionDescSelected };
+      }
+      console.log("Payload for adding item:", payload);
       const response = await api.post(configApi.API_URL.pms.create, payload);
 
       if (response.data.success) {
         message.success("Items added successfully");
         fetchPMSItems(specId);
+        // Reset form and valv fields
+        // setNewItem({});
+        // setValvSubtypeSelected(undefined);
+        // setConstructionDescSelected(undefined);
       } else {
         message.error("Failed to add items");
       }
@@ -679,40 +727,43 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const handleCompTypeChange = (value: string) => {
-  const projectId = localStorage.getItem("currentProjectId") || "";
-  
-  const selectedComponent = dropdownData.compType.find(
-    (item) => item.value === value
-  );
-  
-  setNewItem({
-    compType: value,
-    itemDescription: undefined,
-    size1: undefined,
-    size2: undefined,
-    schedule: undefined,
-    rating: undefined,
-    material: undefined,
-    dimensionalStandard: undefined,
-  });
+    const projectId = localStorage.getItem("currentProjectId") || "";
 
-  setDropdownData((prevData) => ({
-    ...prevData,
-    itemDescription: [],
-    material: [],
-    dimensionalStandard: [],
-  }));
+    const selectedComponent = dropdownData.compType.find(
+      (item) => item.value === value
+    );
 
-  setShowRatingDropdown(false);
-  setIsAllMaterial(false);
+    setNewItem({
+      compType: value,
+      itemDescription: undefined,
+      size1: undefined,
+      size2: undefined,
+      schedule: undefined,
+      rating: undefined,
+      material: undefined,
+      dimensionalStandard: undefined,
+    });
 
-  fetchComponentDesc(projectId, value);
-  fetchMaterials(projectId, value, false);
-  
-  if (selectedComponent?.label) {
-    fetchDimensionalStandardsByGType(selectedComponent.label);
-  }
-};
+    setValvSubtypeSelected("");
+    setConstructionDescSelected("");
+
+    setDropdownData((prevData) => ({
+      ...prevData,
+      itemDescription: [],
+      material: [],
+      dimensionalStandard: [],
+    }));
+
+    setShowRatingDropdown(false);
+    setIsAllMaterial(false);
+
+    fetchComponentDesc(projectId, value);
+    fetchMaterials(projectId, value, false);
+
+    if (selectedComponent?.label) {
+      fetchDimensionalStandardsByGType(selectedComponent.label);
+    }
+  };
 
   const handleComponentDescChange = (value: string) => {
     const selectedItem = dropdownData.itemDescription.find(
@@ -730,9 +781,9 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     setShowRatingDropdown(!!selectedItem?.ratingRequired);
     
     // Fetch dimensional standards by g_type instead of component
-    if (selectedItem?.g_type) {
-      fetchDimensionalStandardsByGType(selectedItem.g_type);
-    }
+    // if (selectedItem?.g_type) {
+    //   fetchDimensionalStandardsByGType(selectedItem.g_type);
+    // }
   };
 
   const handleAllMaterialChange = (e: CheckboxChangeEvent) => {
@@ -1015,6 +1066,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   const transformData = (data: any[]) => {
+    // console.log("Data",data);
     return data.map((item) => ({
       spec: item.spec,
       compType: item.CompType,
@@ -1033,6 +1085,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       unitWt: 0, // You'll need to add this if it's required
       gType: item.GType,
       sType: item.SType,
+      skey: item.SKey,
       catRef: item.Catref,
     }));
   };
@@ -1047,7 +1100,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       : parseFloat(parsedSize.toFixed(2));
   };
 
-  const columns: ColumnsType<PMSItem> = [
+  const baseColumns: ColumnsType<PMSItem> = [
     {
       title: "Comp Type",
       dataIndex: "compType",
@@ -1265,7 +1318,27 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         );
       },
     },
-    {
+  ];
+
+  const valvExtraColumns: ColumnsType<PMSItem> = [
+  {
+    title: "Valv Sub Type",
+    dataIndex: "valvSubType",
+    key: "valvSubType",
+    width: "11%",
+    render: (text, record) => record.valvSubType || "-",
+  },
+  {
+    title: "Construction Description",
+    dataIndex: "constructionDesc",
+    key: "constructionDesc",
+    width: "10%",
+    render: (text, record) => record.constructionDesc || "-",
+  },
+];
+
+const actionColumns: ColumnsType<PMSItem> = [
+  {
       title: "Actions",
       key: "actions",
       render: (_, record) => {
@@ -1294,15 +1367,105 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         );
       },
     },
-  ];
+]
+
+  const handleOpenPmsModal = () => {
+    setIsPmsModalOpen(true);
+  };
+
+  const handleClosePmsModal = () => {
+    setIsPmsModalOpen(false);
+    setNewItem({});
+    setValvSubtypeSelected("");
+    setConstructionDescSelected("");
+  };
+
+  const filteredItems = items.filter(item => {
+    if (isValvView) {
+      return item.compType.toLowerCase() === "valv";
+    } else {
+      return item.compType.toLowerCase() !== "valv";
+    }
+  });
+
+  const columns = isValvView
+    ? [...baseColumns, ...valvExtraColumns,...actionColumns]
+    : baseColumns;
+
 
   return (
-    <div style={{ padding: "10px 8px 5px 8px", maxWidth: "100%" , maxHeight:"74vh", overflowY:"auto" }}>        
-        <Title level={4} className="text-lg font-medium text-gray-800">
-          PMS Creation
-        </Title>
+    <div style={{ padding: "5px 8px 0px 8px", maxWidth: "100%", minHeight:"77.3vh" }}>
+      <div className="flex justify-between items-center mt-3 mb-4">
+        <div className="flex items-center gap-4">
+          <Button
+            type="primary"
+            onClick={handleOpenPmsModal}
+            icon={<Plus size={16} />}
+            size="middle"
+          >
+            Add PMS
+          </Button>
+          <Switch
+            checked={isValvView}
+            onChange={(checked) => setIsValvView(checked)}
+            checkedChildren="Valv Items"
+            unCheckedChildren="Bulk Items"
+          />
+        </div>
+
+        <Button
+          type="primary"
+          onClick={() => handleGenerateReviewOutput()}
+          loading={reviewLoading}
+          icon={<FileOutput size={16} />}
+          size="middle"
+        >
+          Generate Review Output
+        </Button>
+      </div>
+        <div style={{ maxHeight:"50vh", overflowY:"auto" }}>
+          <Table
+            columns={columns}
+            dataSource={filteredItems}
+            loading={tableLoading}
+            pagination={false}
+            rowClassName="editable-row"
+            size="middle"
+            bordered
+            className="shadow-sm"
+            scroll={{ x: "max-content" }}
+            />
+        </div>
+
+      {/* PMS Creation Modal */}
+      <Modal
+        height={1500}
+        width={1000}
+        title="Add PMS Item"
+        open={isPmsModalOpen}
+        onCancel={handleClosePmsModal}
+        footer={[
+          <Button key="cancel" onClick={handleClosePmsModal}>
+            Cancel
+          </Button>,
+          <Button
+            key="add"
+            type="primary"
+            loading={buttonLoading}
+            onClick={async () => {
+              await handleAddItem();
+              // If successful, close modal. Otherwise, keep open.
+              // You might want to close modal only on success, so you can move the setIsPmsModalOpen(false) into handleAddItem on success.
+            }}
+            icon={<Plus size={16} />}
+          >
+            Add Item
+          </Button>
+        ]}
+        maskClosable={false}
+        destroyOnClose
+      >
         <Form layout="vertical" className="mb-4">
-          {/* First Row */}
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
@@ -1343,8 +1506,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
               </Form.Item>
             </Col>
           </Row>
-
-          {/* Second Row */}
           <Row gutter={16}>
             <Col span={4}>
               <Form.Item
@@ -1429,7 +1590,6 @@ const PMSCreation = ({ specId }: { specId: string }) => {
                 <Checkbox
                   checked={isAllMaterial}
                   onChange={handleAllMaterialChange}
-                  
                 >
                   <Text>All Material</Text>
                 </Checkbox>
@@ -1456,48 +1616,46 @@ const PMSCreation = ({ specId }: { specId: string }) => {
               </Form.Item>
             </Col>
           </Row>
+          {dropdownData.compType.find(ct => ct.value === newItem.compType)?.label?.toLowerCase() === "valv" && (
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item
+                  label={<Text strong>Valv Sub Type<Text type="danger"> *</Text></Text>}
+                >
+                  <Select
+                    placeholder="Select Valv Sub Type"
+                    value={valvSubtypeSelected}
+                    onChange={(value) => setValvSubtypeSelected(value)}
+                    options={valvSubTypes.map(v => ({ label: v.valv_sub_type, value: v.code }))}
+                    className="w-full"
+                    size="middle"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label={<Text strong>Construction Desc<Text type="danger"> *</Text></Text>}
+                >
+                  <Select
+                    placeholder="Select Construction Desc"
+                    value={constructionDescSelected}
+                    onChange={(value) => setConstructionDescSelected(value)}
+                    options={constructionDesc.map(c => ({ label: c.construction_desc, value: c.code }))}
+                    className="w-full"
+                    size="middle"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
         </Form>
+      </Modal>
 
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            type="primary"
-            onClick={handleAddItem}
-            loading={buttonLoading}
-            icon={<Plus size={16} />}
-            size="middle"
-          >
-            Add Item
-          </Button>
-
-          <Button
-            type="primary"
-            onClick={() => handleGenerateReviewOutput()}
-            loading={reviewLoading}
-            icon={<FileOutput size={16} />}
-            size="middle"
-          >
-            Generate Review Output
-          </Button>
-        </div>
-
-        <Table
-          columns={columns}
-          dataSource={items}
-          loading={tableLoading}
-          pagination={false}
-          rowClassName="editable-row"
-          size="middle"
-          bordered
-          className="shadow-sm"
-          scroll={{ x: "max-content" }}
-        />
-
-        <ReviewOutputModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          data={transformData(reviewData)}
-        />
-      {/* </Card> */}
+      <ReviewOutputModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        data={transformData(reviewData)}
+      />
     </div>
   );
 };
