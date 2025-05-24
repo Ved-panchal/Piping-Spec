@@ -1390,7 +1390,7 @@ const actionColumns: ColumnsType<PMSItem> = [
 
   const columns = isValvView
     ? [...baseColumns, ...valvExtraColumns,...actionColumns]
-    : baseColumns;
+    : [...baseColumns,...actionColumns];
 
 
   return (
