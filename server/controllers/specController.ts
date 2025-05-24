@@ -24,8 +24,17 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
       }
 
       // Check if a spec with the same details already exists
+      const { Op } = require("sequelize");
+
       const existingSpec = await db.Spec.findOne({
-          where: { specName, rating, baseMaterial, isDeleted: false }
+        where: {
+          specName,
+          rating,
+          baseMaterial,
+          projectId,
+          isDeleted: false,
+          deleted_at: null
+        }
       });
 
       if (existingSpec) {
@@ -112,7 +121,7 @@ export const createSpec = async (req: Request, res: Response): Promise<void> => 
 // Update Spec
 export const updateSpec = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { specId, specName, rating, baseMaterial } = req.body;
+    const { specId, specName, rating, baseMaterial, projectId } = req.body;
     const userId = (req as any).user.id;
 
     // Find the spec, ensuring it belongs to a project owned by the user and is not deleted
@@ -132,6 +141,17 @@ export const updateSpec = async (req: Request, res: Response): Promise<void> => 
       res.json({ success: false, error: "Spec not found or access denied.", status: 404 });
       return;
     }
+
+    const existingSpec = await db.Spec.findOne({
+      where:{
+        specName,rating,baseMaterial,projectId
+      }
+    })
+
+    if(existingSpec){
+      res.json({ success: false, error: "Spec already existed", status: 404})
+    }
+
 
     // Update spec details
     await spec.update({ specName, rating, baseMaterial });

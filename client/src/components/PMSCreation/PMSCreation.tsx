@@ -631,12 +631,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       !newItem.compType ||
       !newItem.itemDescription ||
       !newItem.size1 ||
-      !newItem.size2
+      !newItem.size2 ||
+      !newItem.dimensionalStandard ||
+      !newItem.material
     ) {
       message.error("Please fill all required fields");
       return;
     }
-
+  
     if (
       dropdownData.compType.find(ct => ct.value === newItem.compType)?.label?.toLowerCase() === "valv" &&
       (!valvSubtypeSelected || !constructionDescSelected)
@@ -644,33 +646,38 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       message.error("Please select Valv Sub Type and Construction Desc");
       return;
     }
-
+  
     if (isDuplicateItem(newItem)) {
       message.error("This item already exists in the table");
       return;
     }
-
+  
     try {
       setButtonLoading(true);
-
+  
       const selectedComponent = dropdownData.compType.find(
         (item) => item.value === newItem.compType
       );
-
-      const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
-
-      const scheduleInfo = validateScheduleConsistency(
-        sizeRange,
-        selectedComponent ? selectedComponent.label : ""
-      );
-
-      if (!scheduleInfo) {
-        message.error(
-          "Selected size range does not have consistent schedule values"
+  
+      const isValv = selectedComponent?.label?.toLowerCase() === "valv";
+  
+      let scheduleInfo = null;
+      if (!isValv) {
+        const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
+  
+        scheduleInfo = validateScheduleConsistency(
+          sizeRange,
+          selectedComponent ? selectedComponent.label : ""
         );
-        return;
+  
+        if (!scheduleInfo) {
+          message.error(
+            "Selected size range does not have consistent schedule values"
+          );
+          return;
+        }
       }
-
+  
       const payload: any = {
         specId,
         component: {
@@ -685,9 +692,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         size2: {
           code: newItem.size2,
         },
-        schedule: {
-          code: scheduleInfo.scheduleCode,
-        },
+        ...( !isValv && { schedule: { code: scheduleInfo!.scheduleCode } } ),
         rating: {
           code: newItem.rating || "X",
         },
@@ -698,23 +703,17 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           id: newItem.dimensionalStandard,
         },
       };
-
-      if (
-        selectedComponent?.label?.toLowerCase() === "valv"
-      ) {
+  
+      if (isValv) {
         payload.valvSubtype = { code: valvSubtypeSelected };
         payload.constructionDesc = { code: constructionDescSelected };
       }
-      console.log("Payload for adding item:", payload);
+  
       const response = await api.post(configApi.API_URL.pms.create, payload);
-
+  
       if (response.data.success) {
         message.success("Items added successfully");
         fetchPMSItems(specId);
-        // Reset form and valv fields
-        // setNewItem({});
-        // setValvSubtypeSelected(undefined);
-        // setConstructionDescSelected(undefined);
       } else {
         message.error("Failed to add items");
       }
@@ -725,6 +724,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       setButtonLoading(false);
     }
   };
+  
 
   const handleCompTypeChange = (value: string) => {
     const projectId = localStorage.getItem("currentProjectId") || "";
@@ -1403,7 +1403,7 @@ const actionColumns: ColumnsType<PMSItem> = [
             icon={<Plus size={16} />}
             size="middle"
           >
-            Add PMS
+            Add Item
           </Button>
           <Switch
             checked={isValvView}

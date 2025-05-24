@@ -539,10 +539,10 @@ MM DIST\n\n`;
       <Table
         columns={columns}
         dataSource={data}
-        scroll={{ x: 'max-content', y: 'calc(90vh - 250px)' }}
+        scroll={{ x: 'max-content', y: 'calc(90vh - 250px)' }} // keep horizontal scroll
         size="small"
         bordered
-        tableLayout="fixed"
+        tableLayout="auto"   // changed from 'fixed' to 'auto'
         className="w-full"
         rowKey={(record) => record.itemCode}
         pagination={false}

@@ -37,12 +37,8 @@ interface DeleteResponse {
 }
 
 interface ApiError extends Error {
-  response?: {
-    data?: {
       error?: string;
-    };
-    status?: number;
-  };
+      status?: number;
 }
 
 interface EditableCellProps extends TdHTMLAttributes<any> {
@@ -111,7 +107,7 @@ const SpecsCreation: React.FC = () => {
     } catch (error) {
       const apiError = error as ApiError;
       const errorMessage =
-        apiError.response?.data?.error || "Error fetching specs.";
+        apiError.error || "Error fetching specs.";
       showToast({ message: errorMessage, type: "error" });
     } finally {
       setLoading(false);
@@ -132,12 +128,12 @@ const SpecsCreation: React.FC = () => {
         );
         setRatingOptions(ratings); // Set ratings options from API
       } else {
-        throw new Error("Failed to fetch ratings.");
+        throw new Error(response.data);
       }
     } catch (error) {
       const apiError = error as ApiError;
       const errorMessage =
-        apiError.response?.data?.error || "Failed to fetch ratings from API.";
+        apiError.error || "Failed to fetch ratings from API.";
       showToast({ message: errorMessage, type: "error" });
     }
   };
@@ -182,7 +178,7 @@ const SpecsCreation: React.FC = () => {
       const response = await api.post(configApi.API_URL.specs.create, payload, {
         headers: { "Content-Type": "application/json" },
       });
-
+      // console.log(response.data)
       if (response && response.data.success) {
         setSpecs([...specs, newSpec]);
         setNewspecName("");
@@ -194,12 +190,13 @@ const SpecsCreation: React.FC = () => {
         message.success("Spec added successfully");
         await fetchSpecs();
       } else {
-        throw new Error("Failed to add spec.");
+        // throw new Error(response.data.error);
+      showToast({ message: response.data.error, type: "error" });
       }
     } catch (error) {
       const apiError = error as ApiError;
-      const errorMessage =
-        apiError.response?.data?.error || "Failed to add spec.";
+      console.log(apiError.error)
+      const errorMessage = apiError.error || "Failed to add spec.";
       showToast({ message: errorMessage, type: "error" });
     }
   };
@@ -234,6 +231,7 @@ const SpecsCreation: React.FC = () => {
       specName,
       rating,
       baseMaterial,
+      currentProjectId,
     };
 
     try {
@@ -248,13 +246,14 @@ const SpecsCreation: React.FC = () => {
       if (response && response.data.success) {
         message.success("Spec updated successfully");
       } else {
-        throw new Error("Failed to update spec.");
+        // throw new Error(response.data.error);
+      showToast({ message: response.data.error, type: "error" });
       }
     } catch (error) {
       setSpecs(originalSpecs);
       const apiError = error as ApiError;
       const errorMessage =
-        apiError.response?.data?.error || "Failed to update spec.";
+        apiError.error || "Failed to update spec.";
       showToast({ message: errorMessage, type: "error" });
     }
   };
@@ -297,7 +296,7 @@ const SpecsCreation: React.FC = () => {
     } catch (error) {
       const apiError = error as ApiError;
       const errorMessage =
-        apiError.response?.data?.error || "Failed to delete spec.";
+        apiError.error || "Failed to delete spec.";
       showToast({ message: errorMessage, type: "error" });
     }
   };
