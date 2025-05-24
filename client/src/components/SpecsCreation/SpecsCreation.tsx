@@ -231,7 +231,7 @@ const SpecsCreation: React.FC = () => {
       specName,
       rating,
       baseMaterial,
-      currentProjectId,
+      projectId: currentProjectId,
     };
 
     try {
