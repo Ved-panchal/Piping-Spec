@@ -3,7 +3,8 @@ import {
   createPMSCCreation,
   getPMSCCreationBySpecId,
   deletePMSCCreation,
-  updatePMSCCreation
+  updatePMSCCreation,
+  updatePMSCOrder
 } from "../controllers/pmsCreationController";
 import { authenticateJWT } from "../middleware/authenticatejwt";
 
@@ -389,5 +390,83 @@ router.post("/getbySpecId", authenticateJWT, getPMSCCreationBySpecId);
  *         description: Internal server error
  */
 router.post("/delete", authenticateJWT, deletePMSCCreation);
+
+/**
+ * @swagger
+ * /pmsc/updateOrder:
+ *   post:
+ *     summary: Update the order of multiple PMSC Creation items (sorting)
+ *     tags: [PMSC]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - items
+ *               - isValv
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 description: List of items with their new order
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - id
+ *                     - sort_order
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: Item ID
+ *                     sort_order:
+ *                       type: integer
+ *                       description: The new sort order (0-based)
+ *               isValv:
+ *                 type: boolean
+ *                 description: If true, sorts Valv items, else sorts regular PMS Creation items
+ *                 example: false
+ *     responses:
+ *       200:
+ *         description: Order updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Invalid data
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Internal server error
+ */
+router.post("/updateOrder", authenticateJWT, updatePMSCOrder);
+
 
 export default router;

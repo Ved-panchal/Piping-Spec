@@ -54,6 +54,11 @@ const valvSubTypePMSCreationModel = (sequelize: any) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      sort_order: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        default: 0,
+      }
     },
     {
       timestamps: true,

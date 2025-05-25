@@ -35,7 +35,7 @@ import {
   Switch,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
-import { Trash2, Plus, FileOutput, Edit2 } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Plus, FileOutput, Edit2 } from "lucide-react";
 import ReviewOutputModal from "../ReviewOutputModal/ReviewOutputModal";
 import api from "../../utils/api/apiutils";
 import { api as configApi } from "../../utils/api/config";
@@ -55,6 +55,7 @@ interface DropdownDataState {
 }
 
 const PMSCreation = ({ specId }: { specId: string }) => {
+  const [currentProjectId,setCurrentProjectId] = useState<string | null>(null);
   const [items, setItems] = useState<PMSItem[]>([]);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isAllMaterial, setIsAllMaterial] = useState(false);
@@ -113,7 +114,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
 
     const projectId = localStorage.getItem("currentProjectId");
-
+    setCurrentProjectId(projectId);
     fetchSizeRanges(),
       fetchComponents(),
       fetchSizes(projectId!),
@@ -121,14 +122,14 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       fetchConstructionDesc(projectId!)
       fetchSchedules(projectId!),
       fetchRatings(projectId!);
-    fetchPMSItems(specId);
+    fetchPMSItems(specId,projectId!);
   }, [specId]);
 
-  const fetchPMSItems = async (specId: string) => {
+  const fetchPMSItems = async (specId: string,projectId:string) => {
     setTableLoading(true);
     try {
       const response = await api.post(configApi.API_URL.pms.getallPms, {
-        specId,
+        specId,projectId
       });
       if (response?.data?.success) {
        const mappedItems = response.data.items.map((item: any) => ({
@@ -144,6 +145,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         dimensionalStandard: item.dimensional_standard_value,
         valvSubType: item.valv_sub_type_value || undefined,
         constructionDesc: item.construction_desc_value || undefined,
+        sortOrder: item.sort_order,
       }));
 
 
@@ -702,6 +704,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         dimensionalStandard: {
           id: newItem.dimensionalStandard,
         },
+        sort_order: items.length,
       };
   
       if (isValv) {
@@ -713,7 +716,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   
       if (response.data.success) {
         message.success("Items added successfully");
-        fetchPMSItems(specId);
+        fetchPMSItems(specId,currentProjectId!);
       } else {
         message.error("Failed to add items");
       }
@@ -799,7 +802,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       const response = await api.post(configApi.API_URL.pms.delete, { id });
       if (response?.data?.success) {
         message.success("Item deleted successfully");
-        fetchPMSItems(specId);
+        fetchPMSItems(specId,currentProjectId!);
       } else {
         message.error("Failed to delete item");
       }
@@ -834,18 +837,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         await fetchMaterials(projectId, record.compCode, false);
         break;
       case "dimensionalStandard": {
-        // const itemDescObj = dropdownData.itemDescription.find(
-        //   (item) => item.value === record.itemDescription
-        // );
-      
-        // if (itemDescObj?.g_type) {
+        // console.log(record)
           await fetchDimensionalStandardsByGType(record.compType);
-        // } else {
-        //   setDropdownData((prevData) => ({
-        //     ...prevData,
-        //     dimensionalStandard: [],
-        //   }));
-        // }
         break;
       }
       case "rating":
@@ -861,7 +854,12 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   };
 
   // New function to prepare payload based on cell type
-  const prepareCellUpdatePayload = () => {
+  const prepareCellUpdatePayload = (editingCell:{
+    key: string;
+    dataIndex: keyof PMSItem;
+    value: any;
+    originalRecord: any;
+  } | null) => {
     if (!editingCell) return null;
 
     const { dataIndex, value, originalRecord } = editingCell;
@@ -870,6 +868,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       specId,
       editingCell: dataIndex,
     };
+
+    // console.log("editingCell",editingCell);
     switch (dataIndex) {
       case "compType": {
         const selectedComp = dropdownData.compType.find(
@@ -921,14 +921,15 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         const selectedStandard = dropdownData.dimensionalStandard.find(
           (item) => item.value === value
         );
-        if (selectedStandard?.label === originalRecord.dimensionalStandard)
-          updatePayload = {
-            ...updatePayload,
-            dimensionalStandard: {
-              Value: selectedStandard?.label,
-              id: selectedStandard?.value,
-            },
-          };
+        // console.log(selectedStandard)
+        if (selectedStandard?.label === originalRecord.dimensionalStandard) return;
+        updatePayload = {
+          ...updatePayload,
+          dimensionalStandard: {
+            Value: selectedStandard?.label,
+            id: selectedStandard?.value,
+          },
+        };
         break;
       }
       case "rating": {
@@ -959,16 +960,18 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           [dataIndex]: {
             value: selectedSize?.size1_size2,
             code: selectedSize?.code,
-            c_code: selectedSize?.code,
+            c_code: selectedSize?.c_code,
           },
         };
         break;
       }
       case "size2": {
         const selectedSize = sizes.find((item) => item.code === value);
+        console.log(selectedSize)
+        console.log(JSON.stringify(originalRecord))
         // tomorrow need to sepearte sizes and check weather it is increasing or not.
         if (selectedSize?.size1_size2 === originalRecord.size2) return;
-        if (selectedSize!.size1_size2 < originalRecord.size1) {
+        if (parseFloat(selectedSize!.size1_size2) < parseFloat(originalRecord.size1)) {
           message.error("Size 2 cannot be lesser than Size 1");
           return;
         }
@@ -977,11 +980,28 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           [dataIndex]: {
             value: selectedSize?.size1_size2,
             code: selectedSize?.code,
-            c_code: selectedSize?.code,
+            c_code: selectedSize?.c_code,
           },
         };
         break;
       }
+      case "valvSubType": {
+        if (value === originalRecord.valvSubType) return;
+        updatePayload = {
+          ...updatePayload,
+          valvSubtype: { code: value },
+        };
+        break;
+      }
+      case "constructionDesc": {
+        if (value === originalRecord.constructionDesc) return;
+        updatePayload = {
+          ...updatePayload,
+          constructionDesc: { code: value },
+        };
+        break;
+      }
+      
       default:
         updatePayload[dataIndex] = value;
     }
@@ -992,14 +1012,20 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   // Handle cell value change
   const handleCellValueChange = (value: any) => {
     if (editingCell) {
-      setEditingCell((prev) => (prev ? { ...prev, value } : null));
+      handleSaveCellValue({...editingCell,value})
+      setEditingCell(null);
     }
   };
 
   // Handle save cell value
-  const handleSaveCellValue = async () => {
+  const handleSaveCellValue = async (editingCell:{
+    key: string;
+    dataIndex: keyof PMSItem;
+    value: any;
+    originalRecord: any;
+  } | null) => {
     if (!editingCell) return;
-
+    // console.log(JSON.stringify(editingCell))
     const record = items.find((item) => item.key === editingCell.key);
     if (!record || record[editingCell.dataIndex] === editingCell.value) {
       setEditingCell(null);
@@ -1007,16 +1033,15 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
 
     try {
-      const payload = prepareCellUpdatePayload();
+      const payload = prepareCellUpdatePayload(editingCell);
       if (!payload) {
-        // message.error("Failed to prepare update payload");
         return;
       }
 
       const response = await api.post(configApi.API_URL.pms.update, payload);
       if (response?.data?.success) {
         message.success("Item updated successfully");
-        fetchPMSItems(specId);
+        fetchPMSItems(specId,currentProjectId!);
       } else {
         message.error("Failed to update item");
       }
@@ -1028,16 +1053,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
-  // Handle cell edit cancel
   const handleCellEditCancel = () => {
     setEditingCell(null);
   };
 
   // Handle keypress in editable cell
   const handleCellKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSaveCellValue();
-    } else if (e.key === "Escape") {
+    if (e.key === "Escape") {
       handleCellEditCancel();
     }
   };
@@ -1116,9 +1138,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.compType}
             open={true}
@@ -1144,9 +1170,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.itemDescription}
             open={true}
@@ -1172,9 +1202,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.size1}
             open={true}
@@ -1200,9 +1234,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.size2}
             open={true}
@@ -1246,9 +1284,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.rating}
             open={true}
@@ -1275,9 +1317,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.material}
             open={true}
@@ -1305,9 +1351,13 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           <Select
             ref={selectRef}
             autoFocus
+            showSearch
+            optionFilterProp="label"
             value={editingCell.value}
-            onChange={handleCellValueChange}
-            onBlur={handleSaveCellValue}
+            onChange={(value) => {
+              handleCellValueChange(value);
+            }}
+            onBlur={() => setEditingCell(null)}
             onKeyDown={handleCellKeyPress}
             options={dropdownData.dimensionalStandard}
             open={true}
@@ -1321,29 +1371,100 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   ];
 
   const valvExtraColumns: ColumnsType<PMSItem> = [
-  {
-    title: "Valv Sub Type",
-    dataIndex: "valvSubType",
-    key: "valvSubType",
-    width: "11%",
-    render: (_, record) => record.valvSubType || "-",
-  },
-  {
-    title: "Construction Description",
-    dataIndex: "constructionDesc",
-    key: "constructionDesc",
-    width: "10%",
-    render: (_, record) => record.constructionDesc || "-",
-  },
-];
+    {
+      title: "Valv Sub Type",
+      dataIndex: "valvSubType",
+      key: "valvSubType",
+      width: "11%",
+      onCell: (record) => ({
+        onDoubleClick: () => handleCellDoubleClick(record, "valvSubType"),
+      }),
+      render: (text, record) => {
+        const isEditing =
+          editingCell?.key === record.key &&
+          editingCell?.dataIndex === "valvSubType";
+        return isEditing ? (
+          <Select
+            ref={selectRef}
+            autoFocus
+            showSearch
+            optionFilterProp="label"
+            value={editingCell.value}
+            onChange={handleCellValueChange}
+            onBlur={() => setEditingCell(null)}
+            onKeyDown={handleCellKeyPress}
+            options={valvSubTypes.map(v => ({
+              label: v.valv_sub_type,
+              value: v.code
+            }))}
+            open={true}
+            style={dropdownStyles.dropdown}
+          />
+        ) : (
+          text || "-"
+        );
+      },
+    },
+    {
+      title: "Construction Description",
+      dataIndex: "constructionDesc",
+      key: "constructionDesc",
+      width: "10%",
+      onCell: (record) => ({
+        onDoubleClick: () => handleCellDoubleClick(record, "constructionDesc"),
+      }),
+      render: (text, record) => {
+        const isEditing =
+          editingCell?.key === record.key &&
+          editingCell?.dataIndex === "constructionDesc";
+        return isEditing ? (
+          <Select
+            ref={selectRef}
+            autoFocus
+            showSearch
+            optionFilterProp="label"
+            value={editingCell.value}
+            onChange={handleCellValueChange}
+            onBlur={() => setEditingCell(null)}
+            onKeyDown={handleCellKeyPress}
+            options={constructionDesc.map(c => ({
+              label: c.construction_desc,
+              value: c.code
+            }))}
+            open={true}
+            style={dropdownStyles.dropdown}
+          />
+        ) : (
+          text || "-"
+        );
+      },
+    },
+  ];
+  
 
-const actionColumns: ColumnsType<PMSItem> = [
-  {
+  const actionColumns: ColumnsType<PMSItem> = [
+    {
       title: "Actions",
       key: "actions",
-      render: (_, record) => {
+      render: (_, record, index) => {
         return (
           <div className="flex gap-2">
+            <Tooltip title="Move Up">
+              <Button
+                type="text"
+                icon={<ChevronUp className="w-4 h-4" />}
+                disabled={index === 0}
+                onClick={() => moveRow(index, "up")}
+              />
+            </Tooltip>
+            <Tooltip title="Move Down">
+              <Button
+                type="text"
+                icon={<ChevronDown className="w-4 h-4" />}
+                disabled={index === filteredItems.length - 1}
+                onClick={() => moveRow(index, "down")}
+              />
+            </Tooltip>
             <Tooltip title="Edit">
               <Button
                 type="text"
@@ -1367,7 +1488,8 @@ const actionColumns: ColumnsType<PMSItem> = [
         );
       },
     },
-]
+  ];
+  
 
   const handleOpenPmsModal = () => {
     setIsPmsModalOpen(true);
@@ -1389,9 +1511,43 @@ const actionColumns: ColumnsType<PMSItem> = [
   });
 
   const columns = isValvView
-    ? [...baseColumns, ...valvExtraColumns,...actionColumns]
-    : [...baseColumns,...actionColumns];
+  ? [...baseColumns.filter((col) => col.key !== "schedule"), ...valvExtraColumns, ...actionColumns]
+  : [...baseColumns, ...actionColumns];
 
+  const moveRow = async (index: number, direction: "up" | "down") => {
+    setItems(prevItems => {
+      const newItems = [...prevItems];
+      if (direction === "up" && index > 0) {
+        [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
+      }
+      if (direction === "down" && index < newItems.length - 1) {
+        [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+      }
+      persistOrder(newItems);
+      return newItems;
+    });
+  };
+  
+  const persistOrder = async (orderedItems: PMSItem[]) => {
+    try {
+      const orderPayload = orderedItems.map((item, idx) => ({
+        id: item.key,
+        sort_order: idx
+      }));
+      const isValv = isValvView;
+      await api.post(configApi.API_URL.pms.updateOrder, {
+        items: orderPayload,
+        isValv
+      });
+      // Optionally refetch:
+      // fetchPMSItems(specId, currentProjectId!);
+      // message.success("Order updated!");
+    } catch {
+      message.error("Failed to save new order");
+    }
+  };
+  
+  
 
   return (
     <div style={{ padding: "5px 8px 0px 8px", maxWidth: "100%", minHeight:"77.3vh" }}>
@@ -1432,8 +1588,8 @@ const actionColumns: ColumnsType<PMSItem> = [
             rowClassName="editable-row"
             size="middle"
             bordered
-            className="shadow-sm"
-            scroll={{ x: "max-content" }}
+            rowKey="key"
+            className="shadow-sm pms-table-low-height"
             />
         </div>
 
@@ -1480,6 +1636,8 @@ const actionColumns: ColumnsType<PMSItem> = [
                   value={newItem.compType}
                   onChange={handleCompTypeChange}
                   options={dropdownData.compType}
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
                   size="middle"
                 />
@@ -1497,9 +1655,9 @@ const actionColumns: ColumnsType<PMSItem> = [
                   placeholder="Select Item Description"
                   value={newItem.itemDescription}
                   onChange={handleComponentDescChange}
-                  options={dropdownData.itemDescription.map(
-                    ({ label, value }) => ({ label, value })
-                  )}
+                  options={dropdownData.itemDescription.map(({ label, value }) => ({ label, value }))}
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
                   size="middle"
                 />
@@ -1518,8 +1676,10 @@ const actionColumns: ColumnsType<PMSItem> = [
                 <Select
                   placeholder="Select Size-1"
                   value={newItem.size1}
-                  onChange={(value) => handleSizeChange("size1", value)}
+                  onChange={value => handleSizeChange("size1", value)}
                   options={dropdownData.size1}
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
                   size="middle"
                 />
@@ -1536,8 +1696,10 @@ const actionColumns: ColumnsType<PMSItem> = [
                 <Select
                   placeholder="Select Size-2"
                   value={newItem.size2}
-                  onChange={(value) => handleSizeChange("size2", value)}
+                  onChange={value => handleSizeChange("size2", value)}
                   options={dropdownData.size2}
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
                   size="middle"
                 />
@@ -1555,10 +1717,10 @@ const actionColumns: ColumnsType<PMSItem> = [
                   <Select
                     placeholder="Select Rating"
                     value={newItem.rating}
-                    onChange={(value) =>
-                      setNewItem({ ...newItem, rating: value })
-                    }
+                    onChange={value => setNewItem({ ...newItem, rating: value })}
                     options={dropdownData.rating}
+                    showSearch
+                    optionFilterProp="label"
                     className="w-full"
                     size="middle"
                   />
@@ -1576,10 +1738,10 @@ const actionColumns: ColumnsType<PMSItem> = [
                 <Select
                   placeholder="Select Material"
                   value={newItem.material}
-                  onChange={(value) =>
-                    setNewItem({ ...newItem, material: value })
-                  }
+                  onChange={value => setNewItem({ ...newItem, material: value })}
                   options={dropdownData.material}
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
                   size="middle"
                 />
@@ -1595,60 +1757,97 @@ const actionColumns: ColumnsType<PMSItem> = [
                 </Checkbox>
               </Form.Item>
             </Col>
-            <Col span={6}>
-              <Form.Item
-                label={
-                  <Text strong>
-                    Dimensional Standard<Text type="danger"> *</Text>
-                  </Text>
-                }
-              >
-                <Select
-                  placeholder="Select Dimensional Standard"
-                  value={newItem.dimensionalStandard}
-                  onChange={(value) =>
-                    setNewItem({ ...newItem, dimensionalStandard: value })
+            {/* Dimensional Standard (for non-valv only) */}
+            {dropdownData.compType.find(ct => ct.value === newItem.compType)?.label?.toLowerCase() !== "valv" && (
+              <Col span={6}>
+                <Form.Item
+                  label={
+                    <Text strong>
+                      Dimensional Standard<Text type="danger"> *</Text>
+                    </Text>
                   }
-                  options={dropdownData.dimensionalStandard}
-                  className="w-full"
-                  size="middle"
-                />
-              </Form.Item>
-            </Col>
+                >
+                  <Select
+                    placeholder="Select Dimensional Standard"
+                    value={newItem.dimensionalStandard}
+                    onChange={value => setNewItem({ ...newItem, dimensionalStandard: value })}
+                    options={dropdownData.dimensionalStandard}
+                    showSearch
+                    optionFilterProp="label"
+                    className="w-full"
+                    size="middle"
+                  />
+                </Form.Item>
+              </Col>
+            )}
           </Row>
+          {/* Valv extras: show these and move Dimensional Standard here */}
           {dropdownData.compType.find(ct => ct.value === newItem.compType)?.label?.toLowerCase() === "valv" && (
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  label={<Text strong>Valv Sub Type<Text type="danger"> *</Text></Text>}
-                >
-                  <Select
-                    placeholder="Select Valv Sub Type"
-                    value={valvSubtypeSelected}
-                    onChange={(value) => setValvSubtypeSelected(value)}
-                    options={valvSubTypes.map(v => ({ label: v.valv_sub_type, value: v.code }))}
-                    className="w-full"
-                    size="middle"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label={<Text strong>Construction Desc<Text type="danger"> *</Text></Text>}
-                >
-                  <Select
-                    placeholder="Select Construction Desc"
-                    value={constructionDescSelected}
-                    onChange={(value) => setConstructionDescSelected(value)}
-                    options={constructionDesc.map(c => ({ label: c.construction_desc, value: c.code }))}
-                    className="w-full"
-                    size="middle"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+            <>
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Item
+                    label={<Text strong>Valv Sub Type<Text type="danger"> *</Text></Text>}
+                  >
+                    <Select
+                      placeholder="Select Valv Sub Type"
+                      value={valvSubtypeSelected}
+                      onChange={value => setValvSubtypeSelected(value)}
+                      options={[
+                        { label: "Select", value: "" },
+                        ...valvSubTypes.map(v => ({ label: v.valv_sub_type, value: v.code }))
+                      ]}
+                      showSearch
+                      optionFilterProp="label"
+                      className="w-full"
+                      size="middle"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label={<Text strong>Construction Desc<Text type="danger"> *</Text></Text>}
+                  >
+                    <Select
+                      placeholder="Select Construction Desc"
+                      value={constructionDescSelected}
+                      onChange={value => setConstructionDescSelected(value)}
+                      options={[
+                        { label: "Select", value: "" },
+                        ...constructionDesc.map(c => ({ label: c.construction_desc, value: c.code }))
+                      ]}
+                      showSearch
+                      optionFilterProp="label"
+                      className="w-full"
+                      size="middle"
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label={
+                      <Text strong>
+                        Dimensional Standard<Text type="danger"> *</Text>
+                      </Text>
+                    }
+                  >
+                    <Select
+                      placeholder="Select Dimensional Standard"
+                      value={newItem.dimensionalStandard}
+                      onChange={value => setNewItem({ ...newItem, dimensionalStandard: value })}
+                      options={dropdownData.dimensionalStandard}
+                      showSearch
+                      optionFilterProp="label"
+                      className="w-full"
+                      size="middle"
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </>
           )}
         </Form>
+
       </Modal>
 
       <ReviewOutputModal

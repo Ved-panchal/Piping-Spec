@@ -81,7 +81,8 @@ export const api = {
         create:"pmsc/create",
         getallPms:"pmsc/getbySpecId",
         update:"pmsc/update",
-        delete:"pmsc/delete"
+        delete:"pmsc/delete",
+        updateOrder:"pmsc/updateOrder"
       },
       output:{
         getAll:"output/generateReviewOutput",

@@ -109,6 +109,11 @@ const pmsCreationModel = (sequelize: any) => {
       dimensional_standard_id: {
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      sort_order: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        default: 0,
       }
     },
     {

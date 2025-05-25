@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import db from "../models";
+import { Op } from "sequelize";
 
 interface PmsCreation {
     id: number;
@@ -58,7 +59,8 @@ export const createPMSCCreation = async (req: Request, res: Response): Promise<v
                         material_code: itemData.material?.code,
                         dimensional_standard_code: itemData.dimensionalStandard?.id,
                         valv_sub_type_code: itemData.valvSubtype?.code,
-                        construction_desc_code: itemData.constructionDesc?.code
+                        construction_desc_code: itemData.constructionDesc?.code,
+                        sort_order: itemData.sort_order      // <-- Add this line
                     });
                 } else {
                     newItem = await db.PmsCreation.create({
@@ -70,9 +72,11 @@ export const createPMSCCreation = async (req: Request, res: Response): Promise<v
                         schedule_code: itemData.schedule?.code,
                         rating_code: itemData.rating?.code,
                         material_code: itemData.material?.code,
-                        dimensional_standard_id: itemData.dimensionalStandard?.id
+                        dimensional_standard_id: itemData.dimensionalStandard?.id,
+                        sort_order: itemData.sort_order      // <-- Add this line
                     });
                 }
+                
 
                 createdItems.push(newItem);
             } catch (itemError) {
@@ -120,10 +124,10 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        // Find the item first
         const item = await db.PmsCreation.findByPk(id);
+        const valvItem = await db.ValvPmsCreation.findByPk(id);
 
-        if (!item) {
+        if (!item && !valvItem) {
             res.status(404).json({
                 success: false,
                 error: "PMSC Creation item not found",
@@ -132,144 +136,187 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        // Function to update schedule based on size code
         const updateScheduleData = async (sizeCode: string): Promise<any> => {
-            try {
-                if (!sizeCode) {
-                    throw new Error("Size code not found");
-                }
+            const sizeRange = await db.SizeRange.findOne({
+                where: { size_code: sizeCode, specId: specId }
+            });
 
-                const sizeRange = await db.SizeRange.findOne({
-                    where: {
-                        size_code: sizeCode,
-                        specId: specId
-                    }
-                });
+            if (!sizeRange) throw new Error("No schedule mapping found for the given size");
 
-                if (!sizeRange) {
-                    throw new Error("No schedule mapping found for the given size");
-                }
+            const scheduleDetails = await db.Schedule.findOne({
+                where: { code: sizeRange.schedule_code, projectId: item.projectId }
+            });
 
-                const scheduleDetails = await db.Schedule.findOne({
-                    where: {
-                        code: sizeRange.schedule_code,
-                        projectId: item.projectId
-                    }
-                });
+            const schedule = scheduleDetails || await db.D_Schedule.findOne({
+                where: { code: sizeRange.schedule_code }
+            });
 
-                const schedule = scheduleDetails || await db.D_Schedule.findOne({
-                    where: {
-                        code: sizeRange.schedule_code
-                    }
-                });
+            if (!schedule) throw new Error("Schedule details not found");
 
-                if (!schedule) {
-                    throw new Error("Schedule details not found");
-                }
-
-                return {
-                    schedule_value: schedule.sch1_sch2,
-                    schedule_code: schedule.code,
-                    schedule_client_code: schedule.c_code
-                };
-            } catch (error) {
-                throw new Error(`Failed to update schedule: ${(error as Error).message}`);
-            }
+            return {
+                schedule_value: schedule.sch1_sch2,
+                schedule_code: schedule.code,
+                schedule_client_code: schedule.c_code
+            };
         };
 
-        // Prepare update object based on editingCell
         let updateObject: any = {};
 
-        switch (editingCell) {
-            case 'size1':
-                updateObject = {
-                    size1_value: updateData.size1?.value,
-                    size1_code: updateData.size1?.code,
-                    size1_client_code: updateData.size1?.clientCode
-                };
-                // Update schedule when size1 changes
-                try {
-                    const scheduleUpdate = await updateScheduleData(updateData.size1?.code);
-                    updateObject = { ...updateObject, ...scheduleUpdate };
-                } catch (error) {
-                    console.error("Error updating schedule with size1:", error);
-                }
-                break;
+        if (item) {
+            switch (editingCell) {
+                case 'size1':
+                    updateObject = {
+                        size1_value: updateData.size1?.value,
+                        size1_code: updateData.size1?.code,
+                        size1_client_code: updateData.size1?.clientCode
+                    };
+                    try {
+                        const scheduleUpdate = await updateScheduleData(updateData.size1?.code);
+                        updateObject = { ...updateObject, ...scheduleUpdate };
+                    } catch (error) {
+                        console.error("Error updating schedule with size1:", error);
+                    }
+                    break;
+                case 'size2':
+                    updateObject = {
+                        size2_value: updateData.size2?.value,
+                        size2_code: updateData.size2?.code,
+                        size2_client_code: updateData.size2?.clientCode
+                    };
+                    try {
+                        const scheduleUpdate = await updateScheduleData(updateData.size2?.code);
+                        updateObject = { ...updateObject, ...scheduleUpdate };
+                    } catch (error) {
+                        console.error("Error updating schedule with size2:", error);
+                    }
+                    break;
+                case 'itemDescription':
+                    updateObject = {
+                        component_desc_value: updateData.componentDesc?.value,
+                        component_desc_code: updateData.componentDesc?.code,
+                        component_desc_client_code: updateData.componentDesc?.clientCode,
+                        component_desc_g_type: updateData.componentDesc?.gType,
+                        component_desc_s_type: updateData.componentDesc?.sType
+                    };
+                    break;
+                case 'rating':
+                    updateObject = {
+                        rating_value: updateData.rating?.value,
+                        rating_code: updateData.rating?.code,
+                        rating_client_code: updateData.rating?.clientCode
+                    };
+                    break;
+                case 'material':
+                    updateObject = {
+                        material_value: updateData.material?.value,
+                        material_code: updateData.material?.code,
+                        material_client_code: updateData.material?.clientCode
+                    };
+                    break;
+                case 'dimensionalStandard':
+                    updateObject = {
+                        dimensional_standard_value: updateData.dimensionalStandard?.value,
+                        dimensional_standard_code: updateData.dimensionalStandard?.code
+                    };
+                    break;
+                default:
+                    res.status(400).json({
+                        success: false,
+                        error: "Invalid editingCell value",
+                        status: 400
+                    });
+                    return;
+            }
 
-            case 'size2':
-                updateObject = {
-                    size2_value: updateData.size2?.value,
-                    size2_code: updateData.size2?.code,
-                    size2_client_code: updateData.size2?.clientCode
-                };
-                // Update schedule when size2 changes
-                try {
-                    const scheduleUpdate = await updateScheduleData(updateData.size2?.code);
-                    updateObject = { ...updateObject, ...scheduleUpdate };
-                } catch (error) {
-                    console.error("Error updating schedule with size2:", error);
-                }
-                break;
+            Object.keys(updateObject).forEach(key =>
+                updateObject[key] === undefined && delete updateObject[key]
+            );
 
-            case 'itemDescription':
-                updateObject = {
-                    component_desc_value: updateData.componentDesc?.value,
-                    component_desc_code: updateData.componentDesc?.code,
-                    component_desc_client_code: updateData.componentDesc?.clientCode,
-                    component_desc_g_type: updateData.componentDesc?.gType,
-                    component_desc_s_type: updateData.componentDesc?.sType
-                };
-                break;
+            await item.update(updateObject);
 
-            case 'rating':
-                updateObject = {
-                    rating_value: updateData.rating?.value,
-                    rating_code: updateData.rating?.code,
-                    rating_client_code: updateData.rating?.clientCode
-                };
-                break;
+            const updatedItem = await db.PmsCreation.findByPk(id);
+            res.json({
+                success: true,
+                message: `PMSC Creation item updated successfully`,
+                status: 200,
+                updatedItem
+            });
 
-            case 'material':
-                updateObject = {
-                    material_value: updateData.material?.value,
-                    material_code: updateData.material?.code,
-                    material_client_code: updateData.material?.clientCode
-                };
-                break;
+        } else if (valvItem) {
+            switch (editingCell) {
+                case 'component':
+                    updateObject = {
+                        component_code: updateData.component?.code
+                    };
+                    break;
+                case 'componentDescription':
+                    updateObject = {
+                        component_desc_code: updateData.componentDescription?.code
+                    };
+                    break;
+                case 'size1':
+                    updateObject = {
+                        size1_code: updateData.size1?.code
+                    };
+                    break;
+                case 'size2':
+                    updateObject = {
+                        size2_code: updateData.size2?.code
+                    };
+                    break;
+                case 'schedule':
+                    updateObject = {
+                        schedule_code: updateData.schedule?.code
+                    };
+                    break;
+                case 'rating':
+                    updateObject = {
+                        rating_code: updateData.rating?.code
+                    };
+                    break;
+                case 'material':
+                    updateObject = {
+                        material_code: updateData.material?.code
+                    };
+                    break;
+                case 'dimensionalStandard':
+                    updateObject = {
+                        dimensional_standard_code: updateData.dimensionalStandard?.id
+                    };
+                    break;
+                case 'valvSubType':
+                    updateObject = {
+                        valv_sub_type_code: updateData.valvSubType?.code
+                    };
+                    break;
+                case 'constructionDescription':
+                    updateObject = {
+                        construction_desc_code: updateData.constructionDescription?.code
+                    };
+                    break;
+                default:
+                    res.status(400).json({
+                        success: false,
+                        error: "Invalid editingCell value for ValvPmsCreation",
+                        status: 400
+                    });
+                    return;
+            }
 
-            case 'dimensionalStandard':
-                updateObject = {
-                    dimensional_standard_value: updateData.dimensionalStandard?.Value,
-                    dimensional_standard_id: updateData.dimensionalStandard?.id
-                };
-                break;
+            Object.keys(updateObject).forEach(key =>
+                updateObject[key] === undefined && delete updateObject[key]
+            );
 
-            default:
-                res.status(400).json({
-                    success: false,
-                    error: "Invalid editingCell value",
-                    status: 400
-                });
-                return;
+            await valvItem.update(updateObject);
+
+            const updatedValvItem = await db.ValvPmsCreation.findByPk(id);
+            res.json({
+                success: true,
+                message: `Valv PMS Creation item updated successfully`,
+                status: 200,
+                updatedItem: updatedValvItem
+            });
         }
-
-        // Remove any undefined values from updateObject
-        Object.keys(updateObject).forEach(key => 
-            updateObject[key] === undefined && delete updateObject[key]
-        );
-
-        // Perform the update
-        await item.update(updateObject);
-
-        // Fetch the updated item
-        const updatedItem = await db.PmsCreation.findByPk(id);
-
-        res.json({
-            success: true,
-            message: `PMSC Creation item updated successfully`,
-            status: 200,
-            updatedItem
-        });
 
     } catch (error) {
         console.error("Error updating PMSC Creation item:", error);
@@ -281,10 +328,9 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
     }
 };
 
-// TODO: Need to create another Function to get PMSC item for valv
 export const getPMSCCreationBySpecId = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { specId } = req.body;
+        const { specId, projectId } = req.body;
 
         if (!specId) {
             res.json({ success: false, error: "SpecId is required", status: 400 });
@@ -295,12 +341,14 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
         let valvItems = []
         // Fetch PMSC Creation items by specId
         items = await db.PmsCreation.findAll({
-            where: { spec_id: specId }
+            where: { spec_id: specId },
+            order: [['sort_order', 'ASC']]
         });
-
         valvItems = await db.ValvPmsCreation.findAll({
-            where: { spec_id: specId }
+            where: { spec_id: specId },
+            order: [['sort_order', 'ASC']]
         });
+        
 
         const transformedItems = await Promise.all([...items,...valvItems].map(async (item:PmsCreation) => {
             let component = null;
@@ -389,15 +437,18 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
             let material = null;
             if (item.material_code) {
                 material = await db.Material.findOne({ 
-                    where: { code: item.material_code },
+                    where: { code: item.material_code, project_id: projectId },
                     attributes: ['id', 'material_description', 'code', 'c_code'] 
                 });
 
-                if (!material) {
+                if (!material && item.component_code !== '19') {
                     material = await db.D_Material.findOne({ 
-                        where: { code: item.material_code },
-                        attributes: ['id', 'material_description', 'code','c_code'] 
-                    });
+                        where: { 
+                            code: item.material_code,
+                            comp_matching_id: { [Op.ne]: 6 }
+                        },
+                        attributes: ['id', 'material_description', 'code', 'c_code'] 
+                    });                    
                 }
             }
 
@@ -457,6 +508,16 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
                     }
                 }
 
+                if (!material) {
+                    material = await db.D_Material.findOne({ 
+                        where: { 
+                            code: item.material_code,
+                            comp_matching_id: 6 
+                        },
+                        attributes: ['id', 'material_description', 'code', 'c_code'] 
+                    });                    
+                }
+
                 return {
                     id: item.id,
                     component_value: component?.componentname || '',
@@ -502,7 +563,6 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
     }
 };
 
-// Delete PMSC Creation by ID
 export const deletePMSCCreation = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.body;
@@ -514,8 +574,9 @@ export const deletePMSCCreation = async (req: Request, res: Response): Promise<v
 
         // Find the item first
         const item = await db.PmsCreation.findByPk(id);
+        const valvItem = await db.ValvPmsCreation.findByPk(id);
 
-        if (!item) {
+        if (!item && !valvItem) {
             res.json({ 
                 success: false, 
                 error: "PMSC Creation item not found", 
@@ -524,8 +585,12 @@ export const deletePMSCCreation = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        // Delete the item
-        await item.destroy();
+
+        if(item){
+            await item.destroy();
+        } else if(valvItem){
+            await valvItem.destroy();
+        }
 
         res.json({
             success: true,
@@ -541,3 +606,25 @@ export const deletePMSCCreation = async (req: Request, res: Response): Promise<v
         });
     }
 };
+
+export const updatePMSCOrder = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { items, isValv } = req.body;
+      if (!Array.isArray(items) || items.length === 0) {
+        res.json({ success: false, error: 'Invalid data', status:400 });
+        return;
+      }
+      const model = isValv ? db.ValvPmsCreation : db.PmsCreation;
+      await db.sequelize.transaction(async (t) => {
+        for (const item of items) {
+          await model.update({ sort_order: item.sort_order }, { where: { id: item.id }, transaction: t });
+        }
+      });
+      res.json({ success: true, message:"Order Updated successfully", status:200 });
+      return;
+    } catch (error) {
+      console.error('updatePMSCOrder error:', error);
+      res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+  

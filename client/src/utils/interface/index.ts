@@ -16,6 +16,7 @@ export interface PMSItem {
     constructionDesc?: string;
     valvSubType?: string;
     dimensionalStandard: string;
+    sortOrder?:number;
 }
   
 export interface ComponentDesc {
