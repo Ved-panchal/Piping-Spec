@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import db from "../models";
 import { validateProjectAndUser } from "../helpers/validateProjectUser";
+import { Op } from "sequelize";
 
 export const getAllMaterials = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -24,7 +25,7 @@ export const getAllMaterials = async (req: Request, res: Response): Promise<void
 
     // Fetch default materials based on conditions
     const defaultMaterials = isAll
-      ? await db.D_Material.findAll()
+      ? componentId !== 19 ? await db.D_Material.findAll({where:{comp_matching_id:{[Op.ne]:6}}}) : await db.D_Material.findAll({where:{comp_matching_id:6}})
       : await db.D_Material.findAll({
           where: { comp_matching_id: compMatchingId },
         });

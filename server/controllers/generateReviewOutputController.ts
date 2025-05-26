@@ -162,8 +162,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             branches,
             reducer,
         ] = await Promise.all([
-            db.PmsCreation.findAll({ where: { spec_id: specId } }),
-            db.ValvPmsCreation.findAll({ where: { spec_id: specId } }),
+            db.PmsCreation.findAll({ where: { spec_id: specId },order: [['sort_order', 'ASC']] }),
+            db.ValvPmsCreation.findAll({ where: { spec_id: specId },order: [['sort_order', 'ASC']] }),
             db.Spec.findByPk(specId),
             db.Component.findAll({raw:true}),
             db.ComponentDesc.findAll({where: {project_id:projectId}}),

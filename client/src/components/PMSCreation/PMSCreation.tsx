@@ -73,6 +73,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
   const [isPmsModalOpen, setIsPmsModalOpen] = useState(false);
   const [isValvView, setIsValvView] = useState(false); // false = Bulk Items default
 
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const [dropdownData, setDropdownData] = useState<DropdownDataState>({
     compType: [],
@@ -150,6 +151,12 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
 
         setItems(mappedItems);
+
+      setTimeout(() => {
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollTop = tableContainerRef.current.scrollHeight;
+        }
+      }, 150); 
       } else {
         showToast({ message: "Failed to fetch PMS items", type: "error" });
       }
@@ -797,6 +804,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     setIsAllMaterial(isAll);
     fetchMaterials(projectId, componentId, isAll);
   };
+
   const handleDelete = async (id: string) => {
     try {
       const response = await api.post(configApi.API_URL.pms.delete, { id });
@@ -989,7 +997,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         if (value === originalRecord.valvSubType) return;
         updatePayload = {
           ...updatePayload,
-          valvSubtype: { code: value },
+          valvSubType: { code: value },
         };
         break;
       }
@@ -1449,7 +1457,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       render: (_, record, index) => {
         return (
           <div className="flex gap-2">
-            <Tooltip title="Move Up">
+            <Tooltip title="Move Up" placement="left">
               <Button
                 type="text"
                 icon={<ChevronUp className="w-4 h-4" />}
@@ -1457,7 +1465,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
                 onClick={() => moveRow(index, "up")}
               />
             </Tooltip>
-            <Tooltip title="Move Down">
+            <Tooltip title="Move Down" placement="right">
               <Button
                 type="text"
                 icon={<ChevronDown className="w-4 h-4" />}
@@ -1472,7 +1480,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
                 onClick={() => handleCellDoubleClick(record, "compType")}
               />
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title="Delete" placement="right">
               <Popconfirm
                 title="Are you sure you want to delete this item?"
                 onConfirm={() => handleDelete(record.key)}
@@ -1579,7 +1587,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
           Generate Review Output
         </Button>
       </div>
-        <div style={{ maxHeight:"50vh", overflowY:"auto" }}>
+        <div ref={tableContainerRef} style={{ maxHeight:"50vh", overflowY:"auto" }}>
           <Table
             columns={columns}
             dataSource={filteredItems}

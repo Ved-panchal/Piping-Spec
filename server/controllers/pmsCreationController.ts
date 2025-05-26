@@ -216,7 +216,7 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
                 case 'dimensionalStandard':
                     updateObject = {
                         dimensional_standard_value: updateData.dimensionalStandard?.value,
-                        dimensional_standard_code: updateData.dimensionalStandard?.code
+                        dimensional_standard_id: updateData.dimensionalStandard?.id
                     };
                     break;
                 default:
@@ -289,9 +289,9 @@ export const updatePMSCCreation = async (req: Request, res: Response): Promise<v
                         valv_sub_type_code: updateData.valvSubType?.code
                     };
                     break;
-                case 'constructionDescription':
+                case 'constructionDesc':
                     updateObject = {
-                        construction_desc_code: updateData.constructionDescription?.code
+                        construction_desc_code: updateData.constructionDesc?.code
                     };
                     break;
                 default:

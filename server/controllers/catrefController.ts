@@ -18,11 +18,11 @@ export const getCatRefByComponentId = async (req: Request, res: Response): Promi
     const catRefMap: Record<string, any> = {};
 
     defaultCatRefs.forEach((defaultCatRef: any) => {
-      catRefMap[defaultCatRef.item_short_desc || defaultCatRef.id] = defaultCatRef;
+      catRefMap[defaultCatRef.item_short_desc+"~"+defaultCatRef.rating] = defaultCatRef;
     });
 
     userCatRefs.forEach((userCatRef: any) => {
-      catRefMap[userCatRef.item_short_desc || userCatRef.id] = userCatRef;
+      catRefMap[userCatRef.item_short_desc+"~"+userCatRef.rating] = userCatRef;
     });
 
     const mergedCatRefs = Object.values(catRefMap);
