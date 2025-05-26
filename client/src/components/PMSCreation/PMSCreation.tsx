@@ -834,7 +834,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         await fetchComponentDesc(projectId, record.compCode);
         break;
       case "material":
-        await fetchMaterials(projectId, record.compCode, false);
+        await fetchMaterials(projectId, record.compCode, true);
         break;
       case "dimensionalStandard": {
         // console.log(record)
