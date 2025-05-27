@@ -76,3 +76,7 @@ button, input, select, textarea {
 .pms-table-low-height .ant-table-row {
   height: 10px !important;
 }
+
+.ant-modal-wrap{
+  overflow: hidden !important;
+}

@@ -788,6 +788,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       // Reset dimensional standard when item description changes
       dimensionalStandard: undefined,
     }));
+    if(!selectedItem?.ratingRequired) setNewItem((prevNewItem) => ({...prevNewItem, rating: "X" }));
     setShowRatingDropdown(!!selectedItem?.ratingRequired);
     
     // Fetch dimensional standards by g_type instead of component
