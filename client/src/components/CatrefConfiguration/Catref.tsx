@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { Table, Input, Button, Form, Select, message, Spin } from "antd";
 import { ColumnsType } from "antd/es/table";
 import showToast from "../../utils/toast";
 import api from "../../utils/api/apiutils";
 import { api as configApi } from "../../utils/api/config";
-import { ApiError, Component } from "../../utils/interface";
+import { ApiError, Component, ConstructionDesc, Valv } from "../../utils/interface";
 import { Plus } from "lucide-react";
 
 interface ComponentDesc {
@@ -14,11 +15,15 @@ interface ComponentDesc {
   key?: string;
 }
 
+
+
 export interface EditableCellProps extends React.TdHTMLAttributes<unknown> {
   record: CatRefData;
   editable: boolean;
   dataIndex: keyof CatRefData;
   componentDesc?: ComponentDesc[];
+  valvSubTypes?: Valv[];
+  constructionDescs?: ConstructionDesc[];
 }
 
 interface CatRefData {
@@ -28,6 +33,8 @@ interface CatRefData {
   project_id?: string | null;
   item_short_desc: string;
   rating: string;
+  valv_sub_type?: string;
+  construction_desc?: string;
   concatenate: string;
   catalog: string;
 }
@@ -37,21 +44,41 @@ const CatRefConfiguration: React.FC = () => {
   const [currentProjectId, setCurrentProjectId] = useState<string>();
   const [componentsList, setComponentsList] = useState<Component[]>([]);
   const [componentDesc, setComponentDesc] = useState<ComponentDesc[]>([]);
+  const [valvSubTypes, setValvSubTypes] = useState<Valv[]>([]);
+  const [constructionDescs, setConstructionDescs] = useState<ConstructionDesc[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
+  const [selectedComponentName, setSelectedComponentName] = useState<string>("");
   const [newItemShortDesc, setNewItemShortDesc] = useState("");
   const [newRating, setNewRating] = useState("");
+  const [newValvSubtype, setNewValvSubtype] = useState("");
+  const [newConstructionDesc, setNewConstructionDesc] = useState("");
   const [newCatalog, setNewCatalog] = useState("");
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingColumn, setEditingColumn] = useState<string | null>(null);
 
+  const isValvSelected = selectedComponentName?.toLowerCase().includes('valv') || false;
+
   const generateConcatenate = (
     itemShortDesc: string,
-    rating: string
+    rating: string,
+    valvSubtype?: string,
+    constructionDesc?: string
   ): string => {
     const formattedRating = rating || "";
-    return `${itemShortDesc}${rating ? '-' : ''}${formattedRating}`;
+    let concatenate = `${itemShortDesc}${rating ? '-' : ''}${formattedRating}`;
+    
+    if (isValvSelected) {
+      if (valvSubtype) {
+        concatenate += `-${valvSubtype}`;
+      }
+      if (constructionDesc) {
+        concatenate += `-${constructionDesc}`;
+      }
+    }
+    
+    return concatenate;
   };
 
   const fetchComponentDesc = async (componentId: number) => {
@@ -89,13 +116,88 @@ const CatRefConfiguration: React.FC = () => {
     }
   };
 
+  const fetchValvSubTypes = async (projectId:string) => {
+    try {
+      setLoading(true);
+      // Replace with your actual API endpoint
+      const response = await api.post(configApi.API_URL.valvsubtype.getAll, {
+        projectId,
+      });
+      if (response?.data?.success) {
+              const valvSubTypes = response.data.valvSubTypes
+                .map((valv: Valv) => ({
+                  ...valv,
+                  key: valv.code,
+                  c_code: valv.c_code,
+                }))
+              setValvSubTypes(valvSubTypes);
+            } else {
+        showToast({
+          message: "Failed to fetch valv sub types.",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Error fetching valv sub types.";
+      showToast({ message: errorMessage, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchConstructionDescs = async (projectId:string) => {
+    try {
+      setLoading(true);
+      // Replace with your actual API endpoint
+      const response = await api.post(configApi.API_URL.constructiondesc.getAll, {
+        projectId,
+      });
+      if (response?.data?.success) {
+              const constructionDesc = response.data.constructionDescs
+                .map((construct: ConstructionDesc) => ({
+                  ...construct,
+                  key: construct.code,
+                  c_code: construct.c_code,
+                }))
+              setConstructionDescs(constructionDesc);
+            } else {
+        showToast({
+          message: "Failed to fetch construction descriptions.",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Error fetching construction descriptions.";
+      showToast({ message: errorMessage, type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleComponentChange = (componentId: number) => {
+    const selectedComponent = componentsList.find(comp => comp.id === componentId);
+    const componentName = selectedComponent?.componentname || "";
+    
     setNewItemShortDesc("");
     setNewRating("");
+    setNewValvSubtype("");
+    setNewConstructionDesc("");
     setNewCatalog("");
     setSelectedComponentId(componentId);
+    setSelectedComponentName(componentName);
+    
     fetchCatRefData(componentId);
     fetchComponentDesc(componentId);
+    
+    // Fetch additional data if valv is selected
+    if (componentName.toLowerCase().includes('valv')) {
+      fetchValvSubTypes(currentProjectId!);
+      fetchConstructionDescs(currentProjectId!);
+    }
   };
 
   useEffect(() => {
@@ -148,6 +250,8 @@ const CatRefConfiguration: React.FC = () => {
         const fetchedData = response.data.catRefs.map((item: CatRefData) => ({
           ...item,
           rating: item.rating === null ? "" : item.rating,
+          valv_sub_type: item.valv_sub_type || "",
+          construction_desc: item.construction_desc || "",
           key: item.concatenate || Math.random().toString(36).substring(7),
         }));
         setCatRefData(fetchedData);
@@ -177,14 +281,32 @@ const CatRefConfiguration: React.FC = () => {
       return;
     }
 
-    const newConcatenate = generateConcatenate(newItemShortDesc, newRating);
-    // console.log(newRating)
-    console.log(catRefData)
+    if (isValvSelected && !newValvSubtype) {
+      message.error("Valv Subtype is required for valv components.");
+      return;
+    }
+
+    if (isValvSelected && !newConstructionDesc) {
+      message.error("Construction Description is required for valv components.");
+      return;
+    }
+
+    const newConcatenate = generateConcatenate(
+      newItemShortDesc, 
+      newRating, 
+      newValvSubtype, 
+      newConstructionDesc
+    );
+
     const isDuplicateEntry = catRefData.some(
       (item) => 
         item.item_short_desc === newItemShortDesc && 
         item.rating == newRating &&
-        item.catalog === newCatalog
+        item.catalog === newCatalog &&
+        (!isValvSelected || (
+          item.valv_sub_type === newValvSubtype &&
+          item.construction_desc === newConstructionDesc
+        ))
     );
 
     if (isDuplicateEntry) {
@@ -203,6 +325,10 @@ const CatRefConfiguration: React.FC = () => {
         rating: newRating,
         concatenate: newConcatenate,
         catalog: newCatalog,
+        ...(isValvSelected && {
+          valv_sub_type: newValvSubtype,
+          construction_desc: newConstructionDesc,
+        }),
       };
 
       const payload = {
@@ -219,6 +345,8 @@ const CatRefConfiguration: React.FC = () => {
         setCatRefData((prevData) => [newData, ...prevData]);
         setNewItemShortDesc("");
         setNewRating("");
+        setNewValvSubtype("");
+        setNewConstructionDesc("");
         setNewCatalog("");
         message.success("CatRef data added successfully");
       } else {
@@ -237,6 +365,8 @@ const CatRefConfiguration: React.FC = () => {
     record,
     dataIndex,
     componentDesc,
+    valvSubTypes,
+    constructionDescs,
     ...restProps
   }) => {
     const initialInputValue = record ? String(record[dataIndex]) : "";
@@ -245,12 +375,13 @@ const CatRefConfiguration: React.FC = () => {
 
     const handleBlur = () => {
       if (localInputValue !== initialInputValue) {
-        if (dataIndex === "item_short_desc" || dataIndex === "rating") {
+        if (dataIndex === "item_short_desc" || dataIndex === "rating" || 
+            dataIndex === "valv_sub_type" || dataIndex === "construction_desc") {
           const updatedConcatenate = generateConcatenate(
-            dataIndex === "item_short_desc"
-              ? localInputValue
-              : record.item_short_desc,
-            dataIndex === "rating" ? localInputValue : record.rating
+            dataIndex === "item_short_desc" ? localInputValue : record.item_short_desc,
+            dataIndex === "rating" ? localInputValue : record.rating,
+            dataIndex === "valv_sub_type" ? localInputValue : record.valv_sub_type,
+            dataIndex === "construction_desc" ? localInputValue : record.construction_desc
           );
           handleEditCatRefData(record.key, "concatenate", updatedConcatenate);
         }
@@ -278,6 +409,50 @@ const CatRefConfiguration: React.FC = () => {
             {componentDesc!.map((desc) => (
               <Select.Option key={desc.code} value={desc.code}>
                 {`${desc.code} - ${desc.itemDescription}`}
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      }
+
+      if (dataIndex === "valv_sub_type" && isValvSelected) {
+        return (
+          <Select
+            value={localInputValue}
+            onChange={(value) => {
+              setLocalInputValue(value);
+              handleBlur();
+            }}
+            style={{ width: "100%" }}
+            onBlur={handleBlur}
+            autoFocus
+            size="small"
+          >
+            {valvSubTypes!.map((subtype) => (
+              <Select.Option key={subtype.code} value={subtype.code}>
+                {`${subtype.valv_sub_type}`}
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      }
+
+      if (dataIndex === "construction_desc" && isValvSelected) {
+        return (
+          <Select
+            value={localInputValue}
+            onChange={(value) => {
+              setLocalInputValue(value);
+              handleBlur();
+            }}
+            style={{ width: "100%" }}
+            onBlur={handleBlur}
+            autoFocus
+            size="small"
+          >
+            {constructionDescs!.map((desc) => (
+              <Select.Option key={desc.code} value={desc.code}>
+                {`${desc.construction_desc}`}
               </Select.Option>
             ))}
           </Select>
@@ -329,10 +504,13 @@ const CatRefConfiguration: React.FC = () => {
     const catRefToUpdate = updatedData.find((item) => item.key === key);
     if (!catRefToUpdate) return;
 
-    if (field === "item_short_desc" || field === "rating") {
+    if (field === "item_short_desc" || field === "rating" || 
+        field === "valv_sub_type" || field === "construction_desc") {
       const newConcatenate = generateConcatenate(
         field === "item_short_desc" ? value : catRefToUpdate.item_short_desc,
-        field === "rating" ? value : catRefToUpdate.rating
+        field === "rating" ? value : catRefToUpdate.rating,
+        field === "valv_sub_type" ? value : catRefToUpdate.valv_sub_type,
+        field === "construction_desc" ? value : catRefToUpdate.construction_desc
       );
 
       const descExists = catRefData.some(
@@ -358,6 +536,10 @@ const CatRefConfiguration: React.FC = () => {
           rating: catRefToUpdate.rating || "null",
           concatenate: catRefToUpdate.concatenate,
           catalog: catRefToUpdate.catalog,
+          ...(isValvSelected && {
+            valv_sub_type: catRefToUpdate.valv_sub_type || "",
+            construction_desc: catRefToUpdate.construction_desc || "",
+          }),
         },
       ],
     };
@@ -379,50 +561,85 @@ const CatRefConfiguration: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<CatRefData> = [
-    {
-      title: <span>Item Short Desc</span>,
-      dataIndex: "item_short_desc",
-      key: "item_short_desc",
-      onCell: (record: CatRefData): EditableCellProps => ({
-        record,
-        editable:
-          editingKey === record.key && editingColumn === "item_short_desc",
+  const getColumns = (): ColumnsType<CatRefData> => {
+    const baseColumns: ColumnsType<CatRefData> = [
+      {
+        title: <span>Item Short Desc</span>,
         dataIndex: "item_short_desc",
-        componentDesc,
-      }),
-    },
-    {
-      title: <span>Rating</span>,
-      dataIndex: "rating",
-      key: "rating",
-      onCell: (record: CatRefData): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key && editingColumn === "rating",
+        key: "item_short_desc",
+        onCell: (record: CatRefData): EditableCellProps => ({
+          record,
+          editable:
+            editingKey === record.key && editingColumn === "item_short_desc",
+          dataIndex: "item_short_desc",
+          componentDesc,
+        }),
+      },
+      {
+        title: <span>Rating</span>,
         dataIndex: "rating",
-      }),
-    },
-    {
-      title: <span>Concatenate</span>,
-      dataIndex: "concatenate",
-      key: "concatenate",
-      onCell: (record: CatRefData): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key && editingColumn === "concatenate",
+        key: "rating",
+        onCell: (record: CatRefData): EditableCellProps => ({
+          record,
+          editable: editingKey === record.key && editingColumn === "rating",
+          dataIndex: "rating",
+        }),
+      },
+    ];
+
+    // Add valv-specific columns if valv is selected
+    if (isValvSelected) {
+      baseColumns.push(
+        {
+          title: <span>Valv Subtype</span>,
+          dataIndex: "valv_sub_type",
+          key: "valv_sub_type",
+          onCell: (record: CatRefData): EditableCellProps => ({
+            record,
+            editable: editingKey === record.key && editingColumn === "valv_sub_type",
+            dataIndex: "valv_sub_type",
+            valvSubTypes,
+          }),
+        },
+        {
+          title: <span>Construction Desc</span>,
+          dataIndex: "construction_desc",
+          key: "construction_desc",
+          onCell: (record: CatRefData): EditableCellProps => ({
+            record,
+            editable: editingKey === record.key && editingColumn === "construction_desc",
+            dataIndex: "construction_desc",
+            constructionDescs,
+          }),
+        }
+      );
+    }
+
+    baseColumns.push(
+      {
+        title: <span>Concatenate</span>,
         dataIndex: "concatenate",
-      }),
-    },
-    {
-      title: <span>Catalog</span>,
-      dataIndex: "catalog",
-      key: "catalog",
-      onCell: (record: CatRefData): EditableCellProps => ({
-        record,
-        editable: editingKey === record.key && editingColumn === "catalog",
+        key: "concatenate",
+        onCell: (record: CatRefData): EditableCellProps => ({
+          record,
+          editable: editingKey === record.key && editingColumn === "concatenate",
+          dataIndex: "concatenate",
+        }),
+      },
+      {
+        title: <span>Catalog</span>,
         dataIndex: "catalog",
-      }),
-    },
-  ];
+        key: "catalog",
+        onCell: (record: CatRefData): EditableCellProps => ({
+          record,
+          editable: editingKey === record.key && editingColumn === "catalog",
+          dataIndex: "catalog",
+        }),
+      }
+    );
+
+    return baseColumns;
+  };
 
   const handleApiError = (error: any) => {
     const apiError = error as ApiError;
@@ -483,6 +700,47 @@ const CatRefConfiguration: React.FC = () => {
             </Form.Item>
           </div>
 
+          {/* Conditional valv-specific fields */}
+          {isValvSelected && (
+            <div className="grid grid-cols-6 gap-3 mb-3">
+              <Form.Item
+                label={<span className="font-semibold">Valv Subtype <span className="text-red-500">*</span></span>}
+                colon={false}
+                className="mb-0 col-span-3"
+              >
+                <Select
+                  placeholder="Select Valv Subtype"
+                  className="w-full"
+                  value={newValvSubtype || ""}
+                  onChange={(value) => setNewValvSubtype(value)}
+                  size="middle"
+                  options={valvSubTypes.map((subtype) => ({
+                    value: subtype.code,
+                    label: `${subtype.code} - ${subtype.valv_sub_type}`,
+                  }))}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label={<span className="font-semibold">Construction Desc <span className="text-red-500">*</span></span>}
+                colon={false}
+                className="mb-0 col-span-3"
+              >
+                <Select
+                  placeholder="Select Construction Description"
+                  className="w-full"
+                  value={newConstructionDesc || ""}
+                  onChange={(value) => setNewConstructionDesc(value)}
+                  size="middle"
+                  options={constructionDescs.map((desc) => ({
+                    value: desc.code,
+                    label: `${desc.construction_desc}`,
+                  }))}
+                />
+              </Form.Item>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-3">
             <Form.Item
               label={<span className="font-semibold">Item Description <span className="text-red-500">*</span></span>}
@@ -500,7 +758,6 @@ const CatRefConfiguration: React.FC = () => {
                   label: `${desc.code} - ${desc.itemDescription}`,
                 }))}
               />
-
             </Form.Item>
           </div>
           
@@ -509,7 +766,6 @@ const CatRefConfiguration: React.FC = () => {
               type="primary"
               onClick={handleAddCatRefData}
               loading={buttonLoading}
-              // disabled={!selectedComponentId || !newItemShortDesc}
               className="bg-blue-500 text-white"
               icon={<Plus size={14} className="mr-1" />}
             >
@@ -537,7 +793,7 @@ const CatRefConfiguration: React.FC = () => {
         ) : (
           <Table
             className="catref-table"
-            columns={columns}
+            columns={getColumns()}
             components={{
               body: {
                 cell: EditableCell,

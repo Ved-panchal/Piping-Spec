@@ -7,6 +7,29 @@ export const getCatRefByComponentId = async (req: Request, res: Response): Promi
   try {
     const { componentId, projectId } = req.body;
 
+    if(componentId == 19){
+      const defaultCatRefs = await db.D_VCatref.findAll({
+        where: { component_id: componentId },
+      });
+
+      const userCatRefs = await db.VCatref.findAll({
+        where: { component_id: componentId, project_id: projectId },
+      });
+
+      const catRefMap: Record<string, any> = {};
+
+      defaultCatRefs.forEach((defaultCatRef: any) => {
+        catRefMap[defaultCatRef.item_short_desc+"~"+defaultCatRef.rating+"~"+defaultCatRef.valv_sub_type+"~"+defaultCatRef.construction_desc] = defaultCatRef;
+      });
+
+      userCatRefs.forEach((userCatRef: any) => {
+        catRefMap[userCatRef.item_short_desc+"~"+userCatRef.rating+"~"+userCatRef.valv_sub_type+"~"+userCatRef.construction_desc] = userCatRef;
+      });
+
+      const mergedCatRefs = Object.values(catRefMap);
+      res.json({ success: true, catRefs: mergedCatRefs });
+      return;
+    }
     const defaultCatRefs = await db.D_Catref.findAll({
       where: { component_id: componentId },
     });
@@ -27,6 +50,7 @@ export const getCatRefByComponentId = async (req: Request, res: Response): Promi
 
     const mergedCatRefs = Object.values(catRefMap);
     res.json({ success: true, catRefs: mergedCatRefs });
+    return;
   } catch (error: unknown) {
     console.error("Error fetching CatRefs:", error);
     res.json({ success: false, error: "Internal server error", status: 500 });
