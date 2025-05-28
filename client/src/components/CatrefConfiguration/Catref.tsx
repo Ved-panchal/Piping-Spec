@@ -29,7 +29,7 @@ export interface EditableCellProps extends React.TdHTMLAttributes<unknown> {
 interface CatRefData {
   id?: number;
   key: string;
-  component_id: number;
+  // component_id: number;
   project_id?: string | null;
   item_short_desc: string;
   rating: string;
@@ -99,6 +99,7 @@ const CatRefConfiguration: React.FC = () => {
             key: item.code,
           })
         );
+        
         setComponentDesc(fetchedData ? fetchedData : []);
       } else {
         showToast({
@@ -319,7 +320,7 @@ const CatRefConfiguration: React.FC = () => {
 
       const newData: CatRefData = {
         key: Math.random().toString(36).substring(7),
-        component_id: selectedComponentId!,
+        // component_id: selectedComponentId!,
         project_id: currentProjectId,
         item_short_desc: newItemShortDesc,
         rating: newRating,
@@ -408,7 +409,7 @@ const CatRefConfiguration: React.FC = () => {
           >
             {componentDesc!.map((desc) => (
               <Select.Option key={desc.code} value={desc.code}>
-                {`${desc.code} - ${desc.itemDescription}`}
+                {`${desc.itemDescription}`}
               </Select.Option>
             ))}
           </Select>
@@ -533,7 +534,7 @@ const CatRefConfiguration: React.FC = () => {
         {
           project_id: project_id,
           item_short_desc: catRefToUpdate.item_short_desc,
-          rating: catRefToUpdate.rating || "null",
+          rating: catRefToUpdate.rating || null,
           concatenate: catRefToUpdate.concatenate,
           catalog: catRefToUpdate.catalog,
           ...(isValvSelected && {
@@ -567,13 +568,13 @@ const CatRefConfiguration: React.FC = () => {
         title: <span>Item Short Desc</span>,
         dataIndex: "item_short_desc",
         key: "item_short_desc",
-        onCell: (record: CatRefData): EditableCellProps => ({
-          record,
-          editable:
-            editingKey === record.key && editingColumn === "item_short_desc",
-          dataIndex: "item_short_desc",
-          componentDesc,
-        }),
+        // onCell: (record: CatRefData): EditableCellProps => ({
+        //   record,
+        //   editable:
+        //     editingKey === record.key && editingColumn === "item_short_desc",
+        //   dataIndex: "item_short_desc",
+        //   componentDesc,
+        // }),
       },
       {
         title: <span>Rating</span>,
@@ -620,11 +621,11 @@ const CatRefConfiguration: React.FC = () => {
         title: <span>Concatenate</span>,
         dataIndex: "concatenate",
         key: "concatenate",
-        onCell: (record: CatRefData): EditableCellProps => ({
-          record,
-          editable: editingKey === record.key && editingColumn === "concatenate",
-          dataIndex: "concatenate",
-        }),
+        // onCell: (record: CatRefData): EditableCellProps => ({
+        //   record,
+        //   editable: editingKey === record.key && editingColumn === "concatenate",
+        //   dataIndex: "concatenate",
+        // }),
       },
       {
         title: <span>Catalog</span>,
@@ -672,7 +673,7 @@ const CatRefConfiguration: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              label={<span className="font-semibold">Rating <span className="text-red-500">*</span></span>}
+              label={<span className="font-semibold">Rating {!(selectedComponentId == 1 || selectedComponentId == 2 ) &&<span className="text-red-500">*</span>}</span>}
               colon={false}
               className="mb-0 col-span-2"
             >
@@ -711,12 +712,12 @@ const CatRefConfiguration: React.FC = () => {
                 <Select
                   placeholder="Select Valv Subtype"
                   className="w-full"
-                  value={newValvSubtype || ""}
+                  // value={newValvSubtype || ""}
                   onChange={(value) => setNewValvSubtype(value)}
                   size="middle"
                   options={valvSubTypes.map((subtype) => ({
-                    value: subtype.code,
-                    label: `${subtype.code} - ${subtype.valv_sub_type}`,
+                    value: subtype.valv_sub_type,
+                    label: `${subtype.valv_sub_type}`,
                   }))}
                 />
               </Form.Item>
@@ -729,11 +730,11 @@ const CatRefConfiguration: React.FC = () => {
                 <Select
                   placeholder="Select Construction Description"
                   className="w-full"
-                  value={newConstructionDesc || ""}
+                  // value={newConstructionDesc || ""}
                   onChange={(value) => setNewConstructionDesc(value)}
                   size="middle"
                   options={constructionDescs.map((desc) => ({
-                    value: desc.code,
+                    value: desc.construction_desc,
                     label: `${desc.construction_desc}`,
                   }))}
                 />
@@ -755,7 +756,7 @@ const CatRefConfiguration: React.FC = () => {
                 size="middle"
                 options={componentDesc.map((desc) => ({
                   value: desc.itemDescription,
-                  label: `${desc.code} - ${desc.itemDescription}`,
+                  label: `${desc.itemDescription}`,
                 }))}
               />
             </Form.Item>
