@@ -13,7 +13,7 @@ interface Rating {
   key: string;
   ratingCode?: string;
   ratingValue: string;
-  c_ratingCode?: string;
+  c_ratingCode: string;
 }
 
 interface ApiError extends Error {
@@ -28,6 +28,7 @@ interface ApiError extends Error {
 interface EditableCellProps extends TdHTMLAttributes<any> {
   record: Rating;
   editable: boolean;
+  dataIndex: 'c_ratingCode' | 'ratingValue'; // the editable field
 }
 
 const RatingConfiguration: React.FC = () => {
@@ -35,7 +36,7 @@ const RatingConfiguration: React.FC = () => {
   const [newCRatingCode, setNewCRatingCode] = useState("");
   const [newRatingCode, setNewRatingCode] = useState("");
   const [newRatingValue, setNewRatingValue] = useState("");
-  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingCell, setEditingCell] = useState<{ key: string; dataIndex: 'ratingValue' | 'c_ratingCode' } | null>(null);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // Table loading
   const [editingOriginalValue, setEditingOriginalValue] = useState<string>("");
@@ -177,11 +178,81 @@ const RatingConfiguration: React.FC = () => {
     }
   };
 
-  const handleEditRatingCode = async (key: string, c_ratingCode:string) => {
+  const handleEditRatingValue = async (key: string, ratingValue: string) => {
+    if (!ratingValueRegex.test(ratingValue)) {
+      message.error("Rating value must end with #");
+      return;
+    }
+
+    if (!currentProjectId) {
+      message.error("No current project ID available.");
+      return;
+    }
+
+    const currentRating = ratings.find((rating) => rating.key === key);
+    if (!currentRating) {
+      message.error("Rating not found");
+      return;
+    }
+
+    if (currentRating.ratingValue === ratingValue) {
+      setEditingCell(null);
+      return;
+    }
+
+    const updatedRatings = ratings.map((rating) =>
+      rating.key === key ? { ...rating, ratingValue } : rating
+    );
+    setRatings(updatedRatings);
+
+    const payload = {
+      projectId: currentProjectId,
+      ratings: [
+        {
+          ratingCode: key,
+          c_ratingCode: currentRating.c_ratingCode || "",
+          ratingValue,
+        },
+      ],
+    };
+
+    try {
+      const response = await api.post(
+        configApi.API_URL.ratings.addorupdate,
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (response && response.data.success) {
+        message.success("Rating value updated successfully");
+        setEditingCell(null);
+      } else {
+        throw new Error("Failed to update rating value.");
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Failed to update rating value.";
+      showToast({ message: errorMessage, type: "error" });
+
+      setRatings(
+        ratings.map((rating) =>
+          rating.key === key
+            ? { ...rating, ratingValue: editingOriginalValue }
+            : rating
+        )
+      );
+      setEditingCell(null);
+    }
+  };
+
+  const handleEditRatingCode = async (key: string, c_ratingCode: string) => {
     const duplicateRating = ratings.find(
       (rating) => rating.c_ratingCode === c_ratingCode && rating.key !== key
     );
-  
+
     if (duplicateRating) {
       message.error("Client Rating Code is already in use.");
       return;
@@ -204,7 +275,7 @@ const RatingConfiguration: React.FC = () => {
     }
 
     if (currentRating.c_ratingCode === c_ratingCode) {
-      setEditingKey(null);
+      setEditingCell(null);
       return;
     }
 
@@ -215,17 +286,16 @@ const RatingConfiguration: React.FC = () => {
 
     const payload = {
       projectId: currentProjectId,
-      ratings:[{
-        ratingCode:key,
+      ratings: [{
+        ratingCode: key,
         c_ratingCode,
         ratingValue: currentRating.ratingValue,
-      }
-      ]
+      }]
     };
 
     try {
       const response = await api.post(
-        `${configApi.API_URL.ratings.addorupdate}`,
+        configApi.API_URL.ratings.addorupdate,
         payload,
         {
           headers: { "Content-Type": "application/json" },
@@ -234,7 +304,7 @@ const RatingConfiguration: React.FC = () => {
 
       if (response && response.data.success) {
         message.success("Rating code updated successfully");
-        setEditingKey(null); // Exit edit mode
+        setEditingCell(null); // Exit edit mode
       } else {
         throw new Error("Failed to update rating code.");
       }
@@ -251,29 +321,37 @@ const RatingConfiguration: React.FC = () => {
             : rating
         )
       );
-      setEditingKey(null); // Exit edit mode
+      setEditingCell(null); // Exit edit mode
     }
   };
 
-  const EditableCell: React.FC<any> = ({
+  const finishEditing = () => setEditingCell(null);
+
+  const EditableCell: React.FC<EditableCellProps> = ({
     editable,
     children,
     record,
+    dataIndex,
     ...restProps
   }) => {
-    const [inputValue, setInputValue] = useState(record?.c_ratingCode || "");
+    const [inputValue, setInputValue] = useState("");
 
+    // Update input value when record changes or when entering edit mode
     useEffect(() => {
-      if (editable && record) {
-        setEditingOriginalValue(record.c_ratingCode);
+      if (record && record[dataIndex]) {
+        setInputValue(record[dataIndex]);
+        // console.log(editingKey)
+        // Set original value for rollback if needed
+        if (editable) {
+          setEditingOriginalValue(record[dataIndex]);
+        }
       }
-    }, [editable, record?.c_ratingCode]);
+    }, [record, dataIndex, editable]);
 
     useEffect(() => {
       const handleEscapeKey = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-          setEditingKey(null);
-          return;
+          setEditingCell(null);
         }
       };
       document.addEventListener("keydown", handleEscapeKey);
@@ -285,8 +363,23 @@ const RatingConfiguration: React.FC = () => {
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         if (record) {
-          handleEditRatingCode(record.key, inputValue);
+          if (dataIndex === 'c_ratingCode') {
+            handleEditRatingCode(record.key, inputValue);
+          } else if (dataIndex === 'ratingValue') {
+            handleEditRatingValue(record.key, inputValue);
+          }
         }
+      }
+    };
+
+    const onBlur = () => {
+      if (record) {
+        if (dataIndex === 'c_ratingCode') {
+          handleEditRatingCode(record.key, inputValue);
+        } else if (dataIndex === 'ratingValue') {
+          handleEditRatingValue(record.key, inputValue);
+        }
+        finishEditing();
       }
     };
 
@@ -296,16 +389,18 @@ const RatingConfiguration: React.FC = () => {
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onBlur={() => handleEditRatingCode(record.key, inputValue)}
+            onBlur={onBlur}
             onKeyPress={handleKeyPress}
             autoFocus
             size="small"
             bordered
           />
         ) : (
-          <div 
-            onDoubleClick={() => setEditingKey(record?.key)}
-            style={{ cursor: 'pointer', padding: '4px 0' }}
+          <div
+            onDoubleClick={() => {
+              setEditingCell({ key: record.key, dataIndex });
+            }}
+            style={{ cursor: "pointer", padding: "4px 0" }}
           >
             {children}
           </div>
@@ -321,19 +416,25 @@ const RatingConfiguration: React.FC = () => {
       key: "ratingCode",
     },
     {
-      title: <span>Rating Value</span>,
+      title: "Rating Value",
       dataIndex: "ratingValue",
       key: "ratingValue",
-    },
-    {
-      title: <span>Client Rating Code</span>,
-      dataIndex: "c_ratingCode",
-      key: "c_ratingCode",
-      onCell: (record: Rating) :EditableCellProps => ({
+      onCell: (record: Rating): EditableCellProps => ({
         record,
-        editable: editingKey === record.key,
+        editable: editingCell?.key === record.key && editingCell?.dataIndex === 'ratingValue',
+        dataIndex: 'ratingValue',
       }),
     },
+    {
+      title: "Client Rating Code",
+      dataIndex: "c_ratingCode",
+      key: "c_ratingCode",
+      onCell: (record: Rating): EditableCellProps => ({
+        record,
+        editable: editingCell?.key === record.key && editingCell?.dataIndex === 'c_ratingCode',
+        dataIndex: 'c_ratingCode',
+      }),
+},
   ];
 
   useEffect(() => {
@@ -341,7 +442,7 @@ const RatingConfiguration: React.FC = () => {
   }, [currentProjectId]);
 
   return (
-    <div style={{ padding: "0", maxWidth: "100%", maxHeight:"78vh", overflowY:"auto" }}>
+    <div style={{ padding: "0", maxWidth: "100%", maxHeight: "78vh", overflowY: "auto" }}>
       <div className="bg-white p-4">
         <h1 className="text-blue-500 text-xl mb-4">Rating Configuration</h1>
         

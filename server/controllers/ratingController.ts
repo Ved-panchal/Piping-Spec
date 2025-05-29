@@ -57,10 +57,11 @@ export const addOrUpdateRatings = async (req: Request, res: Response): Promise<v
       const { c_ratingCode, ratingCode ,ratingValue } = rating;
 
       const existingRating = await db.Rating.findOne({
-        where: { ratingValue, projectId }
+        where: { ratingCode, projectId }
       });
 
       if (existingRating) {
+        existingRating.ratingValue = ratingValue;
         existingRating.c_rating_code = c_ratingCode;
         await existingRating.save();
       } else {
