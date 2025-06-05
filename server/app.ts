@@ -22,6 +22,7 @@ import catrefRoutes from "./routes/catrefRoutes";
 import valvSubTypeRoutes from "./routes/valvSubTypeRoutes";
 import constructionDescRoutes from "./routes/constructionDescRoutes";
 import generateReviewOutputRoutes from "./routes/generateReviewOutputRoutes";
+import reviewOutputRoutes from "./routes/reviewOutputRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -64,5 +65,6 @@ app.use('/constructiondesc',constructionDescRoutes)
 // app.use('/dim-std',dimensionalStandardRoute)
 app.use('/pmsc',pmsCreationRoutes)
 app.use('/output',generateReviewOutputRoutes);
+app.use('/unit-weight',reviewOutputRoutes)
 
 export default app;

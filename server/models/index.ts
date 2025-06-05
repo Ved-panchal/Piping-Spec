@@ -34,6 +34,7 @@ import ValvSubTypeModel from "./valvsubtypemodel";
 import DefaultValvCatRefModel from "./Default/defaultvalvcatref";
 import ValvCatRefModel from "./valvcatrefmodel";
 import valvSubTypePMSCreationModel from "./valvitemoutputmodel";
+import reviewOutputModel from "./reviewoutputmodel";
 
 dotenv.config();
 
@@ -76,6 +77,7 @@ const Item = itemModel(sequelize);
 const PmsCreation = pmsCreationModel(sequelize);
 const ValvPmsCreation = valvSubTypePMSCreationModel(sequelize);
 const Reducer = reducer(sequelize);
+const ReviewOutput = reviewOutputModel(sequelize);
 
 D_Component.associate({Component});
 Project.associate({ User, Spec });
@@ -114,6 +116,7 @@ const db = {
     CDesc,
     D_VCatref,
     VCatref,
+    ReviewOutput,
     Item,
     PmsCreation,
     ValvPmsCreation,

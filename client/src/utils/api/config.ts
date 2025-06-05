@@ -91,6 +91,11 @@ export const api = {
       branch:{
         addOrUpdate:"branch_table/add-or-update",
         getall:"branch_table/getall",
+      },
+      unitWeight:{
+        load:"unit-weight/load",
+        update:"unit-weight/update-unit-weight",
+        get:"unit-weight/filter"
       }
     },
 };
