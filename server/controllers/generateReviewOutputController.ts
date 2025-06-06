@@ -17,6 +17,7 @@ interface ProcessedItem {
     Rating: string;
     GType: string;
     SType: string;
+    UnitWeight: string;
     SKey: string;
     Catref:string;
 }
@@ -40,6 +41,7 @@ interface ValvProcessedItem {
     Rating: string;
     GType: string;
     SType: string;
+    UnitWeight: string;
     SKey: string;
     Catref:string;
 }
@@ -144,7 +146,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             components, 
             componentDescs, 
             ratings, 
-            materials, 
+            materials,
+            reviewOutput, 
             // dimensionalStandards,
             // dDimStd,
             dimStd,
@@ -169,6 +172,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.ComponentDesc.findAll({where: {project_id:projectId}}),
             db.Rating.findAll({where: {project_id:projectId}}),
             db.Material.findAll({where: {project_id:projectId}}),
+            db.ReviewOutput.findAll({where: {project_id:projectId}}),
             // db.DimensionalStandard.findAll(),
             // db.D_DimStd.findAll({raw:true}),
             db.DimStd.findAll({where: {project_id:projectId},raw:true}),
@@ -276,6 +280,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 cat.item_short_desc === componentDesc.itemDescription && 
                                 cat.rating === (rating ? rating.ratingValue : null)
                             );
+                            const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
                             
 
                             processedItems.push({
@@ -295,6 +300,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,
                                 SType: componentDesc.s_type,
+                                UnitWeight: unitWeight,
                                 SKey: componentDesc.skey ? componentDesc.skey : "",
                                 Catref: catalogRef ?catalogRef.catalog+"-"+branchRunSize.size_mm+"x"+branchSize.size_mm : "",
                             });
@@ -344,6 +350,9 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         cat.item_short_desc === componentDesc.itemDescription && 
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
+
+                                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${bigSizeData.code}${smallSizeData.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+                            
                         
                                     processedItems.push({
                                         spec: spec.specName,
@@ -362,6 +371,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         Rating: rating ? rating.ratingValue : 'X',
                                         GType: componentDesc.g_type,
                                         SType: componentDesc.s_type,
+                                        UnitWeight: unitWeight,
                                         SKey: componentDesc.skey ? componentDesc.skey : "",
                                         Catref: catalogRef ? catalogRef.catalog+"-"+bigSizeData.size_mm+"x"+smallSizeData.size_mm : "",
                                     });
@@ -414,6 +424,9 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         cat.item_short_desc === componentDesc.itemDescription && 
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
+
+                                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${bigSizeData.code}${smallSizeData.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+                            
                         
                                     processedItems.push({
                                         spec: spec.specName,
@@ -432,6 +445,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         Rating: rating ? rating.ratingValue : 'X',
                                         GType: componentDesc.g_type,
                                         SType: componentDesc.s_type,
+                                        UnitWeight: unitWeight,
                                         SKey: componentDesc.skey ? componentDesc.skey : "",
                                         Catref: catalogRef ? catalogRef.catalog+"-"+bigSizeData.size_mm+"x"+smallSizeData.size_mm : "",
                                     });
@@ -480,6 +494,9 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         cat.item_short_desc === componentDesc.itemDescription && 
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
+
+                                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData.code}${size2Data.code}${schedule1 ? scheduleCode1.schedule_code : 'XX'}${schedule2 ? scheduleCode2.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+                            
                         
                                     processedItems.push({
                                         spec: spec.specName,
@@ -498,6 +515,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         Rating: rating ? rating.ratingValue : 'X',
                                         GType: componentDesc.g_type,
                                         SType: componentDesc.s_type,
+                                        UnitWeight: unitWeight,
                                         SKey: componentDesc.skey ? componentDesc.skey : "",
                                         Catref: catalogRef ? catalogRef.catalog+"-"+sizeData.size_mm+"x"+size2Data.size_mm : "",
                                     });
@@ -529,6 +547,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                     cat.rating === (rating ? rating.ratingValue : null)
                                 );
 
+                                const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+
                                 processedItems.push({
                                     spec: spec.specName,
                                     CompType: component.componentname,
@@ -546,6 +566,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                     Rating: rating ? rating.ratingValue : 'X',
                                     GType: componentDesc.g_type,
                                     SType: componentDesc.s_type,
+                                    UnitWeight: unitWeight,
                                     SKey: componentDesc.skey ? componentDesc.skey : "",
                                     Catref: catalogRef ?catalogRef.catalog+"-"+branchRunSize.size_mm+"x"+branchSize.size_mm : "",
                                 });
@@ -566,6 +587,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 cat.rating === (rating ? rating.ratingValue : null)
                             );
                             // console.log(catalogRef)
+                            const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData.code}${'X'}${schedule ? scheduleCode.schedule_code : 'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+                            
 
                             processedItems.push({
                                 spec: spec.specName,
@@ -584,6 +607,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,
                                 SType: componentDesc.s_type,
+                                UnitWeight: unitWeight,
                                 SKey: componentDesc.skey ? componentDesc.skey : "",
                                 Catref: catalogRef ?catalogRef.catalog+"-"+sizeData.size_mm : "",
                             });
@@ -681,29 +705,33 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                         continue;
                     }
 
-                valvProcessedItems.push({
-                    spec: spec.specName,
-                    CompType: component.componentname,
-                    ShortCode: componentDesc.short_code,
-                    ItemCode: `${componentDesc.code}${sizeData?.code}${'X'}${rating ? rating.ratingCode : 'X'}${material?.code}`,
-                    CItemCode: `${componentDesc.c_code}${sizeData?.c_code}${'X'}${rating ? rating.c_rating_code : 'X'}${material?.c_code}`,
-                    ItemLongDesc: `${componentDesc.itemDescription}${!rating ? ', ' :(rating ? rating.ratingValue + ', ' : '')}${material?.material_description}, ${dimensionalStandard?.dim_std}`,
-                    ItemShortDesc: componentDesc.itemDescription,
-                    ValvSubType: valvSubtype?.valv_sub_type ?? '',
-                    Size1Inch: sizeData.size1_size2 ?? '',
-                    Size2Inch:'X',
-                    Size1MM: size1?.size_mm ?? '',
-                    Size2MM: size2?.size_mm ?? '',
-                    Sch1:'XX',
-                    Sch2:'XX',
-                    ConstructionDesc: constructionDesc?.construction_desc ?? '',
-                    Rating: rating?.ratingValue ?? 'X',
-                    GType: componentDesc.g_type,
-                    SType: componentDesc.s_type,
-                    SKey: componentDesc.skey ? componentDesc.skey : "",
-                    Catref: catalogRef ? `${catalogRef.catalog}-${size1?.size_mm}x${size2?.size_mm}` : '',
-                });
-            }
+                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData?.code}${'X'}${rating ? rating.ratingCode : 'X'}${material?.code}`)?.unit_weight || '0.00';
+                            
+
+                    valvProcessedItems.push({
+                        spec: spec.specName,
+                        CompType: component.componentname,
+                        ShortCode: componentDesc.short_code,
+                        ItemCode: `${componentDesc.code}${sizeData?.code}${'X'}${rating ? rating.ratingCode : 'X'}${material?.code}`,
+                        CItemCode: `${componentDesc.c_code}${sizeData?.c_code}${'X'}${rating ? rating.c_rating_code : 'X'}${material?.c_code}`,
+                        ItemLongDesc: `${componentDesc.itemDescription}${!rating ? ', ' :(rating ? rating.ratingValue + ', ' : '')}${material?.material_description}, ${dimensionalStandard?.dim_std}`,
+                        ItemShortDesc: componentDesc.itemDescription,
+                        ValvSubType: valvSubtype?.valv_sub_type ?? '',
+                        Size1Inch: sizeData.size1_size2 ?? '',
+                        Size2Inch:'X',
+                        Size1MM: size1?.size_mm ?? '',
+                        Size2MM: size2?.size_mm ?? '',
+                        Sch1:'XX',
+                        Sch2:'XX',
+                        ConstructionDesc: constructionDesc?.construction_desc ?? '',
+                        Rating: rating?.ratingValue ?? 'X',
+                        GType: componentDesc.g_type,
+                        SType: componentDesc.s_type,
+                        UnitWeight: unitWeight,
+                        SKey: componentDesc.skey ? componentDesc.skey : "",
+                        Catref: catalogRef ? `${catalogRef.catalog}-${size1?.size_mm}x${size2?.size_mm}` : '',
+                    });
+                }
         }
             }
 

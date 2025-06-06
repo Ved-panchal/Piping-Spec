@@ -857,7 +857,7 @@ export const getFilteredData = async (req: Request, res: Response): Promise<void
     const data = await db.ReviewOutput.findAll({ where: filters });
 
     if (data.length === 0) {
-      res.status(404).json({ success: false, message: "No matching data found" });
+      res.status(404).json({ success: false, error: "No matching data found" });
       return;
     }
 

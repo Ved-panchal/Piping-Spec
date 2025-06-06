@@ -21,6 +21,7 @@ api.interceptors.request.use(
 // Response interceptor for handling errors
 api.interceptors.response.use(
     response => {
+        console.log("response", response);
         // Handle 200 OK responses
         if (response.data.status === "401" && response.data.error === 'Token expired') {
             localStorage.clear();
@@ -31,6 +32,7 @@ api.interceptors.response.use(
     error => {
         // Handle 401 Unauthorized errors
         // console.log(error);
+        console.log("error", error);
         if (error.response && error.response.status === '401') {
             // console.log(error.response)
             if (error.response.data['detail'] === "Invalid credentials") {

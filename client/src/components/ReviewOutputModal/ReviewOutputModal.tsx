@@ -187,7 +187,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       key: 'unitWt',
       width: 80,
       className: 'font-semibold text-xs',
-      render: (value) => value.toFixed(2)
+      // render: (value) => value ? value : 0,
     },
     {
       title: 'G Type',

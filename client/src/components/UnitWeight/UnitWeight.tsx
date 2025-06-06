@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button, Select, Input, Table, Row, Col } from "antd";
@@ -242,10 +244,11 @@ const UnitWeight: React.FC = () => {
         setData(mappedData);
         showToast({ message: response.data.message, type: "success" });
       } else {
-        showToast({ message: response.data.error, type: "error" });
+        showToast({ message: response.data.message, type: "error" });
       }
-    } catch (err) {
-      showToast({ message: "Error fetching filtered data", type: "error" });
+    } catch (err:any) {
+      console.log(err.response)
+      showToast({ message: err.response?.data?.error, type: "error" });
     } finally {
       setLoading(false);
     }

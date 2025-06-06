@@ -1113,7 +1113,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       sch1: item.Sch1,
       sch2: item.Sch2,
       rating: item.Rating,
-      unitWt: 0, // You'll need to add this if it's required
+      unitWt: item.UnitWeight,
       gType: item.GType,
       sType: item.SType,
       skey: item.SKey,
