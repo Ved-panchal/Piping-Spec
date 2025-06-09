@@ -842,12 +842,13 @@ export const updateUnitWeight = async (req: Request, res: Response): Promise<voi
 };
 
 export const getFilteredData = async (req: Request, res: Response): Promise<void> => {
-  const { compType, size1, size2, rating } = req.query;
+  const { compType, size1, size2, rating, projectId } = req.query;
 
   try {
-    const filters: any = {};
+    // Start with the projectId as part of the base filter
+    const filters: any = { project_id: projectId };
 
-    // Add filters dynamically based on provided query parameters
+    // Add additional filters dynamically based on provided query parameters
     if (compType) filters.comp_type = compType;
     if (size1) filters.size1_inch = size1; // assuming we're filtering by 'size1_inch'
     if (size2) filters.size2_inch = size2; // assuming we're filtering by 'size2_inch'
@@ -870,3 +871,4 @@ export const getFilteredData = async (req: Request, res: Response): Promise<void
     res.status(500).json({ success: false, message: "Error fetching data", error });
   }
 };
+
