@@ -596,7 +596,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 ShortCode: componentDesc.short_code,
                                 ItemCode: `${componentDesc.code}${sizeData.code}${'X'}${schedule ? scheduleCode.schedule_code : 'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
                                 CItemCode: `${componentDesc.c_code}${sizeData.c_code}${'X'}${schedule ? schedule.c_code : 'XX'}${'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
-                                ItemLongDesc: `${componentDesc.itemDescription}${!schedule && !rating ? ', ' : (schedule ? ', ' + schedule.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},    ${dimensionalStandard.dim_std}`,
+                                ItemLongDesc: `${componentDesc.itemDescription}${!schedule && !rating ? ', ' : (schedule ? ', ' + schedule.sch1_sch2 + ', ' : '') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dim_std}`,
                                 ItemShortDesc: componentDesc.itemDescription,
                                 Size1Inch: sizeData.size1_size2,
                                 Size2Inch: 'X',

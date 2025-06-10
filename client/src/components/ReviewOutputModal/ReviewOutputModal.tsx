@@ -41,6 +41,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
 }) => {
   // console.log(data)
   const [projectCode,setProjectCode] = useState<string | null>(null);
+  const [companyName,setCompanyName] = useState<string | null>(null);
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -48,6 +49,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       }
     };
     setProjectCode(localStorage.getItem('projectCode'))
+    setCompanyName(localStorage.getItem('companyName'));
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscapeKey);
@@ -267,15 +269,12 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
     
       let content = [
         `$* File: ${projectCode}_${spec}\`_0_${dateForFilename}.txt created at: ${formattedDate}`,
-        `$* Created by ERM with weights`,
+        `$* Created by Enginatrix Spec Creation tool`,
         `$* Project : ${projectCode}`,
-        `$* Client: Gujarat Fluorochemicals Limited`,
-        `$* PDMS Instance: PDMS_MASTER,  Bolting method: OLD,  Auto SPREF Rename: ON`,
+        `$* Bolting method: NEW`,
         `$* Spec: ${spec}\` Revision: 0 (first revision transferred)`,
-        `$* Discipline: PE`,
-        `$* Rating: `,
-        `$* Checked by: 40034298 on ${formattedDate.split(' ')[0]}`,
-        `$* Approved by: 40034298 on ${formattedDate.split(' ')[0]}`,
+        `$* Rating: `, 
+        ``,
         `var !module BANNER NAME`,
         `var !module (upcase('$!module'))`,
         `if (match(|$!MODULE|,|MONIT|) GT 0) then`,
@@ -293,10 +292,8 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         `endhandle`,
         ``,
         `/${spec}\``,
-        `:Input-by |ERM at ${formattedDate}|`,
-        `:Status |APPROVED|`,
         `:Curr-spc-iss |0|`,
-        `DESC |MONEL,300, ASME B16.5|`,
+        ``,
         `Var !spcoms coll all spcom with lock eq false for /${spec}\``,
         `Do !remove values !spcoms`,
         `    Remove $!remove`,
@@ -308,12 +305,12 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         `Enddo`,
         ``,
         `OLD SPEC /${spec}\``,
+		`BSPEC /${spec}\``,
         ``,
         `MM BORE`,
         ``,
-        `- - - = = `
       ].join('\n');
-    
+
       let lineCounter = content.split('\n').length;
       // Process each component
       // console.log('Components', components);
@@ -326,7 +323,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           `DEFAULTS`,
           `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
           `    handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
-          `        $p LINE ${lineCounter + 3}: Element(s) do not exist for spec component */${comp.itemCode} (${comp.gType})`,
+          `        $p LINE ${lineCounter + 3}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `        $p $!!ERROR.TEXT`,
           `    elsehandle (17,51)`,
           `        HEADING`,
@@ -335,25 +332,25 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           `        - - - = = `,
           `        */${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
           `            handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
-          `                $p LINE ${lineCounter + 12}: Element(s) do not exist for spec component */${comp.itemCode} (${comp.gType})`,
+          `                $p LINE ${lineCounter + 12}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `                $p $!!ERROR.TEXT`,
           `            elsehandle (41,52)`,
-          `                $p LINE ${lineCounter + 12}: The specified catalogue reference /${comp.gType} is not of the type SCOM`,
+          `                $p LINE ${lineCounter + 12}: The specified catalogue reference /${comp.catRef} is not of the type SCOM`,
           `                $p $!!ERROR.TEXT`,
           `            elsehandle none`,
-          `                :ERMTHK ||`,
+          `                :SCHTHK ||`,
           `                handle any`,
-          `                    $p LINE ${lineCounter + 20}: Could not set attribute :ERMTHK`,
+          `                    $p LINE ${lineCounter + 20}: Could not assign attribute :SCHTHK`,
           `                    $p $!!ERROR.TEXT`,
           `                endhandle`,
           `            endhandle`,
           `    elsehandle (41,52)`,
-          `        $p LINE ${lineCounter + 3}: The specified catalogue reference /${comp.gType} is not of the type SCOM`,
+          `        $p LINE ${lineCounter + 3}: The specified catalogue reference /${comp.catRef} is not of the type SCOM`,
           `        $p $!!ERROR.TEXT`,
           `    elsehandle none`,
-          `        :ERMTHK ||`,
+          `        :SCHTHK ||`,
           `        handle any`,
-          `            $p LINE ${lineCounter + 30}: Could not set attribute :ERMTHK`,
+          `            $p LINE ${lineCounter + 30}: Could not assign attribute :SCHTHK`,
           `            $p $!!ERROR.TEXT`,
           `        endhandle`,
           `    elsehandle any`,
@@ -403,10 +400,9 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
     const dateForFilename = currentDate.toISOString().slice(0,10).replace(/-/g,'');
     
     const header = `$* File: ${projectCode}_propcon_${dateForFilename}.txt created at: ${formattedDate}
-$* Created by ERM with weights
+$* Created by Enginatrix Spec Creation Tool
 $* Project : ${projectCode}
-$* Client: Gujarat Fluorochemicals Limited
-$* PDMS Instance: PDMS_MASTER,  Bolting method: OLD,  Auto SPREF Rename: ON
+$* Client: ${companyName}
 var !module BANNER NAME
 var !module (upcase('$!module'))
 if (match(|$!MODULE|,|MONIT|) GT 0) then
@@ -431,17 +427,23 @@ endhandle
 /${projectCode}_PROPCON_CMPW/CMPD
 handle (41,69)
   new CMPT /${projectCode}_PROPCON_CMPW/CMPD
-endhandle\n\n`;
+endhandle
+
+/${projectCode}_PROPCON_CMPW/TUBD
+handle (41,69)
+  new CMPT /${projectCode}_PROPCON_CMPW/TUBD
+endhandle\n\n
+`;
   
     const itemContent = data.map(item => {
       const isPipe = item.compType.toUpperCase() === 'PIPE';
-    const cmpType = isPipe ? 'CMPT' : 'CMPD';
+    const cmpType = isPipe ? 'TUBD' : 'CMPD';
       
     return `/${item.itemCode}-C
 handle (41,69)
-   /${projectCode}_PROPCON_CMPW/${isPipe ? 'CMPT' : 'CMPD'} new ${cmpType} /${item.itemCode}-C
+   /${projectCode}_PROPCON_CMPW/${isPipe ? 'TUBD' : 'CMPD'} new ${cmpType} /${item.itemCode}-C
 endhandle
-CWEI ${item.unitWt.toFixed(2)}`;
+${isPipe ? 'UWEI':'CWEI'} ${item.unitWt == 0.00 ? 0 : item.unitWt}`;
     }).join('\n\n');
   
     const footer = '\n\n$P Weights Imported\n$.';
@@ -469,6 +471,7 @@ endhandle
 RTEXT ('${item.itemLongDesc}')
 STEXT ('')
 TTEXT ('')
+SKEY  ${item.skey ? "'"+item.skey+"'":"''"}
 /${item.itemCode}-M
 handle (41,69)
   /${projectCode}_SPECGEN_DESCRIPTIONS/SMTE new SMTE /${item.itemCode}-M
@@ -480,10 +483,9 @@ ZTEXT ('')
         }).join('\n\n');
 
         const header = `$* File: ${projectCode}_paragon_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.txt
-$* Created by ERM with weights
+$* Created by Enginatrix Spec Creation Tool
 $* Project : ${projectCode}
-$* Client: Gujarat Fluorochemicals Limited
-$* PDMS Instance: PDMS_MASTER,  Bolting method: OLD,  Auto SPREF Rename: ON
+$* Client: ${companyName}
 $* Description Format: Standard Descriptions
 var !module BANNER NAME
 var !module (upcase('$!module'))
@@ -499,7 +501,23 @@ $W250
  
 MM BORE
  
-MM DIST\n\n`;
+MM DIST
+
+/${projectCode}_TEXT_CATA
+handle (41,69)
+  new CATA /${projectCode}_TEXT_CATA
+endhandle
+
+/${projectCode}_TEXT_CATA/SDTE
+handle (41,69)
+  new SECT /${projectCode}_TEXT_CATA/SDTE
+endhandle
+
+/${projectCode}_TEXT_CATA/SMTE
+handle (41,69)
+  new SECT /${projectCode}_TEXT_CATA/SMTE
+endhandle\n\n
+`;
 
         const footer = '\n\n$P Descriptions Imported\n$.';
 
@@ -507,73 +525,73 @@ MM DIST\n\n`;
       };
 
   if (!isOpen) return null;
-
-  return (
-    <div 
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-    onClick={onClose}
-  >
-    <div 
-      className="relative bg-white rounded-lg shadow-xl w-[98vw] max-w-[100vw] max-h-[90vh] overflow-auto p-6"
-      onClick={(e) => e.stopPropagation()}
+  
+    return (
+      <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Review Output</h2>
-        <div className="flex items-center space-x-4">
+      <div 
+        className="relative bg-white rounded-lg shadow-xl w-[98vw] max-w-[100vw] max-h-[90vh] overflow-auto p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Review Output</h2>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleExportToExcel}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              <Download className="mr-2" size={20} />
+              Export to Excel
+            </button>
+            <button
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+              onClick={onClose}
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+  
+        <Table
+          columns={columns}
+          dataSource={data}
+          scroll={{ x: 'max-content', y: 'calc(90vh - 250px)' }} // keep horizontal scroll
+          size="small"
+          bordered
+          tableLayout="auto"   // changed from 'fixed' to 'auto'
+          className="w-full"
+          rowKey={(record) => record.itemCode}
+          pagination={false}
+        />
+  
+        <div className="flex justify-center space-x-4 mt-6">
           <button
-            onClick={handleExportToExcel}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            onClick={handleDownloadSpecFile}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            <Download className="mr-2" size={20} />
-            Export to Excel
+            <Download className="mr-2" size={16} />
+            Download Spec File
           </button>
           <button
-            className="text-gray-600 hover:text-gray-900 transition-colors"
-            onClick={onClose}
+            onClick={handleDownloadWeightFile}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            <X size={24} />
+            <Download className="mr-2" size={16} />
+            Download Weight File
+          </button>
+          <button
+            onClick={handleDownloadDetailFile}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <Download className="mr-2" size={16} />
+            Download Detail File
           </button>
         </div>
       </div>
-
-      <Table
-        columns={columns}
-        dataSource={data}
-        scroll={{ x: 'max-content', y: 'calc(90vh - 250px)' }} // keep horizontal scroll
-        size="small"
-        bordered
-        tableLayout="auto"   // changed from 'fixed' to 'auto'
-        className="w-full"
-        rowKey={(record) => record.itemCode}
-        pagination={false}
-      />
-
-      <div className="flex justify-center space-x-4 mt-6">
-        <button
-          onClick={handleDownloadSpecFile}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <Download className="mr-2" size={16} />
-          Download Spec File
-        </button>
-        <button
-          onClick={handleDownloadWeightFile}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <Download className="mr-2" size={16} />
-          Download Weight File
-        </button>
-        <button
-          onClick={handleDownloadDetailFile}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <Download className="mr-2" size={16} />
-          Download Detail File
-        </button>
-      </div>
     </div>
-  </div>
-  );
+    );
 };
 
 export default ReviewOutputModal;

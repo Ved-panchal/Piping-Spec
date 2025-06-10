@@ -60,10 +60,11 @@ const PipingSpecCreation = () => {
     setIsModalOpen(false);
   };
 
-  const handleProjectClick = (projectId: string, projectCode: string) => {
+  const handleProjectClick = (projectId: string, projectCode: string, companyName: string) => {
     localStorage.setItem('projectCode', projectCode);
     setSelectedProjectId(projectId);
     localStorage.setItem('currentProjectId', projectId);
+    localStorage.setItem('companyName',companyName);
   };
 
   useEffect(() => {
