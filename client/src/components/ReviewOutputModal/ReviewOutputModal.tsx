@@ -316,12 +316,26 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       // console.log('Components', components);
       components.forEach((comp: TableDataType) => {
         const sTypeFormatted = comp.sType.length > 4 ? `TEXT '${comp.sType}'` : comp.sType;
-        
+        let heading = "";
+        let values = "";
+        if(comp.gType == 'TUBE' || comp.gType == 'FTUB' || comp.gType == 'GASK' || comp.gType == 'FBLI' || comp.gType == 'UNIO') {
+          heading = `TYPE NAME PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`;
+        } else if (comp.gType == 'ELBO'){
+          heading = `TYPE NAME PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
+        } else if (comp.gType == 'FLAN' || comp.gType == 'REDU' || comp.gType == 'COUP') {
+          heading = `TYPE NAME PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+        } else if (comp.gType == 'PCOM' || comp.gType == 'CAP' || comp.gType == 'VALV') {
+          heading = `TYPE NAME PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+        } else if(comp.gType == 'OLET' || comp.gType == 'TEE') {
+          heading = `TYPE NAME PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+        }
+
         const componentBlock = [
           `HEADING`,
-          `TYPE NAME PBOR0 ${comp.size2MM !== 0 ? 'PBOR3' : ''} STYP SHOP CATREF DETAIL MATXT CMPREF BLTREF`,
+          heading,
           `DEFAULTS`,
-          `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
+          values,
           `    handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
           `        $p LINE ${lineCounter + 3}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `        $p $!!ERROR.TEXT`,
