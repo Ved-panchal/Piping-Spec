@@ -15,7 +15,7 @@ interface DropdownOption {
 }
 
 interface ReviewOutputData {
-  spec: string;
+  // spec: string;
   compType: string;
   shortCode: string;
   itemCode: string;
@@ -30,10 +30,10 @@ interface ReviewOutputData {
   sch2: string;
   rating: string;
   unitWt: string;
-  gType: string;
-  sType: string;
-  skey: string;
-  catref: string;
+  // gType: string;
+  // sType: string;
+  // skey: string;
+  // catref: string;
 }
 
 interface Filters {
@@ -201,7 +201,7 @@ const UnitWeight: React.FC = () => {
   // Fetch filtered data based on dropdown selections
   const mapData = (rawData: any[]) => {
     return rawData.map((item) => ({
-      spec: item.spec || "", // Mapping to 'Spec' column
+      // spec: item.spec || "", // Mapping to 'Spec' column
       compType: item.comp_type || "", // Mapping to 'Component' column
       shortCode: item.short_code || "", // Mapping to 'Short Code' column
       itemCode: item.item_code || "", // Mapping to 'Item Code' column
@@ -216,10 +216,10 @@ const UnitWeight: React.FC = () => {
       sch2: item.sch_2 || "", // Mapping to 'Sch 2' column
       rating: item.rating || "", // Mapping to 'Rating' column
       unitWt: item.unit_weight || "", // Mapping to 'Unit Weight' column
-      gType: item.g_type || "", // Mapping to 'G Type' column
-      sType: item.s_type || "", // Mapping to 'S Type' column
-      skey: item.skey || "", // Mapping to 'SKey' column
-      catref: item.catref || "", // Mapping to 'Cat Ref' column
+      // gType: item.g_type || "", // Mapping to 'G Type' column
+      // sType: item.s_type || "", // Mapping to 'S Type' column
+      // skey: item.skey || "", // Mapping to 'SKey' column
+      // catref: item.catref || "", // Mapping to 'Cat Ref' column
     }));
   };
 
