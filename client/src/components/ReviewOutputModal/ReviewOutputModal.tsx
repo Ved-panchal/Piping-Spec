@@ -268,11 +268,11 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       }).replace(/,/g, '');
     
       let content = [
-        `$* File: ${projectCode}_${spec}\`_0_${dateForFilename}.txt created at: ${formattedDate}`,
+        `$* File: ${projectCode}_${spec}_0_${dateForFilename}.txt created at: ${formattedDate}`,
         `$* Created by Enginatrix Spec Creation tool`,
         `$* Project : ${projectCode}`,
         `$* Bolting method: NEW`,
-        `$* Spec: ${spec}\` Revision: 0 (first revision transferred)`,
+        `$* Spec: ${spec} Revision: 0 (first revision transferred)`,
         `$* Rating: `, 
         ``,
         `var !module BANNER NAME`,
@@ -286,26 +286,26 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         `endif`,
         ``,
         `$W250`,
-        `/${spec}\``,
+        `/${spec}`,
         `handle (41,69)(17,3)(17,13)`,
-        `    new SPEC /${spec}\``,
+        `    new SPEC /${spec}`,
         `endhandle`,
         ``,
-        `/${spec}\``,
+        `/${spec}`,
         `:Curr-spc-iss |0|`,
         ``,
-        `Var !spcoms coll all spcom with lock eq false for /${spec}\``,
+        `Var !spcoms coll all spcom with lock eq false for /${spec}`,
         `Do !remove values !spcoms`,
         `    Remove $!remove`,
         `Enddo`,
-        `Var !save coll all spcom for /${spec}\``,
+        `Var !save coll all spcom for /${spec}`,
         `Do !unlock values !save`,
         `    $!unlock`,
         `    unlock`,
         `Enddo`,
         ``,
-        `OLD SPEC /${spec}\``,
-		`BSPEC /${spec}\``,
+        `OLD SPEC /${spec}`,
+		`BSPEC /${spec}`,
         ``,
         `MM BORE`,
         ``,
@@ -315,12 +315,12 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       // Process each component
       // console.log('Components', components);
       components.forEach((comp: TableDataType) => {
-        const sTypeFormatted = comp.sType.length > 4 ? `TEXT '${comp.sType}'` : comp.sType;
+        const sTypeFormatted = comp.sType.length > 4 ? `TEXT'${comp.sType}'` : comp.sType;
         let heading = "";
         let values = "";
         if(comp.gType == 'TUBE' || comp.gType == 'FTUB' || comp.gType == 'GASK' || comp.gType == 'FBLI' || comp.gType == 'UNIO') {
           heading = `TYPE NAME PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'ELBO'){
           heading = `TYPE NAME PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
         } else if (comp.gType == 'FLAN' || comp.gType == 'REDU' || comp.gType == 'COUP') {
@@ -344,7 +344,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           `        NAME TYPE PBOR0 ${comp.size2MM !== 0 ? 'PBOR3' : ''} STYP SHOP CATREF DETAIL MATXT CMPREF BLTREF`,
           `        DEFAULTS`,
           `        - - - = = `,
-          `        */${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
+          `        */${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} FALSE ${sTypeFormatted} /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
           `            handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
           `                $p LINE ${lineCounter + 12}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `                $p $!!ERROR.TEXT`,
@@ -480,15 +480,15 @@ ${isPipe ? 'UWEI':'CWEI'} ${item.unitWt == 0.00 ? 0 : item.unitWt}`;
     const detailContent = data.map(item => {
       return `/${item.itemCode}-D
 handle (41,69)
-  /${projectCode}_SPECGEN_DESCRIPTIONS/SDTE new SDTE /${item.itemCode}-D
+  /${projectCode}_TEXT_CATA/SDTE new SDTE /${item.itemCode}-D
 endhandle
 RTEXT ('${item.itemLongDesc}')
 STEXT ('')
 TTEXT ('')
-SKEY  ${item.skey ? "'"+item.skey+"'":"''"}
+SKEY  ${item.skey ? "'"+item.skey+"'":"''"}\n
 /${item.itemCode}-M
 handle (41,69)
-  /${projectCode}_SPECGEN_DESCRIPTIONS/SMTE new SMTE /${item.itemCode}-M
+  /${projectCode}_TEXT_CATA/SMTE new SMTE /${item.itemCode}-M
 endhandle
 XTEXT ('')
 YTEXT ('')
