@@ -318,17 +318,27 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         const sTypeFormatted = comp.sType.length > 4 ? `TEXT'${comp.sType}'` : comp.sType;
         let heading = "";
         let values = "";
+        let withoutGTypevalues = "";
         if(comp.gType == 'TUBE' || comp.gType == 'FTUB' || comp.gType == 'GASK' || comp.gType == 'FBLI' || comp.gType == 'UNIO') {
           heading = `TYPE NAME PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} ${sTypeFormatted} FALSE /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'ELBO'){
           heading = `TYPE NAME PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'FLAN' || comp.gType == 'REDU' || comp.gType == 'COUP') {
           heading = `TYPE NAME PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'PCOM' || comp.gType == 'CAP' || comp.gType == 'VALV') {
           heading = `TYPE NAME PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if(comp.gType == 'OLET' || comp.gType == 'TEE') {
           heading = `TYPE NAME PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         }
 
         const componentBlock = [
@@ -341,15 +351,15 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           `        $p $!!ERROR.TEXT`,
           `    elsehandle (17,51)`,
           `        HEADING`,
-          `        NAME TYPE PBOR0 ${comp.size2MM !== 0 ? 'PBOR3' : ''} STYP SHOP CATREF DETAIL MATXT CMPREF BLTREF`,
+          `        ${heading}`,
           `        DEFAULTS`,
           `        - - - = = `,
-          `        */${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : ''} FALSE ${sTypeFormatted} /${comp.catRef} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C`,
+          `        ${withoutGTypevalues}`,
           `            handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
           `                $p LINE ${lineCounter + 12}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `                $p $!!ERROR.TEXT`,
           `            elsehandle (41,52)`,
-          `                $p LINE ${lineCounter + 12}: The specified catalogue reference /${comp.catRef} is not of the type SCOM`,
+          `                $p LINE ${lineCounter + 12}: The specified catalogue reference /${comp.catRef ? comp.catRef : 'No-catRef'} is not of the type SCOM`,
           `                $p $!!ERROR.TEXT`,
           `            elsehandle none`,
           `                :SCHTHK ||`,
@@ -359,7 +369,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           `                endhandle`,
           `            endhandle`,
           `    elsehandle (41,52)`,
-          `        $p LINE ${lineCounter + 3}: The specified catalogue reference /${comp.catRef} is not of the type SCOM`,
+          `        $p LINE ${lineCounter + 3}: The specified catalogue reference /${comp.catRef ? comp.catRef : 'No-catRef'} is not of the type SCOM`,
           `        $p $!!ERROR.TEXT`,
           `    elsehandle none`,
           `        :SCHTHK ||`,
@@ -535,7 +545,7 @@ endhandle\n\n
 
         const footer = '\n\n$P Descriptions Imported\n$.';
 
-        downloadTextFile(header + detailContent + footer, 'detail_data.txt');
+        downloadTextFile(header + detailContent + footer, `${projectCode}_Detail_Text.txt`);
       };
 
   if (!isOpen) return null;
