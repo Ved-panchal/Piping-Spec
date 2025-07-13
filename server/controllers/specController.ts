@@ -237,12 +237,10 @@ export const deleteSpec = async (req: Request, res: Response): Promise<void> => 
 
     const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
 
-    // Increase NoofSpecs if it's not null
     if (subscription && subscription.NoofSpecs !== null) {
       await subscription.update({ NoofSpecs: subscription.NoofSpecs + 1 });
     }
 
-    // Soft delete the spec
     await spec.destroy();
 
     res.json({ success: true, message: "Spec deleted successfully.", status: 200 });

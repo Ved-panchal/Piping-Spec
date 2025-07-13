@@ -122,7 +122,6 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
 
       const subscription = await db.Subscription.findOne({ where: { userId, status: 'active' } });
 
-      // Increase NoofProjects if it is not null
       if (subscription && subscription.NoofProjects !== null) {
           await subscription.update({ NoofProjects: subscription.NoofProjects + 1 });
       }
