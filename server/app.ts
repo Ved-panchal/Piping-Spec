@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import authRoute from "./routes/authRoutes"
-import userRoute from "./routes/userRoutes"
+import userRoute from "./routes/userRoutes";
+import otpRoutes from "./routes/otpRoutes";
 import projectRoute from "./routes/projectRoutes";
 import planRoute from "./routes/planRoutes";
 import specRoute from "./routes/specRoutes";
@@ -46,6 +47,7 @@ app.use(cookieParser());
 
 app.use('/auth', authRoute);
 app.use('/users', userRoute);
+app.use('/otp',otpRoutes);
 app.use('/projects',projectRoute);
 app.use('/plans',planRoute);
 app.use('/specs',specRoute);

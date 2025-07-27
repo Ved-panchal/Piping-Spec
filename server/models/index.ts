@@ -2,6 +2,7 @@
 import { Model, Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import userModel from './usermodel';
+import otpModel from "./otpmodel";
 import projectModel from "./projectmodel";
 import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
@@ -45,6 +46,7 @@ const sequelize = new Sequelize(process.env.DB_URL!, {
 
 // Define models
 const User = userModel(sequelize);
+const OTP = otpModel(sequelize);
 const Project = projectModel(sequelize);
 const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
@@ -88,6 +90,7 @@ DimensionalStandard.associate({Component});
 const db = {
     sequelize,
     User,
+    OTP,
     Project,
     Plan,
     Subscription,

@@ -12,6 +12,11 @@ export const api = {
         update: "users/updateUser",
         delete: "users/deleteUser",
       },
+      otp:{
+        sendOtp: "otp/send-otp",
+        verifyOtp: "otp/verify-otp",
+        resetPassword: "otp/reset-password",
+      },
       project:{
         create:"projects/create",
         getProject:"projects/{projectCode}",
