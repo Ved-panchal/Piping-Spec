@@ -8,7 +8,7 @@ import PmsInputSelector from '../PMSInputSelector/PmsInputSelector';
 import ComponentConfiguration from '../ComponentConfiguration/Component';
 import MaterialConfiguration from '../MaterialConfiguration/MaterialConfiguration';
 import CatRefConfiguration from '../CatrefConfiguration/Catref';
-import ConfigurationIcon from "/assets/Configuration.png";
+import ConfigurationIcon from "../../assets/Configuration.png";
 import DimSTD from '../DimensionalSTDConfiguration/DimSTD';
 import ValvSubType from '../ValvSubType/ValvSubType';
 import ConstructionDesc from '../ConstructionDesc/ConstructionDesc';
