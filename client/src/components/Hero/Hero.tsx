@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroImg from '../../assets/hero-image.jpg';
+import heroImg from '/assets/hero-image.jpg';
 
 const HeroSection = () => {
   const navigate = useNavigate();
