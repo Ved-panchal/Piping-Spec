@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Clock, Award, UserCheck } from "lucide-react";
 import Aboutsctimg from "../../assets/Aboutsctimg.jpg";

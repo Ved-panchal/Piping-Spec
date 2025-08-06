@@ -178,7 +178,7 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
                 showToast({ message: response.data.error, type: 'error' });
             }
         } catch (error) {
-            showToast({ message: 'Failed to send OTP', type: 'error' });
+            showToast({ message: 'Failed to send OTP' + error, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -206,8 +206,8 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
             } else {
                 showToast({ message: response.data.error, type: 'error' });
             }
-        } catch (error) {
-            showToast({ message: 'Invalid OTP', type: 'error' });
+        } catch (e) {
+            showToast({ message: `Invalid OTP ${e}`, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -229,7 +229,7 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
                 showToast({ message: response.data.error, type: 'error' });
             }
         } catch (error) {
-            showToast({ message: 'Failed to update password', type: 'error' });
+            showToast({ message: 'Failed to update password' + error, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -323,16 +323,12 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
                                         // Custom submit handler to check for autofilled values
                                         const handleFormSubmit = async (e: React.FormEvent) => {
                                             e.preventDefault();
-                                            
-                                            // Check if there's an autofilled value
-                                            const emailInput = e.currentTarget.querySelector('input[name="email"]') as HTMLInputElement;
+                                            e.stopPropagation()
+                                            const emailInput = e.currentTarget.querySelector('input[name="forgotEmail"]') as HTMLInputElement;
                                             if (emailInput?.value && !values.email) {
-                                                // Update Formik with the autofilled value
                                                 await setFieldValue('email', emailInput.value);
-                                                // Submit with the updated value
                                                 handleEmailSubmit({ email: emailInput.value });
                                             } else {
-                                                // Normal submission
                                                 handleSubmit();
                                             }
                                         };
@@ -342,7 +338,7 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
                                                 <div className="mb-4">
                                                     <label className="text-sm font-bold text-gray-700">Your Email</label>
                                                     <FormikInput 
-                                                        name="email" 
+                                                        name="forgotEmail" 
                                                         type="email" 
                                                         placeholder="Enter your email" 
                                                         innerRef={forgotPasswordEmailInputRef}
@@ -351,7 +347,7 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
                                                     <FormikErrorMessage name="email" component="div" />
                                                 </div>
                                                 <div className="flex justify-between mt-6">
-                                                    <button type="button" onClick={handleBackToLogin} className="w-[48%] p-2 bg-gray-300 text-black font-bold rounded hover:bg-gray-400 transition-transform hover:scale-105">Back</button>
+                                                    <button type="button" onClick={(e) => {e.preventDefault();handleBackToLogin()}} className="w-[48%] p-2 bg-gray-300 text-black font-bold rounded hover:bg-gray-400 transition-transform hover:scale-105">Back</button>
                                                     <button type="submit" disabled={loading} className="w-[48%] p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-transform hover:scale-105">
                                                         {loading ? <l-bouncy size="25" speed="1.75" color="white" /> : "Submit"}
                                                     </button>
