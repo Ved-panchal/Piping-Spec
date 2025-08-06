@@ -163,7 +163,6 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
 
     const handleEmailSubmit = async (values: { email: string }) => {
         setLoading(true);
-        console.log(values.email)
         try {
             const response = await api.post(configApi.API_URL.otp.sendOtp, {
                 email: values.email
