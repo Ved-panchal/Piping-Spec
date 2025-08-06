@@ -27,11 +27,11 @@ export const sendPasswordResetOTP = async (req: Request, res: Response): Promise
         }
 
         const { email } = req.body;
-
+        console.log(email)
         // Check if user exists
-        const user = await db.User.findOne({ 
-            where: { email, isDeleted: false } 
-        });
+        const user = await db.User.findOne({ where: { email, isDeleted: false } });
+        
+        console.log(user)
         
         if (!user) {
             res.json({

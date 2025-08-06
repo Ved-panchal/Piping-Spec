@@ -10,7 +10,6 @@ export const validateSendOTP = [
     body('email')
         .isEmail()
         .withMessage('Please provide a valid email address')
-        .normalizeEmail()
         .trim()
 ];
 
@@ -19,7 +18,6 @@ export const validateVerifyOTP = [
     body('email')
         .isEmail()
         .withMessage('Please provide a valid email address')
-        .normalizeEmail()
         .trim(),
     body('otp')
         .isLength({ min: 6, max: 6 })
@@ -33,7 +31,6 @@ export const validateResetPassword = [
     body('email')
         .isEmail()
         .withMessage('Please provide a valid email address')
-        .normalizeEmail()
         .trim(),
     body('newPassword')
         .isLength({ min: 6, max: 12 })
