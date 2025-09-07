@@ -71,6 +71,7 @@ const RegisterModal = ({ isOpen, closeModal, selectedPlanIndex }: { isOpen: bool
         const payload = {
             ...values,
             plan: selectedPlanIndex !== null ? selectedPlanIndex + 1 : null,
+            phoneNumber: values.phoneNumber || null,  // ✅ converts '' or undefined → null
         };
 
         const response = await api.post(configApi.API_URL.user.create, payload, {

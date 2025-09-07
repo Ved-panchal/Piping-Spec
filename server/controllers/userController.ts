@@ -7,7 +7,7 @@ import { generateJWT } from "../utils/jwt";
 export const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { name, companyName, email, industry, country, phoneNumber, password, plan } = req.body;
-
+        // console.log("Hererer",req.body)
         const hashedPassword = await hashPassword(password);
         const user = await db.User.findOne({ where: { email } }) || null;
 
@@ -68,7 +68,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             phoneNumber,
             password: hashedPassword
         });
-
+        // console.log('selectedPlan',selectedPlan)
         // Create a subscription for the user
         await db.Subscription.create({
             userId: newUser.id,

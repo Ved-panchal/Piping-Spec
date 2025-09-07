@@ -101,6 +101,27 @@ export const api = {
         load:"unit-weight/load",
         update:"unit-weight/update-unit-weight",
         get:"unit-weight/filter"
+      },
+      admin: {
+        auth: {
+          login: "admin/auth/login"
+        },
+        users: {
+          getAll: "admin/users",
+          getById: "admin/users", // append /{userId}
+          create: "admin/users",
+          update: "admin/users", // append /{userId}
+          delete: "admin/users", // append /{userId}
+          analytics: "admin/users/analytics"
+        },
+        subscriptions: {
+          getAll: "admin/subscriptions",
+          getById: "admin/subscriptions", // append /{subscriptionId}
+          create: "admin/subscriptions",
+          update: "admin/subscriptions", // append /{subscriptionId}
+          delete: "admin/subscriptions", // append /{subscriptionId}
+          plans: "admin/subscriptions/plans"
+        }
       }
     },
 };

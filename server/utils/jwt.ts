@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-export const generateJWT = (payload: { id: number; email: string }): string => {
+export const generateJWT = (payload: { id: number; email: string; role?: string }): string => {
     return jwt.sign(payload, process.env.JWT_SECRET as string, {
         expiresIn: '1h',
     });

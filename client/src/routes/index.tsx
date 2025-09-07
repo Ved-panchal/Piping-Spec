@@ -3,6 +3,8 @@ import { ToastContainer } from "react-toastify";
 import HomePage from "../pages/Home"
 import HeaderLayout from "../Layouts/HeaderLayout";
 import PipingSpecCreation from "../pages/PipingSpecCreation";
+import AdminLogin from "../pages/AdminLogin";
+import EnhancedAdminDashboard from "../pages/EnhancedAdminDashboard";
 
 const Router = () => {
     return useRoutes([
@@ -20,6 +22,14 @@ const Router = () => {
                 path:"pipingspec-creation",
                 element:<PipingSpecCreation/>,
             }]
+        },
+        {
+            path: "/login/admin-panel",
+            element: <AdminLogin />
+        },
+        {
+            path: "/admin/dashboard",
+            element: <EnhancedAdminDashboard />
         },
         {
             path: "*",

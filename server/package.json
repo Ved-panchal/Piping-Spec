@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/server.js\""
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/server.js\"",
+    "create-admin": "node scripts/createAdmin.js",
+    "create-sample-data": "node scripts/createSampleData.js"
   },
   "author": "",
   "license": "ISC",

@@ -81,11 +81,34 @@ const ValvPmsCreation = valvSubTypePMSCreationModel(sequelize);
 const Reducer = reducer(sequelize);
 const ReviewOutput = reviewOutputModel(sequelize);
 
+// Set up model associations
 D_Component.associate({Component});
 Project.associate({ User, Spec });
 Spec.associate({ Project });
 SizeRange.associate({ Size, Schedule, Spec });
 DimensionalStandard.associate({Component});
+
+// User and Subscription associations
+User.hasMany(Subscription, {
+    foreignKey: 'userId',
+    as: 'subscriptions'
+});
+
+Subscription.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+});
+
+// Plan and Subscription associations
+Plan.hasMany(Subscription, {
+    foreignKey: 'planId',
+    as: 'subscriptions'
+});
+
+Subscription.belongsTo(Plan, {
+    foreignKey: 'planId',
+    as: 'plan'
+});
 
 const db = {
     sequelize,

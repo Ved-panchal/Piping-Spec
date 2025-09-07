@@ -1,10 +1,10 @@
-import { Sequelize } from "sequelize";
+import { Sequelize, QueryTypes } from "sequelize";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const sequelize = new Sequelize(process.env.DB_URL!, {
-    logging: true,
+    logging: false,
     dialect: 'postgres', 
   });
 

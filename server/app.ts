@@ -24,6 +24,9 @@ import valvSubTypeRoutes from "./routes/valvSubTypeRoutes";
 import constructionDescRoutes from "./routes/constructionDescRoutes";
 import generateReviewOutputRoutes from "./routes/generateReviewOutputRoutes";
 import reviewOutputRoutes from "./routes/reviewOutputRoutes";
+import adminAuthRoutes from "./routes/adminAuthRoutes";
+import adminUserRoutes from "./routes/adminUserRoutes";
+import adminSubscriptionRoutes from "./routes/adminSubscriptionRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -68,5 +71,8 @@ app.use('/constructiondesc',constructionDescRoutes)
 app.use('/pmsc',pmsCreationRoutes)
 app.use('/output',generateReviewOutputRoutes);
 app.use('/unit-weight',reviewOutputRoutes)
+app.use('/admin/auth', adminAuthRoutes);
+app.use('/admin/users', adminUserRoutes);
+app.use('/admin/subscriptions', adminSubscriptionRoutes);
 
 export default app;

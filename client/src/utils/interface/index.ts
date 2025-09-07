@@ -214,3 +214,80 @@ export interface DeleteResponse {
       error?: string;
     }
 }
+
+// Admin-related interfaces
+export interface AdminLoginFormValues {
+    email: string;
+    password: string;
+}
+
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    companyName: string;
+    industry: string;
+    country: string;
+    phoneNumber?: string;
+    role: 'user' | 'admin';
+    createdAt: string;
+    updatedAt: string;
+    subscriptions?: Subscription[];
+}
+
+export interface Subscription {
+    id: string;
+    userId: string;
+    planId: string;
+    startDate: string;
+    endDate: string;
+    NoofProjects?: number;
+    NoofSpecs?: number;
+    status: 'active' | 'inactive' | 'cancelled';
+    plan?: SubscriptionPlan;
+}
+
+export interface SubscriptionPlan {
+    planId: string;
+    planName: string;
+    noOfProjects?: number;
+    noOfSpecs?: number;
+    allowedDays: number;
+}
+
+export interface UserAnalytics {
+    overview: {
+        totalUsers: number;
+        activeSubscriptions: number;
+        inactiveSubscriptions: number;
+        cancelledSubscriptions: number;
+        recentUsers: number;
+    };
+    usersByIndustry: Array<{ industry: string; count: number }>;
+    usersByPlan: Array<{ planName: string; count: number }>;
+    registrationTrends: Array<{ date: string; count: number }>;
+    subscriptionTrends: Array<{ date: string; count: number }>;
+    subscriptionStatus: {
+        active: number;
+        inactive: number;
+        cancelled: number;
+    };
+}
+
+export interface UserFormValues {
+    name: string;
+    email: string;
+    password?: string;
+    companyName: string;
+    industry: string;
+    country: string;
+    phoneNumber?: string;
+}
+
+export interface PaginationData {
+    currentPage: number;
+    totalPages: number;
+    totalUsers: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+}

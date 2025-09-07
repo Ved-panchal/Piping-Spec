@@ -26,10 +26,16 @@ const usermodel = (sequelize: any) => {
         },
         phoneNumber: {
             type: DataTypes.STRING(15),
-            allowNull: true
+            allowNull: true,
+            defaultValue: null
         },
         password: {
             type: DataTypes.STRING(255),
+            allowNull: false
+        },
+        role: {
+            type: DataTypes.ENUM('user', 'admin'),
+            defaultValue: 'user',
             allowNull: false
         },
         isDeleted: {
