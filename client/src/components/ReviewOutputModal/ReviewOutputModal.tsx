@@ -281,8 +281,10 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         ` dev tty`,
         `endif`,
         ``,
+        `ALPHA LOG /C:\\TEMP\\${spec}.LOG OVER`,
+        ``,
         `if (match(|$!MODULE|,|SPECON|) LT 1) then`,
-        ` SPECON`,
+        ` SPECONMODE`,
         `endif`,
         ``,
         `$W250`,
@@ -292,7 +294,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         `endhandle`,
         ``,
         `/${spec}`,
-        `:Curr-spc-iss |0|`,
+        //`:Curr-spc-iss |0|`,
         ``,
         `Var !spcoms coll all spcom with lock eq false for /${spec}`,
         `Do !remove values !spcoms`,
@@ -317,44 +319,58 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       components.forEach((comp: TableDataType) => {
         const sTypeFormatted = comp.sType.length > 4 ? `TEXT'${comp.sType}'` : comp.sType;
         let heading = "";
+        let exheading = "";
         let values = "";
-        let withoutGTypevalues = "";
+        let defaultsigns = "";
+        let exvalues = "";
         if(comp.gType == 'TUBE' || comp.gType == 'FTUB' || comp.gType == 'GASK' || comp.gType == 'FBLI' || comp.gType == 'UNIO') {
           heading = `TYPE NAME PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          exheading = `NAME TYPE PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          defaultsigns = `- - - = =`;
           values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'ELBO'){
           heading = `TYPE NAME PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exheading = `NAME TYPE PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
+          defaultsigns = `- - - = = =`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${sTypeFormatted} 46,90 FALSE /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${sTypeFormatted} 46,90 FALSE /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'FLAN' || comp.gType == 'REDU' || comp.gType == 'COUP') {
           heading = `TYPE NAME PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          exheading = `NAME TYPE PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          defaultsigns = `- - - - = =`;
           values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'PCOM' || comp.gType == 'CAP' || comp.gType == 'VALV') {
           heading = `TYPE NAME PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          exheading = `NAME TYPE PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          defaultsigns = `- - - - = =`;
           values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if(comp.gType == 'OLET' || comp.gType == 'TEE') {
           heading = `TYPE NAME PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          exheading = `NAME TYPE PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
+          defaultsigns = `- - - - = =`;
           values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          withoutGTypevalues = `*/${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         }
 
         const componentBlock = [
           `HEADING`,
           heading,
           `DEFAULTS`,
+          defaultsigns,
           values,
           `    handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
           `        $p LINE ${lineCounter + 3}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `        $p $!!ERROR.TEXT`,
           `    elsehandle (17,51)`,
           `        HEADING`,
-          `        ${heading}`,
+          `        ${exheading}`,
           `        DEFAULTS`,
-          `        - - - = = `,
-          `        ${withoutGTypevalues}`,
+          //`        - - - = = `,
+          `        ${defaultsigns}`,
+          `        ${exvalues}`,
           `            handle (17,30)(17,42)(17,44)(17,41)(17,43)(41,69)(2,109)`,
           `                $p LINE ${lineCounter + 12}: Element(s) not available for spec component */${comp.itemCode} (${comp.gType})`,
           `                $p $!!ERROR.TEXT`,
@@ -390,11 +406,12 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       // Add footer
       const footer = [
         '',
+        'ALP LOG END',
         '$P Spec Updated',
         '$P Please check the limbo spec for any deleted components',
         '$.'
       ].join('\n');
-    
+    ``
       content += '\n' + footer;
       
       // Download the file
@@ -422,7 +439,7 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
     }).replace(/,/g, '');
     
     const dateForFilename = currentDate.toISOString().slice(0,10).replace(/-/g,'');
-    
+
     const header = `$* File: ${projectCode}_propcon_${dateForFilename}.txt created at: ${formattedDate}
 $* Created by Enginatrix Spec Creation Tool
 $* Project : ${projectCode}
@@ -434,7 +451,7 @@ if (match(|$!MODULE|,|MONIT|) GT 0) then
 endif
    
 if (match(|$!MODULE|,|PROPCON|) LT 1) then
- PROPCON
+ ---PROPCON
 endif
    
 $W250
