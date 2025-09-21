@@ -190,7 +190,6 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.Branch.findAll({ where: { spec_id: specId } }),
             db.Reducer.findAll({raw:true}),
         ]);
-
         if (!pmsItems || pmsItems.length === 0) {
             res.status(400).json({ message: "No data found for the specified spec ID" });
             return;
@@ -211,7 +210,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                 size2_code,
                 dimensional_standard_id,
             } = item;
-
+            
             // Type-safe finds with explicit typing
             const component = components.find((c: Component) => c.id == component_code);
 
@@ -244,7 +243,6 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                             size.size_mm <= size2.size_mm
                 ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
 
-
                 for (const sizeData of sizesInRange) {
                     
                     const existsInSizeRange = sizeRanges.some(
@@ -257,11 +255,18 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
 
                     if(component.componentname !== "VALV"){
                         if (component.componentname === "TEE") {
-                        const branchValues = branches.filter(
+                        let branchValues = branches.filter(
                             (b: Branch) => b.run_size === sizeData.size_mm && 
-                                  b.branch_size >= sizesInRange[0].size_mm && 
-                                  b.comp_name === "T"
+                                b.branch_size >= sizesInRange[0].size_mm && 
+                                b.comp_name === "T"
                         );
+
+                        if (componentDesc.itemDescription.includes("Red")) {
+                            branchValues = branches.filter(
+                                (b: Branch) => b.run_size === sizeData.size_mm && 
+                                    b.comp_name === "T"
+                            );
+                        }
 
                         for (const branch of branchValues) {
                             const branchRunSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.run_size);
@@ -380,11 +385,13 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 // Handle regular REDUCER type
                                 const reducerSizes = reducer.filter(
                                     (r: any) => r.type === 'REDUCER' &&
-                                    r.big_size >= size1.size1_size2 && r.big_size <= size2.size1_size2 && r.big_size == sizeData.size1_size2 &&
-                                    r.small_size <= size2.size1_size2 && r.small_size >= size1.size1_size2
+                                    parseFloat(r.big_size) >= parseFloat(size1.size1_size2) && 
+                                    parseFloat(r.big_size) <= parseFloat(size2.size1_size2) && 
+                                    parseFloat(r.big_size) == parseFloat(sizeData.size1_size2) &&
+                                    parseFloat(r.small_size) <= parseFloat(size2.size1_size2) && 
+                                    parseFloat(r.small_size) >= parseFloat(size1.size1_size2)
                                 );
 
-                        
                                 for (const reducerSize of reducerSizes) {
                                     const bigSizeData = [...sizes, ...dSizes].find(
                                         (s: Size | D_Size) => s.size1_size2 == reducerSize.big_size
