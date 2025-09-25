@@ -17,7 +17,8 @@ import {
   CreditCard,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Settings
 } from 'lucide-react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
@@ -43,6 +44,7 @@ import showToast from '../utils/toast';
 import FormikInput from '../components/FormFields/FormikInput';
 import FormikErrorMessage from '../components/FormFields/FormikErrorMessage';
 import ConfirmationModal from '../components/ConfirmationDeleteModal/CornfirmationModal';
+import SubscriptionUpdateModal from '../components/SubscriptionUpdateModal/SubscriptionUpdateModal';
 import {
   User,
   UserAnalytics,
@@ -65,6 +67,7 @@ const EnhancedAdminDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users'>('dashboard');
@@ -167,6 +170,17 @@ const EnhancedAdminDashboard = () => {
   const handleDeleteUser = (user: User) => {
     setSelectedUser(user);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleUpdateSubscription = (user: User) => {
+    setSelectedUser(user);
+    setIsSubscriptionModalOpen(true);
+  };
+
+  const handleSubscriptionUpdateSuccess = () => {
+    fetchUsers(currentPage, searchTerm);
+    fetchAnalytics();
+    setIsSubscriptionModalOpen(false);
   };
 
   // API operations
@@ -287,6 +301,21 @@ const EnhancedAdminDashboard = () => {
 
   const getUserSubscription = (user: User) => {
     return user.subscriptions && user.subscriptions.length > 0 ? user.subscriptions[0] : null;
+  };
+
+  const isSubscriptionExpiringSoon = (subscription: any) => {
+    if (!subscription || !subscription.endDate) return false;
+    const endDate = new Date(subscription.endDate);
+    const today = new Date();
+    const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+  };
+
+  const isSubscriptionExpired = (subscription: any) => {
+    if (!subscription || !subscription.endDate) return false;
+    const endDate = new Date(subscription.endDate);
+    const today = new Date();
+    return endDate < today;
   };
 
   // Render Dashboard Tab
@@ -578,13 +607,41 @@ const EnhancedAdminDashboard = () => {
                           </span>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-500">No subscription</span>
+                        <div>
+                          <span className="text-sm text-gray-500">No subscription</span>
+                          <div className="text-xs text-blue-600 mt-1">
+                            <button
+                              onClick={() => handleUpdateSubscription(user)}
+                              className="hover:underline"
+                            >
+                              Create subscription
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {subscription ? (
                         <div className="text-sm text-gray-900">
-                          <div>Ends: {formatDate(subscription.endDate)}</div>
+                          <div className={`${
+                            isSubscriptionExpired(subscription) 
+                              ? 'text-red-600 font-semibold' 
+                              : isSubscriptionExpiringSoon(subscription) 
+                              ? 'text-yellow-600 font-semibold' 
+                              : ''
+                          }`}>
+                            Ends: {formatDate(subscription.endDate)}
+                            {isSubscriptionExpired(subscription) && (
+                              <span className="ml-1 text-xs bg-red-100 text-red-800 px-1 rounded">
+                                EXPIRED
+                              </span>
+                            )}
+                            {isSubscriptionExpiringSoon(subscription) && (
+                              <span className="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1 rounded">
+                                EXPIRES SOON
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs text-gray-500">
                             Started: {formatDate(subscription.startDate)}
                           </div>
@@ -611,6 +668,13 @@ const EnhancedAdminDashboard = () => {
                           title="Edit User"
                         >
                           <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleUpdateSubscription(user)}
+                          className="text-green-600 hover:text-green-900 transition-colors"
+                          title="Update Subscription"
+                        >
+                          <Settings className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user)}
@@ -919,6 +983,14 @@ const EnhancedAdminDashboard = () => {
         message={`Are you sure you want to delete ${selectedUser?.name}? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
+      />
+
+      {/* Subscription Update Modal */}
+      <SubscriptionUpdateModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        user={selectedUser}
+        onSuccess={handleSubscriptionUpdateSuccess}
       />
     </div>
   );

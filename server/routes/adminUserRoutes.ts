@@ -5,7 +5,9 @@ import {
     getUserById, 
     createUser, 
     updateUser, 
-    deleteUser 
+    deleteUser,
+    updateUserSubscription,
+    getAvailablePlans
 } from '../controllers/adminUserController';
 import { getSimpleAnalytics } from '../controllers/adminUserControllerSimple';
 import { authenticateAdmin } from '../middleware/authenticateAdmin';
@@ -33,6 +35,16 @@ const updateUserValidationRules = [
     body('companyName').optional().notEmpty().withMessage('Company name cannot be empty'),
     body('industry').optional().isIn(['Oil & Gas', 'Chemical', 'Pharma', 'Sugar', 'Solar', 'Wind']).withMessage('Valid industry is required'),
     body('country').optional().notEmpty().withMessage('Country cannot be empty'),
+];
+
+// Validation rules for subscription update
+const updateSubscriptionValidationRules = [
+    body('planId').optional().isInt().withMessage('Plan ID must be an integer'),
+    body('startDate').optional().isISO8601().withMessage('Start date must be a valid date'),
+    body('endDate').optional().isISO8601().withMessage('End date must be a valid date'),
+    body('status').optional().isIn(['active', 'inactive', 'cancelled']).withMessage('Status must be active, inactive, or cancelled'),
+    body('NoofProjects').optional().isInt({ min: 0 }).withMessage('Number of projects must be a non-negative integer'),
+    body('NoofSpecs').optional().isInt({ min: 0 }).withMessage('Number of specs must be a non-negative integer')
 ];
 
 /**
@@ -83,6 +95,20 @@ router.get('/', getAllUsers);
  */
 router.get('/analytics', getUserAnalytics);
 router.get('/simple-analytics', getSimpleAnalytics);
+
+/**
+ * @swagger
+ * /admin/users/plans:
+ *   get:
+ *     summary: Get available plans for subscription selection
+ *     tags: [Admin Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Plans retrieved successfully
+ */
+router.get('/plans', getAvailablePlans);
 
 /**
  * @swagger
@@ -207,5 +233,51 @@ router.put('/:userId', updateUserValidationRules, updateUser);
  *         description: User not found
  */
 router.delete('/:userId', deleteUser);
+
+/**
+ * @swagger
+ * /admin/users/{userId}/subscription:
+ *   put:
+ *     summary: Update user subscription
+ *     tags: [Admin Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               planId:
+ *                 type: integer
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive, cancelled]
+ *               NoofProjects:
+ *                 type: integer
+ *               NoofSpecs:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Subscription updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: User or plan not found
+ */
+router.put('/:userId/subscription', updateSubscriptionValidationRules, updateUserSubscription);
 
 export default router;

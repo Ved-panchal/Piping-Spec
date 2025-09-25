@@ -461,3 +461,162 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
         });
     }
 };
+
+// Update user subscription
+export const updateUserSubscription = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.json({
+                success: false,
+                error: errors.array(),
+                status: "400"
+            });
+            return;
+        }
+
+        const { userId } = req.params;
+        const { planId, startDate, endDate, status, NoofProjects, NoofSpecs } = req.body;
+
+        // Check if user exists
+        const user = await db.User.findOne({
+            where: { id: userId, isDeleted: false }
+        });
+
+        if (!user) {
+            res.json({
+                success: false,
+                error: "User not found",
+                status: "404"
+            });
+            return;
+        }
+
+        // If planId is provided, verify the plan exists
+        if (planId) {
+            const plan = await db.Plan.findOne({
+                where: { planId, isDeleted: false }
+            });
+
+            if (!plan) {
+                res.json({
+                    success: false,
+                    error: "Plan not found",
+                    status: "404"
+                });
+                return;
+            }
+        }
+
+        // Find existing active subscription for the user
+        let subscription = await db.Subscription.findOne({
+            where: { 
+                userId,
+                status: ['active', 'inactive'] // Don't update cancelled subscriptions automatically
+            },
+            order: [['createdAt', 'DESC']] // Get the most recent subscription
+        });
+
+        // If no active/inactive subscription exists, create a new one
+        if (!subscription) {
+            // If creating new subscription, planId is required
+            if (!planId) {
+                res.json({
+                    success: false,
+                    error: "Plan ID is required when creating a new subscription",
+                    status: "400"
+                });
+                return;
+            }
+
+            // Get plan details for default values
+            const plan = await db.Plan.findOne({
+                where: { planId, isDeleted: false }
+            });
+
+            if (!plan) {
+                res.json({
+                    success: false,
+                    error: "Plan not found",
+                    status: "404"
+                });
+                return;
+            }
+
+            // Create new subscription
+            subscription = await db.Subscription.create({
+                userId,
+                planId,
+                startDate: startDate ? new Date(startDate) : new Date(),
+                endDate: endDate ? new Date(endDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year
+                status: status || 'active',
+                NoofProjects: NoofProjects !== undefined ? NoofProjects : plan.noOfProjects,
+                NoofSpecs: NoofSpecs !== undefined ? NoofSpecs : plan.noOfSpecs
+            });
+        } else {
+            // Update existing subscription
+            await subscription.update({
+                planId: planId || subscription.planId,
+                startDate: startDate ? new Date(startDate) : subscription.startDate,
+                endDate: endDate ? new Date(endDate) : subscription.endDate,
+                status: status || subscription.status,
+                NoofProjects: NoofProjects !== undefined ? NoofProjects : subscription.NoofProjects,
+                NoofSpecs: NoofSpecs !== undefined ? NoofSpecs : subscription.NoofSpecs
+            });
+        }
+
+        // Fetch updated subscription with plan and user details
+        const updatedSubscription = await db.Subscription.findOne({
+            where: { id: subscription.id },
+            include: [
+                {
+                    model: db.Plan,
+                    as: 'plan'
+                },
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: { exclude: ['password'] }
+                }
+            ]
+        });
+
+        res.json({
+            success: true,
+            message: "User subscription updated successfully",
+            data: updatedSubscription,
+            status: "200"
+        });
+    } catch (error: any) {
+        console.error('Error updating user subscription:', error.message);
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
+    }
+};
+
+// Get all available plans for subscription selection
+export const getAvailablePlans = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const plans = await db.Plan.findAll({
+            where: { isDeleted: false },
+            order: [['planName', 'ASC']],
+            attributes: ['planId', 'planName', 'noOfProjects', 'noOfSpecs', 'allowedDays']
+        });
+
+        res.json({
+            success: true,
+            data: plans,
+            status: "200"
+        });
+    } catch (error: any) {
+        console.error('Error fetching plans:', error.message);
+        res.json({
+            success: false,
+            error: "Internal server error",
+            status: "500"
+        });
+    }
+};
