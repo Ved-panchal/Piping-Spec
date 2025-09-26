@@ -274,7 +274,6 @@ export const getPlanDisplayInfo = (subscriptions?: Subscription[]): {
   showLimits: boolean;
 } => {
   const userLevel = getUserAccessLevel(subscriptions);
-  const unlimited = hasUnlimitedAccess(subscriptions);
   
   switch (userLevel) {
     case 'free_trial':
