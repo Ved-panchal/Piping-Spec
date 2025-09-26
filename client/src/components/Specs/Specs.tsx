@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RatingConfiguration from '../Rating/RatingConfiguration';
 import ScheduleConfiguration from '../Schedule/ScheduleConfiguration';
@@ -13,6 +13,7 @@ import DimSTD from '../DimensionalSTDConfiguration/DimSTD';
 import ValvSubType from '../ValvSubType/ValvSubType';
 import ConstructionDesc from '../ConstructionDesc/ConstructionDesc';
 import UnitWeight from '../UnitWeight/UnitWeight';
+import ExportExcelButton from '../ExportExcelButton/ExportExcelButton';
 
 // Icons
 const PmsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
@@ -29,6 +30,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isValvConfigOpen, setIsValvConfigOpen] = useState(false);
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -93,7 +95,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
                 onClick={handlePmsSelectorClick}
               >
                 <PmsIcon />
-                <span className="ml-3 text-sm font-medium">PMS Input Selector</span>
+                <span className="ml-3 text-sm font-medium">Piping Spec Builder</span>
               </button>
             </li>
             <li>
@@ -162,7 +164,11 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
 
       {/* Main Content */}
       <main className="flex-1 p-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm min-h-[84vh] overflow-y-none">
+        <div className="flex items-center justify-end mb-3">
+          {/* Common Excel export button for any visible table within the content card */}
+          <ExportExcelButton containerRef={contentRef} fileName="configuration-export" />
+        </div>
+        <div ref={contentRef} className="bg-white p-6 rounded-lg shadow-sm min-h-[84vh] overflow-y-none">
           {showPmsSelector
             ? pmsInputSelectorComponent
             : activeConfigComponent < configItems.length

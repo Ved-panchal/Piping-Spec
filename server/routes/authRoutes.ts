@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { loginUser } from '../controllers/authController';
+import { loginUser, logoutUser } from '../controllers/authController';
 import { loginValidationRules } from '../middleware/validateRequest';
 
 const router = Router();
@@ -45,5 +45,8 @@ const router = Router();
  *         description: Server error
  */
 router.post('/login', loginValidationRules, loginUser);
+
+// Logout current session
+router.post('/logout', logoutUser);
 
 export default router;

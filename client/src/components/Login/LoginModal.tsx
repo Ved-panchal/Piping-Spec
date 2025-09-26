@@ -261,11 +261,9 @@ const LoginModal = ({ isOpen, closeModal, onLoginSuccess }: LoginModalProps) => 
     return isOpen ? (
         <div
             className="fixed inset-0 z-[999] grid h-screen w-full place-items-center bg-black bg-opacity-60 backdrop-blur-sm"
-            onClick={closeModal}
         >
             <div
                 className="relative mx-auto w-full max-w-md rounded-xl bg-white shadow-md"
-                onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-6">
                     {!forgotPasswordMode ? (

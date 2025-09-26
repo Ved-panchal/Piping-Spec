@@ -27,16 +27,27 @@ api.interceptors.response.use(
             localStorage.clear();
             window.location.href = '/';
         }
+        // Handle session invalidation flag from backend
+        if (response.data && response.data.sessionExpired === true) {
+            localStorage.clear();
+            window.location.href = '/';
+        }
         return response;
     },
     error => {
         // Handle 401 Unauthorized errors
         // console.log(error);
         console.log("error", error);
-        if (error.response && error.response.status === '401') {
+        if (error.response && (error.response.status === 401 || error.response.status === '401')) {
             // console.log(error.response)
             if (error.response.data['detail'] === "Invalid credentials") {
                 localStorage.setItem('Failed', 'true');
+            }
+            // If backend indicates session expired/invalid, clear and redirect
+            if (error.response.data && error.response.data.sessionExpired === true) {
+                localStorage.clear();
+                window.location.href = '/';
+                return Promise.reject(error);
             }
             window.location.href = '/';
         }

@@ -7,7 +7,9 @@ import CreateProjectModal from '../components/CreateProjectModal/CreateProjectMo
 import Specs from '../components/Specs/Specs';
 import api from '../utils/api/apiutils';
 import { api as configApi } from "../utils/api/config";
-import { Project, ProjectFormValues } from '../utils/interface';
+import { getUserSubscriptions } from '../utils/api/subscriptionApi';
+import { Project, ProjectFormValues, Subscription } from '../utils/interface';
+import showToast from '../utils/toast';
 
 // Add import for the custom styling if you're adding it as a separate file
 // import './theme.css';
@@ -20,11 +22,37 @@ const PipingSpecCreation = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectFormValues | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [username, setUsername] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [currentUsage, setCurrentUsage] = useState({ projects: 0, specs: 0 });
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(true); 
 
   const fetchUserProjects = async () => {
     const response = await api.get(`${configApi.API_URL.project.getAllProjectByUser}`);
     return response.data.projects;
+  };
+
+  const fetchUserSubscriptions = async () => {
+    try {
+      setIsLoadingSubscriptions(true);
+      const response = await getUserSubscriptions();
+      if (response.success) {
+        setSubscriptions(response.subscriptions);
+        setCurrentUsage(response.currentUsage);
+      } else {
+        console.warn('Failed to fetch subscriptions:', response.message);
+        showToast({ 
+          message: 'Unable to load subscription data. Some features may be limited.', 
+          type: 'info' 
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+      // Don't show error toast for subscription fetch failure as it's not critical
+      // User can still use the app with limited functionality
+    } finally {
+      setIsLoadingSubscriptions(false);
+    }
   };
 
   useEffect(() => {
@@ -32,7 +60,12 @@ const PipingSpecCreation = () => {
     const token = JSON.parse(localStorage.getItem('token')!);
     if (user && token) {
       setUsername(user.name);
-      fetchUserProjects().then(fetchedProjects => {
+      
+      // Fetch projects and subscriptions in parallel
+      Promise.all([
+        fetchUserProjects(),
+        fetchUserSubscriptions()
+      ]).then(([fetchedProjects]) => {
         setProjectList(fetchedProjects);
       });
 
@@ -57,6 +90,8 @@ const PipingSpecCreation = () => {
   const handleCreateProject = async () => {
     const updatedProjects = await fetchUserProjects();
     setProjectList(updatedProjects);
+    // Refresh subscription data to update current usage
+    await fetchUserSubscriptions();
     setIsModalOpen(false);
   };
 
@@ -144,6 +179,8 @@ const PipingSpecCreation = () => {
               setSelectedProject={setSelectedProject}
               setProjectList={setProjectList}
               onProjectClick={handleProjectClick}
+              subscriptions={subscriptions}
+              currentUsage={currentUsage}
             />
           ) : (
             <Specs projectId={selectedProjectId} />

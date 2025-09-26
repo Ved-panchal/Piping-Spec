@@ -27,6 +27,7 @@ import reviewOutputRoutes from "./routes/reviewOutputRoutes";
 import adminAuthRoutes from "./routes/adminAuthRoutes";
 import adminUserRoutes from "./routes/adminUserRoutes";
 import adminSubscriptionRoutes from "./routes/adminSubscriptionRoutes";
+import subscriptionRoutes from "./routes/subscriptionRoutes";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from "./docs/swaggeroption";
@@ -74,5 +75,6 @@ app.use('/unit-weight',reviewOutputRoutes)
 app.use('/admin/auth', adminAuthRoutes);
 app.use('/admin/users', adminUserRoutes);
 app.use('/admin/subscriptions', adminSubscriptionRoutes);
+app.use('/subscriptions', subscriptionRoutes);
 
 export default app;

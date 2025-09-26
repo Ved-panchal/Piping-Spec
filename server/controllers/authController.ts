@@ -41,7 +41,31 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        // Invalidate all existing sessions for this user
+        await db.Session.update(
+            { isActive: false },
+            { where: { userId: user.id, isActive: true } }
+        );
+
         const token = generateJWT({ id: user.id, email: user.email });
+        
+        // Get device info and IP address
+        const userAgent = req.headers['user-agent'] || 'Unknown Device';
+        const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown IP';
+        
+        // Create new session record
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+        
+        await db.Session.create({
+            userId: user.id,
+            token: token,
+            isActive: true,
+            deviceInfo: userAgent,
+            ipAddress: ipAddress,
+            expiresAt: expiresAt
+        });
+        
         const { password: _, ...userWithoutPassword } = user.toJSON();
 
         // Send success response
@@ -60,5 +84,21 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             error: "Internal server error",
             status: "500"
         });
+    }
+};
+
+export const logoutUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) {
+            res.json({ success: false, status: "401", error: 'Access denied, no token provided' });
+            return;
+        }
+        // Deactivate this session
+        await db.Session.update({ isActive: false }, { where: { token } });
+        res.json({ success: true, status: "200", message: 'Logged out successfully' });
+    } catch (error:any) {
+        res.json({ success: false, status: "500", error: 'Internal server error' });
     }
 };

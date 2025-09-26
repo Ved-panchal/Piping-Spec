@@ -6,6 +6,7 @@ import otpModel from "./otpmodel";
 import projectModel from "./projectmodel";
 import subscriptionModel from "./subscriptionmodel";
 import planModel from "./planmodels";
+import sessionModel from "./sessionmodel";
 import specModel from "./specmodels";
 import sizeRangeModel from "./sizerangemodels";
 import branchModel from "./branchmodel";
@@ -50,6 +51,7 @@ const OTP = otpModel(sequelize);
 const Project = projectModel(sequelize);
 const Subscription = subscriptionModel(sequelize);
 const Plan = planModel(sequelize);
+const Session = sessionModel(sequelize);
 const Spec = specModel(sequelize);
 const SizeRange = sizeRangeModel(sequelize);
 const Branch = branchModel(sequelize);
@@ -99,6 +101,17 @@ Subscription.belongsTo(User, {
     as: 'user'
 });
 
+// User and Session associations
+User.hasMany(Session, {
+    foreignKey: 'userId',
+    as: 'sessions'
+});
+
+Session.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+});
+
 // Plan and Subscription associations
 Plan.hasMany(Subscription, {
     foreignKey: 'planId',
@@ -117,6 +130,7 @@ const db = {
     Project,
     Plan,
     Subscription,
+    Session,
     Spec,
     SizeRange,
     Branch,

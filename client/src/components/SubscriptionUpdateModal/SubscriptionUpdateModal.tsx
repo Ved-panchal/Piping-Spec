@@ -80,7 +80,7 @@ const SubscriptionUpdateModal: React.FC<SubscriptionUpdateModalProps> = ({
 
     if (currentSubscription) {
       return {
-        planId: currentSubscription.planId || '',
+        planId: currentSubscription.planId ? String(currentSubscription.planId) : '',
         startDate: currentSubscription.startDate ? 
           new Date(currentSubscription.startDate).toISOString().split('T')[0] : today,
         endDate: currentSubscription.endDate ? 
@@ -106,7 +106,7 @@ const SubscriptionUpdateModal: React.FC<SubscriptionUpdateModalProps> = ({
       const token = localStorage.getItem('admin_token');
       const payload = {
         userId: user.id,
-        planId: values.planId,
+        planId: Number(values.planId),
         startDate: values.startDate,
         endDate: values.endDate,
         status: values.status,
@@ -223,18 +223,30 @@ const SubscriptionUpdateModal: React.FC<SubscriptionUpdateModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Subscription Plan *
                     </label>
-                    <Field
-                      as="select"
+                    <select
                       name="planId"
+                      value={values.planId}
+                      onChange={(e) => {
+                        const nextPlanId = e.target.value;
+                        setFieldValue('planId', nextPlanId);
+                        // Auto-calc end date when plan changes if startDate is set
+                        const selectedPlan = availablePlans.find(p => String(p.planId) === String(nextPlanId));
+                        if (selectedPlan && values.startDate) {
+                          const startDate = new Date(values.startDate);
+                          const endDate = new Date(startDate);
+                          endDate.setDate(endDate.getDate() + selectedPlan.allowedDays);
+                          setFieldValue('endDate', endDate.toISOString().split('T')[0]);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select a plan</option>
                       {availablePlans.map((plan) => (
-                        <option key={plan.planId} value={plan.planId}>
+                        <option key={plan.planId} value={String(plan.planId)}>
                           {plan.planName} ({plan.allowedDays} days)
                         </option>
                       ))}
-                    </Field>
+                    </select>
                     <FormikErrorMessage name="planId" component="div" />
                   </div>
 
@@ -242,18 +254,18 @@ const SubscriptionUpdateModal: React.FC<SubscriptionUpdateModalProps> = ({
                   {values.planId && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       {(() => {
-                        const selectedPlan = availablePlans.find(plan => plan.planId === values.planId);
+                        const selectedPlan = availablePlans.find(plan => String(plan.planId) === String(values.planId));
                         if (selectedPlan) {
                           return (
                             <div className="text-sm text-blue-800">
                               <p><strong>Plan:</strong> {selectedPlan.planName}</p>
                               <p><strong>Duration:</strong> {selectedPlan.allowedDays} days</p>
-                              {selectedPlan.noOfProjects && (
-                                <p><strong>Projects:</strong> {selectedPlan.noOfProjects}</p>
-                              )}
-                              {selectedPlan.noOfSpecs && (
-                                <p><strong>Specifications:</strong> {selectedPlan.noOfSpecs}</p>
-                              )}
+                              <p>
+                                <strong>Projects:</strong> {selectedPlan.noOfProjects === null ? 'Unlimited' : selectedPlan.noOfProjects}
+                              </p>
+                              <p>
+                                <strong>Specifications:</strong> {selectedPlan.noOfSpecs === null ? 'Unlimited' : selectedPlan.noOfSpecs}
+                              </p>
                             </div>
                           );
                         }
@@ -296,7 +308,7 @@ const SubscriptionUpdateModal: React.FC<SubscriptionUpdateModalProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          const selectedPlan = availablePlans.find(plan => plan.planId === values.planId);
+                          const selectedPlan = availablePlans.find(plan => String(plan.planId) === String(values.planId));
                           if (selectedPlan && values.startDate) {
                             const startDate = new Date(values.startDate);
                             const endDate = new Date(startDate);

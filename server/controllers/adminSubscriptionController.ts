@@ -104,43 +104,33 @@ export const createSubscription = async (req: Request, res: Response): Promise<v
         });
     }
 };
-
-// Update subscription
 export const updateSubscription = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.json({
-                success: false,
-                error: errors.array(),
-                status: "400"
+        try {
+
+            const { subscriptionId } = req.params;
+            const { planId, startDate, endDate, status, NoofProjects, NoofSpecs } = req.body;
+            
+            const subscription = await db.Subscription.findOne({
+                where: { id: subscriptionId }
             });
+
+            if (!subscription) {
+                res.json({
+                    success: false,
+                    error: "Subscription not found",
+                    status: "404"
+                });
             return;
         }
-
-        const { subscriptionId } = req.params;
-        const { planId, startDate, endDate, status, NoofProjects, NoofSpecs } = req.body;
-
-        const subscription = await db.Subscription.findOne({
-            where: { id: subscriptionId }
-        });
-
-        if (!subscription) {
-            res.json({
-                success: false,
-                error: "Subscription not found",
-                status: "404"
-            });
-            return;
-        }
-
-        // If planId is being changed, verify the new plan exists
+        
+        // If planId is being changed, verify the new plan exists and use its limits by default
+        let targetPlan: any = null;
         if (planId) {
-            const plan = await db.Plan.findOne({
+            targetPlan = await db.Plan.findOne({
                 where: { planId, isDeleted: false }
             });
-
-            if (!plan) {
+            
+            if (!targetPlan) {
                 res.json({
                     success: false,
                     error: "Plan not found",
@@ -149,17 +139,25 @@ export const updateSubscription = async (req: Request, res: Response): Promise<v
                 return;
             }
         }
+        
+        // Derive limits: if body explicitly provides limits, use them; otherwise, when plan changes, inherit plan limits
+        const derivedNoofProjects = (NoofProjects !== undefined)
+        ? NoofProjects
+        : (targetPlan ? targetPlan.noOfProjects : subscription.NoofProjects);
+        const derivedNoofSpecs = (NoofSpecs !== undefined)
+            ? NoofSpecs
+            : (targetPlan ? targetPlan.noOfSpecs : subscription.NoofSpecs);
 
-        // Update subscription
-        await subscription.update({
-            planId: planId || subscription.planId,
+            // Update subscription
+            await subscription.update({
+                planId: planId || subscription.planId,
             startDate: startDate ? new Date(startDate) : subscription.startDate,
             endDate: endDate ? new Date(endDate) : subscription.endDate,
             status: status || subscription.status,
-            NoofProjects: NoofProjects !== undefined ? NoofProjects : subscription.NoofProjects,
-            NoofSpecs: NoofSpecs !== undefined ? NoofSpecs : subscription.NoofSpecs
+            NoofProjects: derivedNoofProjects,
+            NoofSpecs: derivedNoofSpecs
         });
-
+        
         // Fetch updated subscription with plan details
         const updatedSubscription = await db.Subscription.findOne({
             where: { id: subscription.id },
@@ -168,7 +166,7 @@ export const updateSubscription = async (req: Request, res: Response): Promise<v
                 as: 'plan'
             }]
         });
-
+        
         res.json({
             success: true,
             message: "Subscription updated successfully",
