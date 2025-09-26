@@ -25,7 +25,7 @@ const PipingSpecCreation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [currentUsage, setCurrentUsage] = useState({ projects: 0, specs: 0 });
-  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(true); 
+  const [_, setIsLoadingSubscriptions] = useState(true); 
 
   const fetchUserProjects = async () => {
     const response = await api.get(`${configApi.API_URL.project.getAllProjectByUser}`);

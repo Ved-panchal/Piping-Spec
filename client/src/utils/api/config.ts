@@ -102,6 +102,13 @@ export const api = {
         update:"unit-weight/update-unit-weight",
         get:"unit-weight/filter"
       },
+      subscriptions: {
+        getUserSubscriptions: "subscriptions/user",
+        getPlans: "subscriptions/plans",
+        create: "subscriptions/create",
+        update: "subscriptions/update",
+        cancel: "subscriptions/cancel"
+      },
       admin: {
         auth: {
           login: "admin/auth/login"
