@@ -43,8 +43,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
         // Invalidate all existing sessions for this user
         await db.Session.update(
-            { isActive: false },
-            { where: { userId: user.id, isActive: true } }
+            { is_active: false },
+            { where: { user_id: user.id, is_active: true } }
         );
 
         const token = generateJWT({ id: user.id, email: user.email });
@@ -58,12 +58,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
         
         await db.Session.create({
-            userId: user.id,
+            user_id: user.id,
             token: token,
-            isActive: true,
-            deviceInfo: userAgent,
-            ipAddress: ipAddress,
-            expiresAt: expiresAt
+            is_active: true,
+            device_info: userAgent,
+            ip_address: ipAddress,
+            expires_at: expiresAt
         });
         
         const { password: _, ...userWithoutPassword } = user.toJSON();
@@ -96,7 +96,7 @@ export const logoutUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
         // Deactivate this session
-        await db.Session.update({ isActive: false }, { where: { token } });
+        await db.Session.update({ is_active: false }, { where: { token } });
         res.json({ success: true, status: "200", message: 'Logged out successfully' });
     } catch (error:any) {
         res.json({ success: false, status: "500", error: 'Internal server error' });

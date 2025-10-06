@@ -14,6 +14,7 @@ import ValvSubType from '../ValvSubType/ValvSubType';
 import ConstructionDesc from '../ConstructionDesc/ConstructionDesc';
 import UnitWeight from '../UnitWeight/UnitWeight';
 import ExportExcelButton from '../ExportExcelButton/ExportExcelButton';
+import BoltSizeConfiguration from '../BoltSizeConfiguration/BoltSizeConfiguration';
 
 // Icons
 const PmsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
@@ -67,6 +68,7 @@ const Specs: React.FC<SpecsProps> = ({ projectId }) => {
   const configItems = [
     { title: 'Spec Configuration', component: <SpecsCreation /> },
     { title: 'Component Configuration', component: <ComponentConfiguration /> },
+    { title: 'Bolt Size Configuration', component: <BoltSizeConfiguration /> },
     { title: 'Size Configuration', component: <SizeConfiguration /> },
     { title: 'Schedule Configuration', component: <ScheduleConfiguration /> },
     { title: 'Rating Configuration', component: <RatingConfiguration /> },

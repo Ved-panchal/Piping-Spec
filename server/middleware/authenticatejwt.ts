@@ -34,8 +34,8 @@ export const authenticateJWT = async (req: Request, res: Response, next: NextFun
         const session = await db.Session.findOne({
             where: {
                 token: token,
-                isActive: true,
-                userId: (decoded as any).id,
+                is_active: true,
+                user_id: (decoded as any).id,
                 expiresAt: { [Op.gt]: new Date() }
             }
         });

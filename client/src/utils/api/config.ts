@@ -43,6 +43,10 @@ export const api = {
         getall:'sizes/getall',
         addorupdate:'sizes/add-or-update'
       },
+      boltSizes: {
+        getall: "/bolt-sizes/getall",
+        addorupdate: "/bolt-sizes/add-or-update"
+      },
       components:{
         list:'components/getall',
         data:'componentdescs/getall',

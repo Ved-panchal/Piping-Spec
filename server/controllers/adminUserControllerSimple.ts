@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import db from '../models';
+import { Op } from 'sequelize';
 
 // Simplified analytics that should work without complex queries
 export const getSimpleAnalytics = async (req: Request, res: Response): Promise<void> => {
@@ -43,7 +44,7 @@ export const getSimpleAnalytics = async (req: Request, res: Response): Promise<v
                 isDeleted: false,
                 role: 'user',
                 createdAt: {
-                    [db.sequelize.Op.gte]: thirtyDaysAgo
+                    [Op.gte]: thirtyDaysAgo
                 }
             }
         }).catch(() => 0);

@@ -281,10 +281,19 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
         ` dev tty`,
         `endif`,
         ``,
-        `ALPHA LOG /C:\\TEMP\\${spec}.LOG OVER`,
+        `ALPHA LOG /C:\\TEMP\\${spec}_Error.LOG OVER`,
+        'Handle any',
+        '  alp log end',
+        `  ALPHA LOG /C:\\TEMP\\${spec}_Error.LOG OVER`,
+        'endhandle',
+
         ``,
         `if (match(|$!MODULE|,|SPECON|) LT 1) then`,
         ` SPECONMODE`,
+        '   Handle (47,15)',
+        '     exit',
+        '     SPECONMODE',
+        '   endhandle',
         `endif`,
         ``,
         `$W250`,
@@ -317,7 +326,35 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
       // Process each component
       // console.log('Components', components);
       components.forEach((comp: TableDataType) => {
-        const sTypeFormatted = comp.sType.length > 4 ? `TEXT'${comp.sType}'` : comp.sType;
+        //let  sTypeFormatted = comp.sType.length > 4 ? `TEXT'${comp.sType}'` : comp.sType;
+        //if (comp.rating && comp.rating !== "X") {
+        //  sTypeFormatted = `${sTypeFormatted}${comp.rating}`;
+        //}
+        let sTypeFormatted: string;
+
+        if (comp.rating && comp.rating !== "X") {
+          sTypeFormatted = `${comp.sType}_${comp.rating}`;
+        } else {
+          sTypeFormatted = comp.sType;
+        }
+
+        // Final length check (if too long, wrap inside TEXT'...')
+        if (sTypeFormatted.length > 4) {
+          sTypeFormatted = `TEXT'${sTypeFormatted}'`;
+        }
+
+        // decide what should replace "FALSE"
+        let shopFlag = "TRUE"; // default is TRUE
+
+        switch (comp.gType) {
+          case "FBLI":
+          case "VALV":
+          case "GASK":
+            shopFlag = "FALSE"; // only these become FALSE
+            break;
+          // add other gType values if needed that should be FALSE
+        }
+
         let heading = "";
         let exheading = "";
         let values = "";
@@ -327,32 +364,39 @@ const ReviewOutputModal: React.FC<ReviewOutputModalProps> = ({
           heading = `TYPE NAME PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           exheading = `NAME TYPE PBOR0 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           defaultsigns = `- - - = =`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'ELBO'){
           heading = `TYPE NAME PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
           exheading = `NAME TYPE PBOR0 STYP ANGLE SHOP CATREF DETAIL MATXT CMPREF BLTREF`;
           defaultsigns = `- - - = = =`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${sTypeFormatted} 46,90 FALSE /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${sTypeFormatted} 46,90 FALSE /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          // determine angle based on sTypeFormatted
+          let angleValues = "46,90"; // default
+          if (sTypeFormatted.includes("45")) {
+              angleValues = "0,45";
+          } else if (sTypeFormatted.includes("90")) {
+              angleValues = "46,90";
+          }
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${sTypeFormatted} ${angleValues} ${shopFlag} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${sTypeFormatted} ${angleValues} ${shopFlag} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'FLAN' || comp.gType == 'REDU' || comp.gType == 'COUP') {
           heading = `TYPE NAME PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           exheading = `NAME TYPE PBOR1 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           defaultsigns = `- - - - = =`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if (comp.gType == 'PCOM' || comp.gType == 'CAP' || comp.gType == 'VALV') {
           heading = `TYPE NAME PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           exheading = `NAME TYPE PBOR0 PBOR2 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           defaultsigns = `- - - - = =`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         } else if(comp.gType == 'OLET' || comp.gType == 'TEE') {
           heading = `TYPE NAME PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           exheading = `NAME TYPE PBOR0 PBOR3 SHOP STYP CATREF DETAIL MATXT CMPREF BLTREF`;
           defaultsigns = `- - - - = =`;
-          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
-          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} FALSE ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          values = `${comp.gType} */${comp.itemCode} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
+          exvalues = `*/${comp.itemCode} ${comp.gType} ${comp.size1MM} ${comp.size2MM !== 0 ? comp.size2MM : comp.size1MM} ${shopFlag} ${sTypeFormatted} /${comp.catRef ? comp.catRef : 'No-catRef'} /${comp.itemCode}-D /${comp.itemCode}-M /${comp.itemCode}-C =0`;
         }
 
         const componentBlock = [

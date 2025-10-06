@@ -21,6 +21,8 @@ import scheduleModel from "./schedulemodels";
 import defaultScheduleModel from "./Default/defaultscheulemodel";
 import sizeModel from "./sizemodels";
 import defaultSizeModel from "./Default/defaultsizemodel";
+import boltSizeModel from "./boltsizemodel";
+import defaultBoltSizeModel from "./Default/defaultBoltSize";
 import DimensionalStandardModel from "./dimensionalmodel";
 import itemModel from "./itemoutputmodel";
 import pmsCreationModel from "./pmscreationmodel";
@@ -67,6 +69,8 @@ const Schedule = scheduleModel(sequelize);
 const D_Schedule = defaultScheduleModel(sequelize);
 const Size = sizeModel(sequelize);
 const D_Size = defaultSizeModel(sequelize);
+const BSize = boltSizeModel(sequelize);
+const D_B_Size = defaultBoltSizeModel(sequelize);
 const D_Catref = DefaultCatRefModel(sequelize);
 const Catref = CatRefModel(sequelize);
 const D_DimStd = defaultDimStdModel(sequelize);
@@ -103,12 +107,12 @@ Subscription.belongsTo(User, {
 
 // User and Session associations
 User.hasMany(Session, {
-    foreignKey: 'userId',
+    foreignKey: 'user_id',
     as: 'sessions'
 });
 
 Session.belongsTo(User, {
-    foreignKey: 'userId',
+    foreignKey: 'user_id',
     as: 'user'
 });
 
@@ -146,6 +150,8 @@ const db = {
     D_Schedule,
     Size,
     D_Size,
+    BSize,
+    D_B_Size,
     Catref,
     D_Catref,
     DimStd,

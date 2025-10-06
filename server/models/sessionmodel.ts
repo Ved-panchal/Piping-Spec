@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 
 const sessionModel = (sequelize: any) => {
     const Session = sequelize.define('session', {
-        userId: {
+        user_id: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
@@ -15,20 +15,20 @@ const sessionModel = (sequelize: any) => {
             allowNull: false,
             unique: true
         },
-        isActive: {
+        is_active: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
             allowNull: false
         },
-        deviceInfo: {
+        device_info: {
             type: DataTypes.STRING(255),
             allowNull: true
         },
-        ipAddress: {
+        ip_address: {
             type: DataTypes.STRING(45),
             allowNull: true
         },
-        expiresAt: {
+        expires_at: {
             type: DataTypes.DATE,
             allowNull: false
         }
@@ -37,13 +37,13 @@ const sessionModel = (sequelize: any) => {
         underscored: true,
         indexes: [
             {
-                fields: ['userId']
+                fields: ['user_id']
             },
             {
                 fields: ['token']
             },
             {
-                fields: ['isActive']
+                fields: ['is_active']
             }
         ]
     });

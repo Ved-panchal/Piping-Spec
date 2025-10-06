@@ -17,6 +17,7 @@ import componentRoute from "./routes/componentRoutes"
 import ratingRoute from "./routes/ratingRoutes"
 import scheduleRoute from "./routes/scheduleRoutes"
 import sizeRoute from "./routes/sizeRoutes";
+import boltSizeRoute from "./routes/boltSizeRoutes";
 import itemOutputRoutes from "./routes/itemOutputRoutes";
 import pmsCreationRoutes from "./routes/pmsCreationRoutes";
 import catrefRoutes from "./routes/catrefRoutes";
@@ -59,6 +60,7 @@ app.use('/sizeranges',sizeRangeRoute);
 app.use('/ratings',ratingRoute);
 app.use('/schedules',scheduleRoute);
 app.use('/sizes',sizeRoute);
+app.use('/bolt-sizes',boltSizeRoute);
 app.use('/components',componentRoute);
 app.use('/componentdescs',componentDescRoute);
 app.use('/materials',materialRoute);

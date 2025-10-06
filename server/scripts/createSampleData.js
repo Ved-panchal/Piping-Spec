@@ -115,9 +115,9 @@ async function createSampleData() {
             endDate.setDate(endDate.getDate() + plan.allowedDays);
             
             const [subscription] = await Subscription.findOrCreate({
-                where: { userId: user.id },
+                where: { user_id: user.id },
                 defaults: {
-                    userId: user.id,
+                    user_id: user.id,
                     planId: plan.planId,
                     startDate,
                     endDate,
