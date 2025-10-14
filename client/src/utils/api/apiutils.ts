@@ -21,7 +21,7 @@ api.interceptors.request.use(
 // Response interceptor for handling errors
 api.interceptors.response.use(
     response => {
-        console.log("response", response);
+        // console.log("response", response);
         // Handle 200 OK responses
         if (response.data.status === "401" && response.data.error === 'Token expired') {
             localStorage.clear();

@@ -11,6 +11,8 @@ export const getCurrentUserSubscriptions = async (req: Request, res: Response): 
       return;
     }
 
+    console.log("Herererer***********************")
+    
     // Fetch subscriptions for the current user with plan details
     const subscriptions = await db.Subscription.findAll({
       where: { userId: user.id },
@@ -23,10 +25,12 @@ export const getCurrentUserSubscriptions = async (req: Request, res: Response): 
       ],
       order: [['createdAt', 'DESC']]
     });
-
+    console.log("Herererer***********************Subscriptions:  ",subscriptions);
+    
     // Current usage counts
     const projectsCount = await db.Project.count({ where: { userId: user.id, isDeleted: false } });
-
+    
+    console.log("Herererer***********************projectsCount:  ",projectsCount);
     // Count specs that belong to this user's projects
     const specsCount = await db.Spec.count({
       include: [{
@@ -36,6 +40,7 @@ export const getCurrentUserSubscriptions = async (req: Request, res: Response): 
         attributes: []
       }]
     });
+    console.log("Herererer***********************specsCount:  ",specsCount);
 
     res.json({
       success: true,

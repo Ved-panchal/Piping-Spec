@@ -1,5 +1,6 @@
 // defaultSizeModel.js
 import { DataTypes } from "sequelize";
+import projectModel from "./projectmodel";
 
 const boltSizeModel = (sequelize: any) => {
   const boltSize = sequelize.define(
@@ -44,12 +45,28 @@ const boltSizeModel = (sequelize: any) => {
           isDecimal: true,
         },
       },
+      projectId: {
+        type: DataTypes.INTEGER,
+        references: {
+          model: projectModel(sequelize),
+          key: 'id',
+        },
+        allowNull: false,
+        onDelete: "CASCADE",
+      },
     },
     {
       timestamps: true,
       underscored: true,
     }
   );
+
+  boltSize.associate = (models: any) => {
+    boltSize.belongsTo(models.Project, {
+      foreignKey: "projectId",
+      as: "project",
+    });
+  };
 
   return boltSize;
 };

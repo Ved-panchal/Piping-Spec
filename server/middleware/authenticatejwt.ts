@@ -31,23 +31,23 @@ export const authenticateJWT = async (req: Request, res: Response, next: NextFun
         }
 
         // Check if session is still active in database
-        const session = await db.Session.findOne({
-            where: {
-                token: token,
-                is_active: true,
-                user_id: (decoded as any).id,
-                expiresAt: { [Op.gt]: new Date() }
-            }
-        });
+        // const session = await db.Session.findOne({
+        //     where: {
+        //         token: token,
+        //         is_active: true,
+        //         user_id: (decoded as any).id,
+        //         expiresAt: { [Op.gt]: new Date() }
+        //     }
+        // });
 
-        if (!session) {
-            res.json({ 
-                status: "401", 
-                error: 'Session invalid or expired. Please login again.',
-                sessionExpired: true 
-            });
-            return;
-        }
+        // if (!session) {
+        //     res.json({ 
+        //         status: "401", 
+        //         error: 'Session invalid or expired. Please login again.',
+        //         sessionExpired: true 
+        //     });
+        //     return;
+        // }
 
         (req as any).user = decoded;
         next();

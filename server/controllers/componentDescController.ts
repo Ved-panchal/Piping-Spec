@@ -44,10 +44,10 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
     const validProject = await validateProjectAndUser(project_id, userId);
 
     for (const desc of componentDescs) {
-      const { code, c_code, itemDescription,g_type,s_type,short_code,project_id } = desc;
+      const { code, c_code, itemDescription,g_type,s_type,short_code,project_id, ratingrequired, skey } = desc;
 
       let isCode = await db.ComponentDesc.findOne({
-        where: { code , c_code:c_code,itemDescription:itemDescription,g_type:g_type,s_type:s_type,short_code:short_code,project_id:project_id}
+        where: { code , c_code:c_code,itemDescription:itemDescription,g_type:g_type,s_type:s_type,short_code:short_code,ratingrequired: ratingrequired,skey: skey,project_id:project_id}
       });
       
       if (isCode) {
@@ -79,6 +79,8 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
         existingComponentDesc.g_type = g_type;
         existingComponentDesc.s_type = s_type;
         existingComponentDesc.short_code = short_code;
+        existingComponentDesc.ratingrequired = ratingrequired;
+        existingComponentDesc.skey = skey;
         await existingComponentDesc.save();
       } else {
         await db.ComponentDesc.create({
@@ -86,10 +88,11 @@ export const addOrUpdateComponentDesc = async (req: Request, res: Response): Pro
           code,
           c_code,
           itemDescription,
-          ratingrequired:false,
+          ratingrequired,
           g_type,
           s_type,
           short_code,
+          skey,
           project_id,
         });
       }

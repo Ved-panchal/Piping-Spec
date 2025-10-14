@@ -1,5 +1,5 @@
 import React, { useState, useEffect, TdHTMLAttributes } from 'react';
-import { Table, Input, Button, Form, Select, message, Spin } from 'antd';
+import { Table, Input, Button, Form, Select, message, Spin, Checkbox } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import api from '../../utils/api/apiutils'; // API utility
 import { api as configApi } from '../../utils/api/config'; // API config for URLs
@@ -32,6 +32,7 @@ const ComponentConfiguration: React.FC = () => {
   const [newSType, setNewSType] = useState('');
   const [newShortCode, setNewShortCode] = useState('');
   const [newSKey, setNewSkey] = useState('');
+  const [newRatingRequired, setNewRatingRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -101,6 +102,7 @@ const ComponentConfiguration: React.FC = () => {
     setNewGType(undefined);
     setNewSType('');
     setNewShortCode('');
+    setNewRatingRequired(false);
     setSelectedComponentId(componentId);
     fetchComponentDesc(componentId);
   };
@@ -147,6 +149,7 @@ const ComponentConfiguration: React.FC = () => {
         s_type: newSType,
         short_code: newShortCode,
         skey: newSKey,
+        ratingrequired: newRatingRequired,
       };
   
       const payload = {
@@ -161,6 +164,7 @@ const ComponentConfiguration: React.FC = () => {
             s_type: newSType,
             short_code: newShortCode,
             skey: newSKey,
+            ratingrequired: newRatingRequired,
           },
         ],
       };
@@ -177,6 +181,8 @@ const ComponentConfiguration: React.FC = () => {
         setNewGType(undefined);
         setNewSType('');
         setNewShortCode('');
+        setNewSkey('');
+        setNewRatingRequired(false);
         message.success('Component data added successfully');
       } else {
         message.error(response.data.message)
@@ -214,6 +220,12 @@ const ComponentConfiguration: React.FC = () => {
       setEditingKey(null);
       setEditingColumn(null);
     };
+
+    const handleCheckboxChange = (checked: boolean) => {
+      handleEditComponentDesc(record.key, dataIndex as keyof ComponentDesc, checked);
+      setEditingKey(null);
+      setEditingColumn(null);
+    };
   
     return (
       <td {...restProps}>
@@ -235,6 +247,12 @@ const ComponentConfiguration: React.FC = () => {
                 </Option>
               ))}
             </Select>
+          ) : dataIndex === 'ratingrequired' ? (
+            <Checkbox
+              checked={record.ratingrequired}
+              onChange={(e) => handleCheckboxChange(e.target.checked)}
+              autoFocus
+            />
           ) : (
             <Input
               value={localInputValue}
@@ -313,6 +331,8 @@ const ComponentConfiguration: React.FC = () => {
           g_type: componentToUpdate.g_type,
           s_type: componentToUpdate.s_type,
           short_code: componentToUpdate.short_code,
+          ratingrequired: componentToUpdate.ratingrequired,
+          skey: componentToUpdate.skey,
         },
       ],
     };
@@ -399,6 +419,20 @@ const ComponentConfiguration: React.FC = () => {
         record,
         editable: editingKey === record.key && editingColumn === 'skey',
         dataIndex: 'skey',
+      }),
+    },
+    {
+      title: <span>Rating Required</span>,
+      dataIndex: 'ratingrequired',
+      key: 'ratingrequired',
+      width: 120,
+      render: (value: boolean) => (
+        <Checkbox checked={value} disabled />
+      ),
+      onCell: (record: ComponentDesc): EditableCellProps => ({
+        record,
+        editable: editingKey === record.key && editingColumn === 'ratingrequired',
+        dataIndex: 'ratingrequired',
       }),
     },
     {
@@ -551,13 +585,28 @@ const ComponentConfiguration: React.FC = () => {
               <Input
                 placeholder="Enter Skey"
                 className="w-full"
-                value={newShortCode}
+                value={newSKey}
                 onChange={(e) => setNewSkey(e.target.value)}
                 size="middle"
               />
             </Form.Item>
+          </div>
 
-            <div className="col-span-6 flex items-end justify-end">
+          <div className="grid grid-cols-6 gap-3 mt-3">
+            <Form.Item
+              label={<span className="font-semibold">Rating Required ?</span>}
+              colon={false}
+              className="mb-0 col-span-2"
+            >
+              <Checkbox
+                checked={newRatingRequired}
+                onChange={(e) => setNewRatingRequired(e.target.checked)}
+              >
+                
+              </Checkbox>
+            </Form.Item>
+
+            <div className="col-span-4 flex items-end justify-end">
               <Button
                 type="primary"
                 onClick={handleAddComponentDesc}

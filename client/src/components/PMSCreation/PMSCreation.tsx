@@ -302,6 +302,51 @@ const PMSCreation = ({ specId }: { specId: string }) => {
     }
   };
 
+  const fetchBoltSizes = async (projectId: string) => {
+    try {
+      if (!currentProjectId) return;
+
+      const payload = { projectId: projectId };
+
+      const response = await api.post(
+        configApi.API_URL.boltSizes.getall,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (response && response.data && response.data.success) {
+        const boltSizesWithKeys = response.data.boltSizes
+          .map((boltSize: Size) => ({
+            ...boltSize,
+            key: boltSize.code,
+            c_code: boltSize.c_code,
+          }))
+          .sort((a: { size_mm: number }, b: { size_mm: number }) => a.size_mm - b.size_mm);
+        
+        setSizes(boltSizesWithKeys);
+        
+        setDropdownData((prevData) => ({
+          ...prevData,
+          size1: boltSizesWithKeys.map((boltSize: Size) => ({
+            label: boltSize.size1_size2,
+            value: boltSize.code,
+          })),
+          size2: boltSizesWithKeys.map((boltSize: Size) => ({
+            label: boltSize.size1_size2,
+            value: boltSize.code,
+          })),
+        }));
+      } else {
+        showToast({ message: "Failed to fetch bolt sizes.", type: "error" });
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data?.error || "Error fetching bolt sizes.";
+      showToast({ message: errorMessage, type: "error" });
+    }
+  };
+
   const fetchSchedules = async (projectId: string) => {
     try {
       const response = await api.post(configApi.API_URL.schedules.getall, {
@@ -669,9 +714,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       );
   
       const isValv = selectedComponent?.label?.toLowerCase() === "valv";
-  
+      const isStrainer = selectedComponent?.label?.toLowerCase() === "filt";
+      const isBolt = selectedComponent?.label?.toLowerCase() === "bolt";
       let scheduleInfo = null;
-      if (!isValv) {
+      if (!isValv || !isStrainer || !isBolt) {
         const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
   
         scheduleInfo = validateScheduleConsistency(
@@ -701,7 +747,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         size2: {
           code: newItem.size2,
         },
-        ...( !isValv && { schedule: { code: scheduleInfo!.scheduleCode } } ),
+        ...( (!isValv || !isBolt || !isStrainer) && { schedule: { code: scheduleInfo!.scheduleCode } } ),
         rating: {
           code: newItem.rating || "X",
         },
@@ -769,7 +815,10 @@ const PMSCreation = ({ specId }: { specId: string }) => {
 
     fetchComponentDesc(projectId, value);
     fetchMaterials(projectId, value, false);
-
+    // console.log(selectedComponent);
+    if(selectedComponent?.label === "BOLT") {
+      fetchBoltSizes(projectId)
+    }
     if (selectedComponent?.label) {
       fetchDimensionalStandardsByGType(selectedComponent.label);
     }

@@ -4,6 +4,7 @@ import {
   getSizesByProjectId,
 } from "../controllers/sizeController"; // Adjust the path as necessary
 import { authenticateJWT } from "../middleware/authenticatejwt"; // Middleware for JWT authentication
+import { addOrUpdateBoltSizes, getBoltSizesByProjectId } from "../controllers/boltSizeController";
 
 const router = Router();
 
@@ -66,7 +67,7 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/add-or-update", authenticateJWT, addOrUpdateSizes);
+router.post("/add-or-update", authenticateJWT, addOrUpdateBoltSizes);
 
 /**
  * @swagger
@@ -128,6 +129,6 @@ router.post("/add-or-update", authenticateJWT, addOrUpdateSizes);
  *       500:
  *         description: Internal server error
  */
-router.post("/getall", authenticateJWT, getSizesByProjectId);
+router.post("/getall", authenticateJWT, getBoltSizesByProjectId);
 
 export default router;
