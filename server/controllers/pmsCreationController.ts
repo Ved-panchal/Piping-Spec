@@ -375,7 +375,7 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
             }
 
             let size1 = null;
-            if (item.size1_code) {
+            if (item.size1_code && item.component_code !== '22') {
                 size1 = await db.Size.findOne({ 
                     where: { code: item.size1_code },
                     attributes: ['id', 'size1_size2', 'code', 'c_code'] 
@@ -389,8 +389,21 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
                 }
             }
 
+            if(item.size1_code && item.component_code === '22') {
+                size1 = await db.BSize.findOne({
+                    where: { code: item.size1_code },
+                    attributes: ['id', 'size1_size2', 'code', 'c_code'] 
+                })
+                if (!size1) {
+                    size1 = await db.D_B_Size.findOne({ 
+                        where: { code: item.size1_code },
+                        attributes: ['id', 'size1_size2', 'code','c_code'] 
+                    });
+                }
+            }
+
             let size2 = null;
-            if (item.size2_code) {
+            if (item.size2_code && item.component_code !== '22') {
                 size2 = await db.Size.findOne({ 
                     where: { code: item.size2_code },
                     attributes: ['id', 'size1_size2', 'code', 'c_code'] 
@@ -398,6 +411,19 @@ export const getPMSCCreationBySpecId = async (req: Request, res: Response): Prom
 
                 if (!size2) {
                     size2 = await db.D_Size.findOne({ 
+                        where: { code: item.size2_code },
+                        attributes: ['id', 'size1_size2', 'code','c_code'] 
+                    });
+                }
+            }
+
+            if(item.size2_code && item.component_code === '22') {
+                size2 = await db.BSize.findOne({
+                    where: { code: item.size2_code },
+                    attributes: ['id', 'size1_size2', 'code', 'c_code'] 
+                })
+                if (!size2) {
+                    size2 = await db.D_B_Size.findOne({ 
                         where: { code: item.size2_code },
                         attributes: ['id', 'size1_size2', 'code','c_code'] 
                     });

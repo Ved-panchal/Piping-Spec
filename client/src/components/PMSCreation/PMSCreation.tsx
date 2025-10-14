@@ -717,7 +717,8 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       const isStrainer = selectedComponent?.label?.toLowerCase() === "filt";
       const isBolt = selectedComponent?.label?.toLowerCase() === "bolt";
       let scheduleInfo = null;
-      if (!isValv || !isStrainer || !isBolt) {
+      console.log("selectedComponent",isBolt)
+      if (!isValv && !isStrainer && !isBolt) {
         const sizeRange = generateSizeRangeArray(newItem.size1, newItem.size2);
   
         scheduleInfo = validateScheduleConsistency(
@@ -747,7 +748,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
         size2: {
           code: newItem.size2,
         },
-        ...( (!isValv || !isBolt || !isStrainer) && { schedule: { code: scheduleInfo!.scheduleCode } } ),
+        ...( (!isValv && !isBolt && !isStrainer) && { schedule: { code: scheduleInfo!.scheduleCode } } ),
         rating: {
           code: newItem.rating || "X",
         },
