@@ -153,6 +153,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             dimStd,
             sizes,
             dSizes,
+            bsizes,
+            dbsizes,
             schedules,
             dSchedules,
             dcatref,
@@ -178,6 +180,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.DimStd.findAll({where: {project_id:projectId},raw:true}),
             db.Size.findAll({where:{project_id:projectId},raw:true}),
             db.D_Size.findAll({raw:true}),
+            db.BSize.findAll({where:{project_id:projectId},raw:true}),
+            db.D_B_Size.findAll({raw:true}),
             db.Schedule.findAll({where:{project_id:projectId},raw:true}),
             db.D_Schedule.findAll({raw:true}),
             db.D_Catref.findAll({raw:true}),
@@ -236,6 +240,53 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
 
             const size1 = [...sizes, ...dSizes].find((s: Size | D_Size) => s.code == size1_code);
             const size2 = [...sizes, ...dSizes].find((s: Size | D_Size) => s.code == size2_code);
+
+            const bsize1 = [...bsizes, ...dbsizes].find((s: Size | D_Size) => s.code == size1_code);
+            const bsize2 = [...bsizes, ...dbsizes].find((s: Size | D_Size) => s.code == size2_code);
+
+            
+            if (bsize1?.code && bsize2.code && component.componentname === "BOLT") {
+                const sizesInRange = [...bsizes, ...dbsizes].filter(
+                    (size: Size | D_Size) => size.size_mm >= bsize1.size_mm && 
+                            size.size_mm <= bsize2.size_mm
+                ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
+
+                for (const sizeData of sizesInRange) {
+
+                    const catalogRef = [
+                        ...dcatref, 
+                        ...catref
+                    ].find((cat: any) => 
+                        cat.item_short_desc === componentDesc.itemDescription && 
+                        cat.rating === (rating ? rating.ratingValue : null)
+                    );
+                    // console.log(catalogRef)
+                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData.code}${'X'}${'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
+                    
+
+                    processedItems.push({
+                        spec: spec.specName,
+                        CompType: component.componentname,
+                        ShortCode: componentDesc.short_code,
+                        ItemCode: `${componentDesc.code}${sizeData.code}${'X'}${'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
+                        CItemCode: `${componentDesc.c_code}${sizeData.c_code}${'X'}${'XX'}${'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
+                        ItemLongDesc: `${componentDesc.itemDescription}${!rating ? ', ' : ('') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dim_std}`,
+                        ItemShortDesc: componentDesc.itemDescription,
+                        Size1Inch: sizeData.size1_size2,
+                        Size2Inch: 'X',
+                        Size1MM: sizeData.size_mm,
+                        Size2MM: 'X',
+                        Sch1: "XX",
+                        Sch2: 'XX',
+                        Rating: rating ? rating.ratingValue : 'X',
+                        GType: componentDesc.g_type,
+                        SType: componentDesc.s_type,
+                        UnitWeight: unitWeight,
+                        SKey: componentDesc.skey ? componentDesc.skey : "",
+                        Catref: catalogRef ?catalogRef.catalog+"-"+sizeData.size_mm : "",
+                    });
+                }
+            }
 
             if (size1?.code && size2?.code) {
                 const sizesInRange = [...sizes, ...dSizes].filter(
@@ -609,7 +660,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Size2Inch: 'X',
                                 Size1MM: sizeData.size_mm,
                                 Size2MM: 'X',
-                                Sch1: schedule? schedule.sch1_sch2 : "XX",
+                                Sch1: component.componentname === "STRAINER" ? "XX" : schedule? schedule.sch1_sch2 : "XX",
                                 Sch2: 'XX',
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,

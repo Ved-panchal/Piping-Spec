@@ -821,7 +821,7 @@ const PMSCreation = ({ specId }: { specId: string }) => {
       fetchBoltSizes(projectId)
     }
     if (selectedComponent?.label) {
-      fetchDimensionalStandardsByGType(selectedComponent.label);
+      fetchDimensionalStandardsByGType(selectedComponent.label === "STRAINER" ? "FILT" : selectedComponent.label);
     }
   };
 
