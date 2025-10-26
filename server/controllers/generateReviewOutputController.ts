@@ -278,7 +278,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                         Size2MM: 'X',
                         Sch1: "XX",
                         Sch2: 'XX',
-                        Rating: rating ? rating.ratingValue : 'X',
+                        Rating: 'X',
                         GType: componentDesc.g_type,
                         SType: componentDesc.s_type,
                         UnitWeight: unitWeight,
