@@ -137,7 +137,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-2">Office Location</h3>
-                    <p className="text-gray-600">Al Wahda Street, Industrial Area 13, Sharjah, UAE</p>
+                    <p className="text-gray-600">101, Nani Chippwad, Asrafsurs Lane, Yakutpura, Vadodara, Gujarat, india, 390006</p>
                   </div>
                 </div>
 
