@@ -13,6 +13,14 @@ const ValvCatRefModel = (sequelize:any) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      // Stable join key to component_descs.code / default_components.code.
+      // item_short_desc is only a display copy of that row's text at the time
+      // this catref was created; it can drift out of sync if the description
+      // is later renamed, so matching must prefer this code when present.
+      component_desc_code: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       rating: {
         type: DataTypes.STRING,
         allowNull: true,

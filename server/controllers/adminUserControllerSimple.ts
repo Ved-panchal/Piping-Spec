@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import db from '../models';
 import { Op } from 'sequelize';
+import db from '../models';
 
 // Simplified analytics that should work without complex queries
 export const getSimpleAnalytics = async (req: Request, res: Response): Promise<void> => {

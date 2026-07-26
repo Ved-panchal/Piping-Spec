@@ -129,7 +129,6 @@ router.post("/update-unit-weight", authenticateJWT, updateUnitWeight);
  *                       unit_weight:
  *                         type: string
  *                         example: "50.5"
- *                       ...
  *       404:
  *         description: No data found matching the filters
  *       500:
