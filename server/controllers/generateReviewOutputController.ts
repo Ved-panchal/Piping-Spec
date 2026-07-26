@@ -1,5 +1,28 @@
 import { Request, Response } from "express";
 import db from "../models";
+
+// Catref rows created before component_desc_code existed still match by the old
+// free-text description; once a row has a code, that's the only thing that can
+// match, since the description text can be renamed per-project without the
+// catref being updated to match (see componentDescController's merge-by-code).
+function catRefMatchesDesc(cat: any, componentDescCode: string, componentDescText: string | undefined): boolean {
+    return cat.component_desc_code
+        ? cat.component_desc_code === componentDescCode
+        : cat.item_short_desc === componentDescText;
+}
+
+// OLET catalogs (LATROLET, WELDOLET, ...) overload the "rating" column: socket-weld
+// variants store a real pressure class (3000#/6000#), but weld/butt-weld variants
+// store the branch pipe's SCHEDULE instead (a weldolet/latrolet has to match the
+// schedule of the pipe it's welded onto, not a pressure class). An item with no
+// rating selected should therefore also be checked against its schedule before
+// being treated as unmatched.
+function catRefMatchesRatingOrSchedule(cat: any, ratingValue: string | null, schedule1: any, schedule2: any): boolean {
+    if (cat.rating === ratingValue) return true;
+    if (ratingValue !== null) return false;
+    return (!!schedule1 && cat.rating === schedule1.sch1_sch2) || (!!schedule2 && cat.rating === schedule2.sch1_sch2);
+}
+
 interface ProcessedItem {
     spec: string;
     CompType: string;
@@ -153,12 +176,11 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             dimStd,
             sizes,
             dSizes,
-            bsizes,
-            dbsizes,
             schedules,
             dSchedules,
             dcatref,
             catref,
+            [dVCatref, VCatref],
             dVSType,
             VSType,
             dCDesc,
@@ -180,12 +202,14 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.DimStd.findAll({where: {project_id:projectId},raw:true}),
             db.Size.findAll({where:{project_id:projectId},raw:true}),
             db.D_Size.findAll({raw:true}),
-            db.BSize.findAll({where:{project_id:projectId},raw:true}),
-            db.D_B_Size.findAll({raw:true}),
             db.Schedule.findAll({where:{project_id:projectId},raw:true}),
             db.D_Schedule.findAll({raw:true}),
             db.D_Catref.findAll({raw:true}),
             db.Catref.findAll({where:{project_id:projectId},raw:true}),
+            Promise.all([
+                db.D_VCatref.findAll({raw:true}),
+                db.VCatref.findAll({where:{project_id:projectId},raw:true}),
+            ]),
             db.D_VSType.findAll({raw:true}),
             db.VSType.findAll({where:{project_id:projectId},raw:true}),
             db.D_CDesc.findAll({raw:true}),
@@ -194,6 +218,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             db.Branch.findAll({ where: { spec_id: specId } }),
             db.Reducer.findAll({raw:true}),
         ]);
+
         if (!pmsItems || pmsItems.length === 0) {
             res.status(400).json({ message: "No data found for the specified spec ID" });
             return;
@@ -214,7 +239,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                 size2_code,
                 dimensional_standard_id,
             } = item;
-            
+
             // Type-safe finds with explicit typing
             const component = components.find((c: Component) => c.id == component_code);
 
@@ -241,58 +266,12 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
             const size1 = [...sizes, ...dSizes].find((s: Size | D_Size) => s.code == size1_code);
             const size2 = [...sizes, ...dSizes].find((s: Size | D_Size) => s.code == size2_code);
 
-            const bsize1 = [...bsizes, ...dbsizes].find((s: Size | D_Size) => s.code == size1_code);
-            const bsize2 = [...bsizes, ...dbsizes].find((s: Size | D_Size) => s.code == size2_code);
-
-            
-            if (bsize1?.code && bsize2.code && component.componentname === "BOLT") {
-                const sizesInRange = [...bsizes, ...dbsizes].filter(
-                    (size: Size | D_Size) => size.size_mm >= bsize1.size_mm && 
-                            size.size_mm <= bsize2.size_mm
-                ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
-
-                for (const sizeData of sizesInRange) {
-
-                    const catalogRef = [
-                        ...dcatref, 
-                        ...catref
-                    ].find((cat: any) => 
-                        cat.item_short_desc === componentDesc.itemDescription && 
-                        cat.rating === (rating ? rating.ratingValue : null)
-                    );
-                    // console.log(catalogRef)
-                    const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData.code}${'X'}${'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
-                    
-
-                    processedItems.push({
-                        spec: spec.specName,
-                        CompType: component.componentname,
-                        ShortCode: componentDesc.short_code,
-                        ItemCode: `${componentDesc.code}${sizeData.code}${'X'}${'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`,
-                        CItemCode: `${componentDesc.c_code}${sizeData.c_code}${'X'}${'XX'}${'XX'}${rating ? rating.c_rating_code : 'X'}${material.c_code}`,
-                        ItemLongDesc: `${componentDesc.itemDescription}${!rating ? ', ' : ('') + (rating ? rating.ratingValue + ', ' : '')}${material.material_description},${dimensionalStandard.dim_std}`,
-                        ItemShortDesc: componentDesc.itemDescription,
-                        Size1Inch: sizeData.size1_size2,
-                        Size2Inch: 'X',
-                        Size1MM: sizeData.size_mm,
-                        Size2MM: 'X',
-                        Sch1: "XX",
-                        Sch2: 'XX',
-                        Rating: 'X',
-                        GType: componentDesc.g_type,
-                        SType: componentDesc.s_type,
-                        UnitWeight: unitWeight,
-                        SKey: componentDesc.skey ? componentDesc.skey : "",
-                        Catref: catalogRef ?catalogRef.catalog+"-"+sizeData.size_mm : "",
-                    });
-                }
-            }
-
             if (size1?.code && size2?.code) {
                 const sizesInRange = [...sizes, ...dSizes].filter(
                     (size: Size | D_Size) => size.size_mm >= size1.size_mm && 
                             size.size_mm <= size2.size_mm
                 ).sort((a: Size | D_Size, b: Size | D_Size) => a.od - b.od);
+
 
                 for (const sizeData of sizesInRange) {
                     
@@ -306,18 +285,11 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
 
                     if(component.componentname !== "VALV"){
                         if (component.componentname === "TEE") {
-                        let branchValues = branches.filter(
+                        const branchValues = branches.filter(
                             (b: Branch) => b.run_size === sizeData.size_mm && 
-                                b.branch_size >= sizesInRange[0].size_mm && 
-                                b.comp_name === "T"
+                                  b.branch_size >= sizesInRange[0].size_mm && 
+                                  b.comp_name === "T"
                         );
-
-                        if (componentDesc.itemDescription.includes("Red")) {
-                            branchValues = branches.filter(
-                                (b: Branch) => b.run_size === sizeData.size_mm && 
-                                    b.comp_name === "T"
-                            );
-                        }
 
                         for (const branch of branchValues) {
                             const branchRunSize = [...sizes, ...dSizes].find((s: Size | D_Size) => s.size_mm === branch.run_size);
@@ -333,7 +305,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 ...dcatref, 
                                 ...catref
                             ].find((cat: any) => 
-                                cat.item_short_desc === componentDesc.itemDescription && 
+                                catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && 
                                 cat.rating === (rating ? rating.ratingValue : null)
                             );
                             const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
@@ -403,7 +375,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         ...dcatref, 
                                         ...catref
                                     ].find((cat: any) => 
-                                        cat.item_short_desc === componentDesc.itemDescription && 
+                                        catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) &&
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
 
@@ -436,13 +408,11 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 // Handle regular REDUCER type
                                 const reducerSizes = reducer.filter(
                                     (r: any) => r.type === 'REDUCER' &&
-                                    parseFloat(r.big_size) >= parseFloat(size1.size1_size2) && 
-                                    parseFloat(r.big_size) <= parseFloat(size2.size1_size2) && 
-                                    parseFloat(r.big_size) == parseFloat(sizeData.size1_size2) &&
-                                    parseFloat(r.small_size) <= parseFloat(size2.size1_size2) && 
-                                    parseFloat(r.small_size) >= parseFloat(size1.size1_size2)
+                                    r.big_size >= size1.size1_size2 && r.big_size <= size2.size1_size2 && r.big_size == sizeData.size1_size2 &&
+                                    r.small_size <= size2.size1_size2 && r.small_size >= size1.size1_size2
                                 );
 
+                                console.log("reducerSizes", reducerSizes);
                                 for (const reducerSize of reducerSizes) {
                                     const bigSizeData = [...sizes, ...dSizes].find(
                                         (s: Size | D_Size) => s.size1_size2 == reducerSize.big_size
@@ -454,7 +424,8 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                     const existsInSizeRange2 = sizeRanges.some(
                                         (sr: SizeRange) => sr.size_code === smallSizeData?.code && sr.specId === specId
                                     );
-                        
+                                    
+                                    console.log("existsInSizeRange2 in REUDUCER Only",existsInSizeRange2,bigSizeData,smallSizeData);
                                     if ( !existsInSizeRange2 || !bigSizeData || !smallSizeData) {
                                         continue;
                                     }
@@ -479,7 +450,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         ...dcatref, 
                                         ...catref
                                     ].find((cat: any) => 
-                                        cat.item_short_desc === componentDesc.itemDescription && 
+                                        catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && 
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
 
@@ -549,7 +520,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                         ...dcatref, 
                                         ...catref
                                     ].find((cat: any) => 
-                                        cat.item_short_desc === componentDesc.itemDescription && 
+                                        catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && 
                                         cat.rating === (rating ? rating.ratingValue : null)
                                     );
 
@@ -597,13 +568,27 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 const schedule1 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch1Code?.schedule_code);
                                 const schedule2 = [...schedules, ...dSchedules].find((s: Schedule | D_Schedule) => s.code == sch2Code?.schedule_code);
 
-                                const catalogRef = [
-                                    ...dcatref, 
-                                    ...catref
-                                ].find((cat: any) => 
-                                    cat.item_short_desc === componentDesc.itemDescription && 
-                                    cat.rating === (rating ? rating.ratingValue : null)
+                                // const catalogRef = [
+                                //     ...dcatref, 
+                                //     ...catref
+                                // ].find((cat: any) => 
+                                //     cat.item_short_desc === componentDesc.itemDescription && 
+                                //     cat.rating === (rating ? rating.ratingValue : null)
+                                // );
+                                const combinedCatalogRef = [...dcatref, ...catref];
+                                const catalogRef = combinedCatalogRef.find((cat: any) =>
+                                    catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) &&
+                                    catRefMatchesRatingOrSchedule(cat, rating ? rating.ratingValue : null, schedule1, schedule2)
                                 );
+
+                                combinedCatalogRef.forEach((cat: any) => {
+                                    if (catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && cat.rating === (rating ? rating.ratingValue : null)) {
+                                        console.log("Item Short Desc", cat);
+                                        console.log("Cat  Desc", componentDesc);
+                                        console.log("Cat rating", cat.rating);
+                                        console.log("rating", rating ? rating.ratingValue : null);
+                                    }
+                                });
 
                                 const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${branchRunSize.code}${branchSize.code}${schedule1 ? sch1Code.schedule_code : 'XX'}${schedule2 ? sch2Code.schedule_code : 'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
 
@@ -637,13 +622,19 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 (s: Schedule | D_Schedule) => s.code === scheduleCode?.schedule_code
                             );
 
-                            const catalogRef = [
-                                ...dcatref, 
-                                ...catref
-                            ].find((cat: any) => 
-                                cat.item_short_desc === componentDesc.itemDescription && 
-                                cat.rating === (rating ? rating.ratingValue : null)
+                            const combinedCatalogRef = [...dcatref, ...catref];
+                            const catalogRef = combinedCatalogRef.find((cat: any) => 
+                                catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && cat.rating === (rating ? rating.ratingValue : null)
                             );
+
+                            combinedCatalogRef.forEach((cat: any) => {
+                                if (catRefMatchesDesc(cat, component_desc_code, componentDesc.itemDescription) && cat.rating == (rating ? rating.ratingValue : null)) {
+                                    console.log("Item Short Desc", cat);
+                                    console.log("Cat  Desc", componentDesc);
+                                    console.log("Cat rating", cat.rating);
+                                    console.log("rating", rating ? rating.ratingValue : null);
+                                }
+                            });
                             // console.log(catalogRef)
                             const unitWeight = reviewOutput.find((item: any) => item.item_code === `${componentDesc.code}${sizeData.code}${'X'}${schedule ? scheduleCode.schedule_code : 'XX'}${'XX'}${rating ? rating.ratingCode : 'X'}${material.code}`)?.unit_weight || '0.00';
                             
@@ -660,7 +651,7 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                                 Size2Inch: 'X',
                                 Size1MM: sizeData.size_mm,
                                 Size2MM: 'X',
-                                Sch1: component.componentname === "STRAINER" ? "XX" : schedule? schedule.sch1_sch2 : "XX",
+                                Sch1: schedule? schedule.sch1_sch2 : "XX",
                                 Sch2: 'XX',
                                 Rating: rating ? rating.ratingValue : 'X',
                                 GType: componentDesc.g_type,
@@ -740,9 +731,11 @@ export const generateReviewOutput = async (req: Request, res: Response): Promise
                     (v: any) => v.code == valv_sub_type_code
                 );
 
-                const catalogRef = [...dcatref, ...catref].find(
+                // VALV components are catalogued in the valv_catref tables (they carry
+                // valv_sub_type/construction_desc), not the regular catref tables.
+                const catalogRef = [...dVCatref, ...VCatref].find(
                     (cat: any) =>
-                        cat.item_short_desc === componentDesc?.itemDescription &&
+                        catRefMatchesDesc(cat, component_desc_code, componentDesc?.itemDescription) &&
                         cat.rating === (rating ? rating.ratingValue : null)
                 );
 

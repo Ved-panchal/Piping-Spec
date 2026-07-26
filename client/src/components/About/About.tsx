@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Users, Clock, Award, UserCheck } from "lucide-react";
-import Aboutsctimg from "../../assets/Aboutsctimg.jpg";
+import Aboutsctimg from "/home/lakshya/lakshya/projects/freelance/Piping-Spec/client/src/assets/AboutSctimg.jpg";
 
 export default function AboutUsSection() {
   const navigate = useNavigate();

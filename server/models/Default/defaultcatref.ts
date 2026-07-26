@@ -12,6 +12,10 @@ const DefaultCatRefModel = (sequelize:any) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      component_desc_code: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       rating: {
         type: DataTypes.STRING,
         allowNull: true,

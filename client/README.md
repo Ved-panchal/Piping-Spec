@@ -48,3 +48,58 @@ export default tseslint.config({
   },
 })
 ```
+
+
+                         SPEC A2K
+                            │
+                            ▼
+                     PMS CREATIONS
+                            │
+              Component engineering rules
+                            │
+                  Size1 ------- Size2
+                            │
+                            ▼
+                  Expand master sizes
+                            │
+                            ▼
+                     SIZING RANGE
+                            │
+                 Is this size allowed?
+                            │
+                      NO ───┴─── YES
+                      │           │
+                    skip          ▼
+                              Get Schedule
+                                  │
+                                  ▼
+                     What component type?
+                                  │
+          ┌───────────┬───────────┼────────────┐
+          │           │           │            │
+        NORMAL       TEE        OLET        REDUCER
+          │           │           │            │
+          │           ▼           ▼            ▼
+          │       Branch Table  Branch Table  Reducer table
+          │           │           │
+          │       code = T     W/H/O/S/L
+          │           │           │
+          │           ▼           ▼
+          │       run × branch run × branch
+          │           │           │
+          └───────────┴───────────┴────────────┘
+                                  │
+                                  ▼
+                           Get schedules
+                                  │
+                                  ▼
+                           Get CatRef
+                                  │
+                                  ▼
+                        Build ItemCode
+                                  │
+                                  ▼
+                       Build Description
+                                  │
+                                  ▼
+                         REVIEW OUTPUT

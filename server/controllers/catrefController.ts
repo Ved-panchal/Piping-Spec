@@ -155,35 +155,40 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
     }
 
     for (const catRef of catRefs) {
-      const { 
-        item_short_desc, 
-        rating, 
-        concatenate, 
+      const {
+        item_short_desc,
+        component_desc_code,
+        rating,
+        concatenate,
         catalog,
         project_id,
         valv_sub_type,
         construction_desc
       } = catRef;
 
-      const processedRating = rating == "null" ? null : rating;
-        
+      const processedRating = (rating == "null" || rating === "") ? null : rating;
+
         if (componentId === 19) {
-      
+
         const existingUserValvCatRef = await db.VCatref.findOne({
           where: { component_id: componentId, item_short_desc, concatenate, project_id }
         });
 
         if (existingUserValvCatRef && project_id) {
-          existingUserValvCatRef.rating = rating;
+          existingUserValvCatRef.rating = processedRating;
           existingUserValvCatRef.catalog = catalog;
           existingUserValvCatRef.valv_sub_type = valv_sub_type;
           existingUserValvCatRef.construction_desc = construction_desc;
+          if (component_desc_code !== undefined) {
+            existingUserValvCatRef.component_desc_code = component_desc_code;
+          }
           await existingUserValvCatRef.save();
         } else {
           if (project_id) {
             await db.VCatref.create({
               component_id: componentId,
               item_short_desc,
+              component_desc_code,
               rating: processedRating,
               concatenate,
               catalog,
@@ -198,16 +203,21 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
         const existingUserCatRef = await db.Catref.findOne({
           where: { component_id: componentId, item_short_desc, concatenate, project_id }
         });
-
+        console.log("Existing User CatRef:", existingUserCatRef);
+        console.log("Project ID:", project_id);
         if (existingUserCatRef && project_id) {
-          existingUserCatRef.rating = rating;
+          existingUserCatRef.rating = processedRating;
           existingUserCatRef.catalog = catalog;
+          if (component_desc_code !== undefined) {
+            existingUserCatRef.component_desc_code = component_desc_code;
+          }
           await existingUserCatRef.save();
         } else {
           if (project_id) {
             await db.Catref.create({
               component_id: componentId,
               item_short_desc,
+              component_desc_code,
               rating: processedRating,
               concatenate,
               catalog,
@@ -217,6 +227,7 @@ export const addOrUpdateCatRef = async (req: Request, res: Response): Promise<vo
             await db.D_Catref.create({
               component_id: componentId,
               item_short_desc,
+              component_desc_code,
               rating: processedRating,
               concatenate,
               catalog
